@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三菱電梯門機構 3D 實機版 — NexWay 世代門機判定鏈</title>
+<style>
+  :root{
+    --bg:#12100f; --panel:#1d1817; --card:#272020; --line:#453734;
+    --txt:#f0e6e2; --dim:#b89f96; --accent:#ff5560; --ok:#37d67a; --warn:#ffb02e; --bad:#ff5252; --cyan:#39c5ff;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;background:var(--bg);color:var(--txt);
+    font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;overflow:hidden}
+  #app{display:flex;flex-direction:column;height:100%}
+  header{display:flex;align-items:center;gap:14px;padding:10px 16px;background:var(--panel);
+    border-bottom:1px solid var(--line);flex-wrap:wrap}
+  header h1{font-size:17px;font-weight:700;letter-spacing:.5px}
+  header h1 span{color:var(--accent)}
+  .ctrl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  button,a.btn{background:var(--card);color:var(--txt);border:1px solid var(--line);border-radius:8px;
+    padding:6px 12px;font-size:13px;cursor:pointer;transition:.15s;text-decoration:none;display:inline-block}
+  button:hover,a.btn:hover{border-color:var(--accent);color:var(--accent)}
+  button.primary{background:var(--accent);color:#2e070a;border-color:var(--accent);font-weight:700}
+  button.on{background:#5c1a22;border-color:var(--accent);color:#ffb3b9}
+  main{flex:1;display:flex;min-height:0}
+  #viewport{flex:1;position:relative;min-width:0}
+  #viewport canvas{display:block}
+  #stepChip{position:absolute;top:12px;left:12px;background:rgba(18,16,15,.85);border:1px solid var(--accent);
+    border-radius:10px;padding:8px 14px;backdrop-filter:blur(4px);max-width:430px}
+  #stepChip .no{color:var(--accent);font-weight:800;font-size:13px}
+  #stepChip .ti{font-size:16px;font-weight:700;margin-top:2px}
+  #timerChip{position:absolute;top:12px;left:50%;transform:translateX(-50%);display:none;
+    background:rgba(20,30,18,.9);border:1px solid var(--ok);border-radius:10px;padding:8px 16px;text-align:center}
+  #timerChip .v{font-size:22px;font-weight:800;color:var(--ok);font-variant-numeric:tabular-nums}
+  #timerChip .l{font-size:11px;color:var(--dim)}
+  #banner{position:absolute;top:32%;left:50%;transform:translate(-50%,-50%) scale(.9);opacity:0;
+    background:rgba(13,44,26,.92);border:2px solid var(--ok);border-radius:14px;padding:16px 30px;
+    font-size:22px;font-weight:800;color:var(--ok);transition:.35s;pointer-events:none;text-align:center;white-space:nowrap}
+  #banner.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  #circuit{position:absolute;left:50%;transform:translateX(-50%);bottom:64px;display:flex;align-items:center;
+    background:rgba(18,16,15,.88);border:1px solid var(--line);border-radius:10px;padding:7px 12px;gap:0;backdrop-filter:blur(4px)}
+  #circuit .node{font-size:11.5px;padding:4px 9px;border:1px solid #5a4a45;border-radius:7px;color:var(--dim);white-space:nowrap}
+  #circuit .node.on{border-color:var(--ok);color:var(--ok);box-shadow:0 0 7px rgba(55,214,122,.4)}
+  #circuit .wire{width:18px;height:2px;background:#5a4a45}
+  #circuit .wire.on{background:var(--ok);box-shadow:0 0 6px var(--ok)}
+  #circuit .tag{font-size:10px;color:var(--dim);margin-right:8px}
+  #signals{position:absolute;left:12px;bottom:12px;display:flex;gap:8px;flex-wrap:wrap;max-width:calc(100% - 250px)}
+  .sig{background:rgba(18,16,15,.85);border:1px solid var(--line);border-radius:8px;padding:5px 10px;
+    font-size:12px;display:flex;align-items:center;gap:6px;backdrop-filter:blur(4px)}
+  .sig i{width:10px;height:10px;border-radius:50%;background:#4a3c38;display:inline-block;flex:none}
+  .sig.on i{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+  .sig.bad i{background:var(--bad);box-shadow:0 0 8px var(--bad)}
+  .sig.warn i{background:var(--warn);box-shadow:0 0 8px var(--warn)}
+  #speedBox{position:absolute;right:12px;bottom:12px;background:rgba(18,16,15,.85);border:1px solid var(--line);
+    border-radius:10px;padding:8px 10px 6px;backdrop-filter:blur(4px)}
+  #speedBox .l{font-size:11px;color:var(--dim);margin-bottom:4px}
+  #loopFlash{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .25s}
+  #bom{position:absolute;inset:24px;background:rgba(18,16,15,.97);border:1px solid var(--accent);border-radius:14px;
+    padding:18px 22px;display:none;overflow:auto;z-index:30}
+  #bom h3{color:var(--accent);font-size:17px;margin-bottom:10px}
+  #bom table{width:100%;border-collapse:collapse;font-size:13px}
+  #bom th,#bom td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;line-height:1.55}
+  #bom th{color:var(--warn);font-size:12px}
+  #bom td:first-child{white-space:nowrap;font-weight:700}
+  #bom td:nth-child(2){white-space:nowrap;color:var(--cyan);font-family:Menlo,monospace;font-size:12px}
+  #bom .close{position:absolute;top:12px;right:14px}
+  aside{width:400px;flex:none;background:var(--panel);border-left:1px solid var(--line);
+    display:flex;flex-direction:column;min-height:0}
+  #stepList{display:flex;flex-wrap:wrap;gap:5px;padding:10px 12px;border-bottom:1px solid var(--line)}
+  #stepList button{padding:4px 9px;font-size:12px;border-radius:6px}
+  #stepList button.act{background:var(--accent);color:#2e070a;border-color:var(--accent);font-weight:700}
+  #detail{flex:1;overflow-y:auto;padding:14px 16px}
+  #detail h2{font-size:17px;color:var(--accent);margin-bottom:10px;line-height:1.4}
+  .field{margin-bottom:12px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .field .k{font-size:12px;font-weight:700;letter-spacing:1px;margin-bottom:5px;display:flex;align-items:center;gap:6px}
+  .field .k::before{content:"";width:8px;height:8px;border-radius:2px;display:inline-block}
+  .field.trig .k{color:var(--warn)} .field.trig .k::before{background:var(--warn)}
+  .field.ctrl .k{color:var(--cyan)} .field.ctrl .k::before{background:var(--cyan)}
+  .field.mech .k{color:#c792ea} .field.mech .k::before{background:#c792ea}
+  .field.next .k{color:var(--ok)} .field.next .k::before{background:var(--ok)}
+  .field .v{font-size:13.5px;line-height:1.75;color:var(--txt)}
+  .field .v b{color:var(--warn)}
+  #detail .note{font-size:11.5px;color:var(--dim);line-height:1.7;border-top:1px dashed var(--line);
+    padding-top:10px;margin-top:14px}
+  .lbl{color:#1a0d0b;background:rgba(244,230,224,.93);border-radius:5px;padding:1px 7px;font-size:11px;
+    font-weight:700;white-space:nowrap;pointer-events:none;border:1px solid rgba(0,0,0,.25)}
+  .lbl.code{background:rgba(255,213,140,.95)}
+  @media (max-width:980px){ aside{width:330px} }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>🛗 三菱電梯門機構 <span>3D 實機版（NexWay 世代）</span></h1>
+    <div class="ctrl">
+      <button id="btnPlay" class="primary">⏸ 暫停</button>
+      <button id="btnPrev">⏮ 上一步</button>
+      <button id="btnNext">下一步 ⏭</button>
+      <button id="btnSpeed">速度 1×</button>
+      <span style="width:8px"></span>
+      <button id="camAll" class="on">全景</button>
+      <button id="camMachine">門機特寫</button>
+      <button id="camLock">門刀／門鎖特寫</button>
+      <button id="camSide">側面剖視</button>
+      <span style="width:8px"></span>
+      <button id="btnXray" class="on">X-ray 透視</button>
+      <button id="btnLabel" class="on">零件標籤</button>
+      <button id="btnBom">📋 真實零件表</button>
+      <a class="btn" href="index.html">↩ 教學版</a>
+      <a class="btn" href="fujitec.html">🟠 富士達</a>
+      <a class="btn" href="kone.html">🔵 通力</a>
+    </div>
+  </header>
+  <main>
+    <div id="viewport">
+      <div id="stepChip"><div class="no">STEP</div><div class="ti">載入中…</div></div>
+      <div id="timerChip"><div class="v">3.0 s</div><div class="l">門站時間倒數（SDE 再遮斷會歸零重數）</div></div>
+      <div id="banner">✓ 41DG 門連鎖迴路導通 — 允許電梯運行</div>
+      <div id="circuit">
+        <span class="tag">門連鎖串聯迴路</span>
+        <span class="node" id="cGS">GS 轎門鎖</span><span class="wire" id="w1"></span>
+        <span class="node" id="cDS1">DS 本層廳門鎖</span><span class="wire" id="w2"></span>
+        <span class="node" id="cDSn">DS 其他層×N</span><span class="wire" id="w3"></span>
+        <span class="node" id="c41">41DG</span>
+      </div>
+      <div id="signals">
+        <div class="sig" id="sigSDE"><i></i>SDE 光幕</div>
+        <div class="sig" id="sigOLT"><i></i>OLT 開門到位</div>
+        <div class="sig" id="sigCLT"><i></i>CLT 關門到位</div>
+        <div class="sig" id="sigVane"><i></i>門刀夾持中</div>
+        <div class="sig" id="sigGS"><i></i>GS 轎門鎖</div>
+        <div class="sig" id="sigDS"><i></i>DS 廳門鎖</div>
+        <div class="sig" id="sig41"><i></i>41DG</div>
+      </div>
+      <div id="speedBox"><div class="l">門速曲線（FG 速度回授）｜▲＝現在</div><canvas id="speedCv" width="216" height="64"></canvas></div>
+      <div id="loopFlash"></div>
+      <div id="bom">
+        <button class="close" id="bomClose">✕ 關閉</button>
+        <h3>📋 三菱門系統真實零件對照表</h3>
+        <table>
+          <tr><th>零件／訊號</th><th>代號</th><th>功能（白話）</th></tr>
+          <tr><td>PM 永磁同步門機馬達</td><td>—</td><td>扁平碟型、外圈放射狀散熱鰭，直接驅動皮帶輪——沒有減速機、沒有連桿，這是 NexWay 世代門機的招牌（官方說明：由聯動機構改為 PM 電機直驅）</td></tr>
+          <tr><td>門機控制板</td><td>DOR 系列</td><td>門機的大腦：VVVF 變頻驅動馬達＋所有開關門判定都在這片板（市售料號如 DOR-144A、DOR-111B）；馬達動力線從出線管接入</td></tr>
+          <tr><td>同步齒型帶</td><td>—</td><td>齒在內側咬合皮帶輪；上下兩股各夾一扇門，所以兩扇門永遠等速對開對關</td></tr>
+          <tr><td>編碼器／速度回授</td><td>FG</td><td>馬達尾端小圓殼；回報門的位置與速度，減速點靠它判定</td></tr>
+          <tr><td>吊門板（門掛板）＋滑輪</td><td>—</td><td>鈑金板（帶減重孔）掛門板；PU 胎面滑輪沿門導軌滾動；下方偏心調整的防跳輪防脫軌</td></tr>
+          <tr><td>門導軌</td><td>—</td><td>斜頂面斷面的鋼軌，滑輪騎在斜頂上自動對中</td></tr>
+          <tr><td>門刀（夾緊式）</td><td>—</td><td>兩片帶導入斜角的長刀片＋平行四邊形連桿＋拉簧；夾住廳門的開鎖滾輪，把廳門「咬」著一起開關</td></tr>
+          <tr><td>開鎖滾輪</td><td>—</td><td>廳門側被門刀夾的兩顆軸承滾輪；被夾住時頂開廳門鎖鉤＝解鎖</td></tr>
+          <tr><td>廳門鎖鉤＋接點</td><td>DS</td><td>鉤形鑄件（鉤喙咬住鎖座滾輪銷）；門刀放開後彈簧＋自重勾合；勾到底尾端接點橋才橋接 DS 接點導通</td></tr>
+          <tr><td>轎門鎖開關</td><td>GS</td><td>三菱特色：轎門也有電氣門鎖，轎門全閉、斜面撞塊壓上接點才導通（接在 RCE 板 B03）</td></tr>
+          <tr><td>門連鎖迴路</td><td>41DG</td><td>GS＋每一層 DS 全部串聯的總迴路；41DG 亮＝所有門都關好鎖好，電梯才准走。維保查門故障先看這顆燈</td></tr>
+          <tr><td>光幕／安全觸板</td><td>SDE</td><td>門邊鋁擠型條內一排紅外線投受光點；遮斷→立即重開門（故障碼 FSDE 系列）</td></tr>
+          <tr><td>開門到位訊號</td><td>OLT</td><td>門全開的判定（NexWay 由編碼器位置判定；故障碼 FOLT 系列）</td></tr>
+          <tr><td>關門到位訊號</td><td>CLT</td><td>門全關的判定（故障碼 FCLT 系列）</td></tr>
+          <tr><td>門鎖短接偵測</td><td>E41S</td><td>防呆：有人拿導線短接門鎖迴路（危險違規行為）會被系統偵測並鎖梯</td></tr>
+          <tr><td>運行中開門保護</td><td>DOPN</td><td>電梯走到一半 41DG 突然斷（門被扒開）→ 急停（故障碼 811SW_DOPN）</td></tr>
+          <tr><td>廳門自閉重錘</td><td>—</td><td>鋼索＋重錘掛在廳門吊板上：就算停電、門刀沒夾，廳門也會被重錘拉回關閉＋上鎖（防止有人掉進井道）</td></tr>
+          <tr><td>地坎＋門滑塊（導靴）</td><td>—</td><td>鋁擠型地坎帶溝槽；門板下端的尼龍滑塊在溝槽內滑行，防止門片下擺</td></tr>
+        </table>
+      </div>
+    </div>
+    <aside>
+      <div id="stepList"></div>
+      <div id="detail"></div>
+    </aside>
+  </main>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+/* ============ 時間軸（同教學版，已驗證）============ */
+const T_TOTAL = 16.5;
+const ei  = t => t*t;
+const eo  = t => 1-(1-t)*(1-t);
+const eio = t => t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+const seg = (t,a,b) => Math.min(1, Math.max(0,(t-a)/(b-a)));
+
+function dOf(t){
+  if (t < 2.15)  return 1 - 0.45*ei(seg(t,0,2.15));
+  if (t < 2.50)  return 0.55 - 0.035*eo(seg(t,2.15,2.50));
+  if (t < 3.00)  return 0.515;
+  if (t < 5.00)  return 0.515 + 0.485*eio(seg(t,3.0,5.0));
+  if (t < 8.80)  return 1;
+  if (t < 9.60)  return 1 - 0.06*ei(seg(t,8.8,9.6));
+  if (t < 12.40) return 0.94 - 0.88*eio(seg(t,9.6,12.4));
+  if (t < 12.85) return 0.06 - 0.06*eo(seg(t,12.4,12.85));
+  return 0;
+}
+function vaneClamp(t){
+  if (t < 12.90) return 1;
+  if (t < 13.50) return 1 - eio(seg(t,12.9,13.5));
+  return 0;
+}
+function hookOpen(t){
+  if (t < 13.55) return 1;
+  if (t < 14.05) return 1 - eo(seg(t,13.55,14.05));
+  return 0;
+}
+function boxZ(t){
+  if (t < 1.0)  return -1.5;
+  if (t < 2.15) return -1.5 + 1.35*eio(seg(t,1.0,2.15));
+  if (t < 4.6)  return -0.15;
+  if (t < 6.2)  return -0.15 + 1.25*eio(seg(t,4.6,6.2));
+  return 1.1;
+}
+const sdeBlocked = t => Math.abs(boxZ(t)) < 0.27 && dOf(t) > 0.12;
+const sig = t => ({
+  sde  : !sdeBlocked(t),
+  olt  : dOf(t) > 0.995,
+  clt  : dOf(t) < 0.005 && t > 12.5,
+  vane : vaneClamp(t) > 0.5,
+  gs   : dOf(t) < 0.005 && t > 12.5,
+  ds   : t >= 14.15,
+  dg41 : t >= 14.3,
+  safety: t >= 14.7,
+});
+
+/* ============ 步驟（三菱真實訊號版）============ */
+const STEPS = [
+{t0:0, t1:2.15, no:'S0', short:'關門中', title:'S0 關門中（首次嘗試）',
+ trig:'門站時間計時到（或按關門鈕）→ 控制屏對門機控制板（<b>DOR 系列</b>）下「關門」指令。',
+ ctrl:'DOR 板用 VVVF 變頻驅動 <b>PM 永磁同步馬達「直驅」皮帶輪</b>——沒有減速機、沒有連桿，這是 NexWay 世代門機的招牌。全程同時盯三件事：① <b>SDE</b>（光幕／安全觸板）有沒有遮斷 ② 馬達電流有沒有超過防夾門檻 ③ 編碼器位置＋<b>FG 速度回授</b>。',
+ mech:'馬達直驅同步齒型帶（齒在內側咬皮帶輪）→ 上下兩股皮帶各夾一扇門（永遠等速對開對關）→ 吊門板 PU 滑輪沿斜頂門導軌滾動 → <b>門刀</b>夾著廳門的<b>開鎖滾輪</b>，把廳門「咬」著一起關。',
+ next:'關門途中 SDE 被遮 → 跳 S1「重開門判定」；一路順利 → 直接到 S7（CLT 關門到位）。',
+ focus:['beams','motor','belt']},
+{t0:2.15, t1:3.0, no:'S1', short:'SDE 遮斷', title:'S1 SDE 遮斷 → 判定重開門',
+ trig:'貨物擋住光幕任一束 → <b>SDE 迴路瞬斷</b>（光束變紅）。SDE＝安全觸板訊號，新機多為非接觸式光幕；它失效會記 FSDE 系列故障碼。',
+ ctrl:'判定邏輯：「正在關門」＋「SDE 斷」同時成立 → DOR 板毫秒級令馬達減速煞停、再反轉。備援判定：就算光幕故障，馬達電流超過防夾門檻（門真的碰到人）一樣觸發重開門。',
+ mech:'皮帶煞停 → 切換反向。不是瞬間反彈，是「先煞停再反轉」，避免機構衝擊。',
+ next:'反轉指令成立 → S2 重開門。',
+ focus:['beams','curtain']},
+{t0:3.0, t1:5.0, no:'S2', short:'重開門', title:'S2 重開門（馬達反轉）',
+ trig:'執行中持續比對編碼器位置與 <b>FG 速度回授</b>（閉環控制：實際速度跟不上指令速度就報門機故障）。',
+ ctrl:'改走開門方向速度曲線。開門通常比關門快——往安全方向可以快，往會夾人的方向必須慢。',
+ mech:'皮帶反向 → 兩扇門對開；門刀仍夾著開鎖滾輪、廳門跟著一起開；<b>廳門鎖鉤</b>早在門刀夾緊時就被頂開，維持解鎖。廳門自閉重錘同時被拉高（儲存關門的力量）。',
+ next:'編碼器數到全開位置 → <b>OLT</b> 訊號 ON。',
+ focus:['motor','belt','vane']},
+{t0:5.0, t1:5.8, no:'S3', short:'OLT 到位', title:'S3 開門到位判定（OLT）',
+ trig:'<b>OLT（開門到位）訊號 ON</b>。NexWay 世代由編碼器位置判定（取代舊式機械限位），訊號名沿用 OLT；異常時報 FOLT 系列故障碼。',
+ ctrl:'判定到位 → 停止行進輸出，保留小的「開門保持力矩」，門不會被人用手扒回去。',
+ mech:'門停在全開位置。',
+ next:'OLT 確認 → 啟動「門站時間」計時器。',
+ focus:['openLim']},
+{t0:5.8, t1:8.8, no:'S4', short:'門站計時', title:'S4 開門等待（門站時間）',
+ trig:'門站時間倒數（可在控制屏設定，畫面上方顯示）。',
+ ctrl:'倒數期間 SDE 持續監測。判定規則：<b>SDE 再被遮一次，計時器歸零重數</b>——這就是一直有人進出時門不會關的原因。',
+ mech:'門保持全開；貨物通過門口進到轎廂內，離開光束範圍後 SDE 恢復導通（綠燈）。',
+ next:'三條件同時成立：① 計時到 0 ② SDE 導通 ③ 沒有人按著開門鈕。',
+ focus:['beams','curtain']},
+{t0:8.8, t1:9.6, no:'S5', short:'關門啟動', title:'S5 關門啟動判定',
+ trig:'S4 三條件全過 → 控制屏發出「關門」指令。',
+ ctrl:'DOR 板刻意低速起步——門剛開始合攏時最容易夾到正要進來的人，這段全程最慢。',
+ mech:'皮帶慢速啟動，兩扇門開始合攏；門刀咬著廳門一起動。',
+ next:'起步段走完（編碼器確認）→ S6 正常關門曲線。',
+ focus:['motor']},
+{t0:9.6, t1:12.4, no:'S6', short:'關門行程', title:'S6 關門行程（S 曲線）',
+ trig:'全程以<b>編碼器位置</b>決定該跑多快。「減速點」本身就是位置判定：門走到離全關剩一小段，提前減速。',
+ ctrl:'S 曲線：加速 → 等速 → 提前減速 → 低速爬行進站（右下角 FG 速度錶的 ▲ 游標）。FG 回授閉環＋持續監看 SDE 與防夾電流。',
+ mech:'同 S0：皮帶拉門、滑輪滾動、門刀帶著廳門一起關。',
+ next:'編碼器到「接近全關」→ 切低速爬行 → 等 <b>CLT</b> 作動。',
+ focus:['belt','motor']},
+{t0:12.4, t1:13.6, no:'S7', short:'CLT+門刀釋放', title:'S7 關門到位（CLT）＋ 門刀釋放',
+ trig:'兩扇門合攏 → <b>CLT（關門到位）訊號 ON</b>（異常報 FCLT 系列故障碼）。',
+ ctrl:'馬達停止行進，改輸出小的「關門保持力矩」，把門輕輕壓緊。',
+ mech:'<b>門刀兩片刀片向內收攏 → 放開廳門的開鎖滾輪</b> → 轎門與廳門「脫鉤」。從這一刻起廳門要靠自己的鎖。建議切「門刀／門鎖特寫」鏡頭。',
+ next:'門刀完全脫開滾輪 → 廳門鎖鉤失去支撐 → 可以落下勾合，進 S8。',
+ focus:['vane','closeLim']},
+{t0:13.6, t1:14.6, no:'S8', short:'DS+GS 鎖閉', title:'S8 門鎖勾合 — DS 與 GS 兩道都要',
+ trig:'門刀放開後，<b>廳門鎖鉤</b>靠彈簧＋自重落下、鉤喙咬住鎖座滾輪銷 → 勾到底時鉤尾銅接點橋接 <b>DS（廳門鎖）接點</b>。同一時間轎門全閉，斜面撞塊壓上 <b>GS（轎門鎖）接點</b>——三菱連轎門都有電氣門鎖，兩道缺一不可。',
+ ctrl:'重點判定：「機械勾上」≠「系統知道」。鎖鉤必須勾到底接點才導通——差一點點都不算數。這是機械鎖＋電氣確認的雙重保險。',
+ mech:'看特寫：鎖鉤落下 → 接點橋碰上兩片彈片接點 → DS 訊號燈亮；同時下方迴路燈條 GS、DS 依序亮起。',
+ next:'GS＋DS 訊號送進門連鎖迴路 → S9 判定 41DG。',
+ focus:['hook','contacts','gsSw']},
+{t0:14.6, t1:16.5, no:'S9', short:'41DG 導通', title:'S9 41DG 門連鎖迴路導通 → 允許運行',
+ trig:'<b>GS＋每一層樓每一扇廳門的 DS，全部「串聯」成一條迴路＝41DG</b>。任何一層沒鎖好，41DG 不亮、電梯不走。維保口訣：查門故障，先看控制屏上的 41DG 指示燈。',
+ ctrl:'控制屏量到 41DG ON → 解除運行禁止 → 主機抱閘才允許鬆開。加碼兩道保護：① <b>E41S 短接偵測</b>——有人拿導線短接門鎖迴路會被系統抓到並鎖梯 ② 運行中 41DG 突然斷（門被扒開）→ <b>DOPN「運行中開門」</b>立即急停。',
+ mech:'白話比喻：像一串老式聖誕燈泡，少一顆全串不亮。電梯永遠不會在「哪扇門沒鎖好」的狀態下移動。',
+ next:'電梯起動離站；到站後又從開門開始下一輪循環（本動畫自動重播）。',
+ focus:['contacts','hook','gsSw']},
+];
+
+/* ============ Three.js 場景 ============ */
+const vp = document.getElementById('viewport');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x12100f);
+scene.fog = new THREE.Fog(0x12100f, 7, 16);
+
+const camera = new THREE.PerspectiveCamera(46, 1, 0.05, 50);
+camera.position.set(0.4, 1.9, 4.4);
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+vp.appendChild(renderer.domElement);
+
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.domElement.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none';
+vp.appendChild(labelRenderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 1.5, 0);
+controls.enableDamping = true; controls.dampingFactor = .08;
+controls.maxDistance = 10; controls.minDistance = .4;
+
+scene.add(new THREE.HemisphereLight(0xe8d8cf, 0x2e2724, 1.2));
+const key = new THREE.DirectionalLight(0xffffff, 2.2);
+key.position.set(3, 5, 4); key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+key.shadow.camera.left=-3; key.shadow.camera.right=3;
+key.shadow.camera.top=4;  key.shadow.camera.bottom=-1;
+scene.add(key);
+const fill = new THREE.DirectionalLight(0xffb39a, 0.6);
+fill.position.set(-3, 3, -3); scene.add(fill);
+const pFront = new THREE.PointLight(0xfff2dd, 22, 7); pFront.position.set(0, 2.5, 1.8); scene.add(pFront);
+const pHall  = new THREE.PointLight(0xffd9c4, 14, 6); pHall.position.set(-0.3, 2.3, -1.4); scene.add(pHall);
+
+const M = {
+  steel  : new THREE.MeshStandardMaterial({color:0xa8b5c2, metalness:.7, roughness:.38}),
+  dark   : new THREE.MeshStandardMaterial({color:0x4d5a68, metalness:.55, roughness:.5}),
+  frame  : new THREE.MeshStandardMaterial({color:0x3a322e, metalness:.4,  roughness:.7}),
+  motor  : new THREE.MeshStandardMaterial({color:0xc23a45, metalness:.5, roughness:.42}),
+  belt   : new THREE.MeshStandardMaterial({color:0x14181c, roughness:.92}),
+  tooth  : new THREE.MeshStandardMaterial({color:0x3c444c, roughness:.8}),
+  cable  : new THREE.MeshStandardMaterial({color:0x191919, roughness:.9}),
+  pulley : new THREE.MeshStandardMaterial({color:0xc8d2dc, metalness:.85, roughness:.3}),
+  pu     : new THREE.MeshStandardMaterial({color:0xeef2f5, metalness:.05, roughness:.5}),
+  nylon  : new THREE.MeshStandardMaterial({color:0xd8d2c4, metalness:.0,  roughness:.7}),
+  panel  : new THREE.MeshPhysicalMaterial({color:0xc9c0b9, metalness:.85, roughness:.3, transparent:true, opacity:.34}),
+  landing: new THREE.MeshPhysicalMaterial({color:0x9a9089, metalness:.85, roughness:.35, transparent:true, opacity:.30}),
+  plateX : new THREE.MeshStandardMaterial({color:0x5a5048, metalness:.55, roughness:.5, transparent:true, opacity:.30}),
+  hangerX: new THREE.MeshStandardMaterial({color:0xb5aca3, metalness:.7, roughness:.38, transparent:true, opacity:.38, side:THREE.DoubleSide}),
+  vane   : new THREE.MeshStandardMaterial({color:0xffb02e, metalness:.6,  roughness:.4}),
+  hook   : new THREE.MeshStandardMaterial({color:0xd64545, metalness:.6,  roughness:.4}),
+  copper : new THREE.MeshStandardMaterial({color:0xd98a3a, metalness:.9,  roughness:.3}),
+  sw     : new THREE.MeshStandardMaterial({color:0x2f8f5b, metalness:.4,  roughness:.6}),
+  pcb    : new THREE.MeshStandardMaterial({color:0x1d6b4a, metalness:.3,  roughness:.6}),
+  alu    : new THREE.MeshStandardMaterial({color:0x8e99a4, metalness:.8,  roughness:.35}),
+  sill   : new THREE.MeshStandardMaterial({color:0x6b7682, metalness:.7,  roughness:.45, side:THREE.DoubleSide}),
+  floorH : new THREE.MeshStandardMaterial({color:0x2b2522, roughness:.95}),
+  floorC : new THREE.MeshStandardMaterial({color:0x352e29, roughness:.9}),
+  box    : new THREE.MeshStandardMaterial({color:0xcf7a30, roughness:.8}),
+  curtain: new THREE.MeshStandardMaterial({color:0x10151a, roughness:.6, emissive:0x07301c, emissiveIntensity:.6}),
+  lens   : new THREE.MeshStandardMaterial({color:0x0c2018, emissive:0x16c95e, emissiveIntensity:.9}),
+};
+const B = (w,h,d,m)=>{const x=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);x.castShadow=x.receiveShadow=true;return x};
+const CYL=(r,len,m,seg2=28)=>{const g=new THREE.CylinderGeometry(r,r,len,seg2);g.rotateX(Math.PI/2);
+  const x=new THREE.Mesh(g,m);x.castShadow=x.receiveShadow=true;return x};
+const HEX=(r,h,m=M.steel)=>{const g=new THREE.CylinderGeometry(r,r,h,6);g.rotateX(Math.PI/2);
+  const x=new THREE.Mesh(g,m);x.castShadow=true;return x};
+function extrude(shapePts, depth, m, holes){
+  const s=new THREE.Shape();
+  shapePts.forEach((p,i)=> i? s.lineTo(p[0],p[1]) : s.moveTo(p[0],p[1]));
+  s.closePath();
+  if(holes) for(const h of holes){ const p=new THREE.Path(); p.absarc(h[0],h[1],h[2],0,Math.PI*2,true); s.holes.push(p); }
+  const geo=new THREE.ExtrudeGeometry(s,{depth,bevelEnabled:false});
+  const mesh=new THREE.Mesh(geo,m); mesh.castShadow=mesh.receiveShadow=true; return mesh;
+}
+
+const labels = [];
+function addLabel(target, text, dy=0, dx=0, dz=0, code=false){
+  const div = document.createElement('div'); div.className='lbl'+(code?' code':''); div.textContent=text;
+  const o = new CSS2DObject(div); o.position.set(dx,dy,dz); target.add(o); labels.push(o); return o;
+}
+
+/* ---- 地板、台架 ---- */
+const hallF = B(4.6, .04, 1.9, M.floorH); hallF.position.set(0,-.02,-1.30); scene.add(hallF);
+const carF  = B(4.6, .04, 1.9, M.floorC); carF.position.set(0,-.02, 1.13); scene.add(carF);
+addLabel(hallF,'門廳側（樓層）', .06, -1.6, -.3);
+addLabel(carF, '轎廂內', .06, -1.6, .4);
+for (const sx of [-1.32, 1.32]){
+  const col = B(.07, 2.75, .07, M.frame); col.position.set(sx, 1.375, .14); scene.add(col);
+}
+const topBeam = B(2.71, .07, .07, M.frame); topBeam.position.set(0, 2.72, .14); scene.add(topBeam);
+
+/* ---- 地坎：鋁擠型斷面（含門滑塊溝槽）---- */
+function sillProfile(){
+  // 斷面（localX=深度方向 0..0.13、localY=高 0..0.045），溝槽在 localX .072~.092
+  return [[0,0],[.13,0],[.13,.045],[.092,.045],[.092,.018],[.072,.018],[.072,.045],[0,.045]];
+}
+const carSill = extrude(sillProfile(), 2.3, M.sill);
+carSill.rotation.y=Math.PI/2; carSill.position.set(-1.15, 0, .15); scene.add(carSill);
+const lndSill = extrude(sillProfile(), 2.3, M.sill);
+lndSill.rotation.y=Math.PI/2; lndSill.position.set(-1.15, 0, -.135); scene.add(lndSill);
+const sillLbl1=new THREE.Object3D(); sillLbl1.position.set(1.05,.05,.085); scene.add(sillLbl1);
+addLabel(sillLbl1,'轎門地坎（鋁擠型・含滑塊溝槽）');
+const sillLbl2=new THREE.Object3D(); sillLbl2.position.set(-1.05,.05,-.2); scene.add(sillLbl2);
+addLabel(sillLbl2,'廳門地坎');
+
+/* ---- 門機機座板＋導軌 ---- */
+const PANEL_W=.5, TRAVEL=.45;
+const basePlate = B(2.5, .38, .03, M.plateX); basePlate.position.set(0, 2.49, .06); scene.add(basePlate);
+/* 門導軌：斜頂斷面（滑輪騎在斜頂自動對中） */
+const railMesh = extrude([[0,0],[.03,0],[.03,.032],[.015,.045],[0,.032]], 2.34, M.steel);
+railMesh.rotation.y=Math.PI/2; railMesh.position.set(-1.17, 2.2775, .115); scene.add(railMesh);
+for(const bx of [-.9,-.45,.45,.9]){ const b=HEX(.007,.008); b.position.set(bx,2.296,.119); scene.add(b); }
+const railLbl=new THREE.Object3D(); railLbl.position.set(1.0,2.345,.10); scene.add(railLbl);
+addLabel(railLbl,'門導軌（斜頂斷面）');
+
+/* ---- PM 永磁碟型馬達（直驅・放射散熱鰭）＋編碼器＋出線管 ---- */
+const motorG = new THREE.Group(); motorG.position.set(-1.0, 2.50, 0); scene.add(motorG);
+const motorBody = CYL(.112, .115, M.motor); motorBody.position.z=.21; motorG.add(motorBody);
+for(let i=0;i<24;i++){ // 放射狀散熱鰭
+  const a=i/24*Math.PI*2;
+  const fin=B(.024,.006,.10,M.motor);
+  fin.position.set(Math.cos(a)*.122, Math.sin(a)*.122, .21);
+  fin.rotation.z=a; motorG.add(fin);
+}
+const faceCap=CYL(.05,.022,M.dark); faceCap.position.z=.144; motorG.add(faceCap);
+for(let i=0;i<4;i++){ const a=i/4*Math.PI*2+.4;
+  const bolt=HEX(.007,.01); bolt.position.set(Math.cos(a)*.085,Math.sin(a)*.085,.155); motorG.add(bolt); }
+const namePlt=B(.05,.026,.002,M.alu); namePlt.position.set(0,-.078,.2685); motorG.add(namePlt);
+const encoder = CYL(.045,.05, M.dark); encoder.position.z=.295; motorG.add(encoder);
+const encCap  = CYL(.02,.012, M.alu);  encCap.position.z=.323; motorG.add(encCap);
+addLabel(motorBody,'PM 永磁同步門機馬達（碟型直驅・無減速機無連桿）', .18, 0, 0);
+addLabel(encoder,'編碼器＋FG 速度回授', -.09, 0, .03, true);
+const motorBracket = B(.2, .16, .05, M.frame); motorBracket.position.set(-1.0, 2.50, .10); scene.add(motorBracket);
+
+/* ---- 齒型皮帶輪（齒＋擋邊法蘭）---- */
+function toothedPulley(){
+  const g=new THREE.Group();
+  const body=CYL(.054,.042,M.pulley); g.add(body);
+  for(let i=0;i<20;i++){
+    const a=i/20*Math.PI*2;
+    const th=B(.0085,.009,.04,M.pulley);
+    th.position.set(Math.cos(a)*.0585,Math.sin(a)*.0585,0); th.rotation.z=a; g.add(th);
+  }
+  const f1=CYL(.068,.004,M.steel); f1.position.z=.024; g.add(f1);
+  const f2=CYL(.068,.004,M.steel); f2.position.z=-.024; g.add(f2);
+  return {g, body};
+}
+const dp = toothedPulley(); dp.g.position.set(-1.0,2.50,.10); scene.add(dp.g);
+const ip = toothedPulley(); ip.g.position.set( 1.0,2.50,.10); scene.add(ip.g);
+const drivePul = dp.g, idlePul = ip.g;
+
+/* ---- DOR 門機控制板（上蓋螺絲＋散熱鰭＋出線管＋狀態 LED）---- */
+const dorBox = B(.34,.24,.05,M.dark); dorBox.position.set(.62,2.52,.175); scene.add(dorBox);
+const dorPcb = B(.30,.20,.012,M.pcb); dorPcb.position.set(.62,2.52,.205); scene.add(dorPcb);
+const dorLED = new THREE.Mesh(new THREE.SphereGeometry(.007,12,12),
+  new THREE.MeshStandardMaterial({color:0x123018, emissive:0x16c95e, emissiveIntensity:1.2}));
+dorLED.position.set(.74,2.60,.213); scene.add(dorLED);
+for(const [bx,by] of [[-.155,.105],[.155,.105],[-.155,-.105],[.155,-.105]]){
+  const b=HEX(.006,.008); b.position.set(.62+bx,2.52+by,.202); scene.add(b);
+}
+for(let i=0;i<5;i++){ const fin=B(.012,.18,.028,M.steel); fin.position.set(.50+i*.06,2.52,.14); scene.add(fin); }
+const gl1=CYL(.011,.03,M.cable); gl1.rotation.x=Math.PI/2; gl1.position.set(.54,2.39,.175); scene.add(gl1);
+const gl2=CYL(.011,.03,M.cable); gl2.rotation.x=Math.PI/2; gl2.position.set(.70,2.39,.175); scene.add(gl2);
+addLabel(dorBox,'門機控制板（DOR 系列・VVVF）', .17, 0, .03, true);
+
+/* ---- 馬達 → DOR 板 動力出線管 ---- */
+{
+  const pts=[new THREE.Vector3(-1.0,2.615,.26), new THREE.Vector3(-.75,2.685,.21),
+             new THREE.Vector3(-.2,2.705,.19),  new THREE.Vector3(.4,2.665,.19),
+             new THREE.Vector3(.54,2.41,.18)];
+  const tube=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),48,.0075,10),M.cable);
+  tube.castShadow=true; scene.add(tube);
+}
+
+/* ---- 同步齒型帶（齒在內側）---- */
+const beltUp = B(2.0,.012,.034, M.belt); beltUp.position.set(0,2.56,.10); scene.add(beltUp);
+const beltDn = B(2.0,.012,.034, M.belt); beltDn.position.set(0,2.44,.10); scene.add(beltDn);
+addLabel(beltUp,'同步齒型帶（齒在內側・上下股各拉一扇門）', .06, .1, 0);
+const PITCH=.05, NT=40;
+const teethUp = new THREE.Group(), teethDn = new THREE.Group();
+for(let i=0;i<NT;i++){
+  const a=B(.018,.008,.03,M.tooth); a.position.set(-1.0+i*PITCH+PITCH/2, 2.550, .10); teethUp.add(a);
+  const b=B(.018,.008,.03,M.tooth); b.position.set(-1.0+i*PITCH+PITCH/2, 2.450, .10); teethDn.add(b);
+}
+scene.add(teethUp, teethDn);
+
+/* ---- OLT / CLT 到位感知（滾輪槓桿微動開關型）---- */
+function limitSwitch(x, name){
+  const g=new THREE.Group(); g.position.set(x, 2.165, .12); scene.add(g);
+  const body=B(.06,.05,.04,M.sw); g.add(body);
+  for(const by of [-.018,.018]){ const b=HEX(.0045,.006); b.position.set(-.024,by,.021); g.add(b); }
+  const mount=B(.018,.14,.018,M.frame); mount.position.set(0,.105,-.025); g.add(mount);
+  const lever=new THREE.Group(); lever.position.set(0,.025,0); g.add(lever);
+  const arm=B(.01,.07,.004,M.steel); arm.position.y=.035; lever.add(arm);
+  const tip=CYL(.013,.012,M.pu); tip.position.y=.073; lever.add(tip);
+  addLabel(body,name,-.06,0,.02,true);
+  return {g,lever,body};
+}
+const swOpen  = limitSwitch(-.95,'OLT 開門到位');
+const swClose = limitSwitch(-.04,'CLT 關門到位');
+
+/* ---- GS 轎門鎖開關（彈片接點＋斜面撞塊）---- */
+const gsG = new THREE.Group(); gsG.position.set(.10, 2.355, .105); scene.add(gsG);
+const gsBody = B(.055,.05,.035,M.sw); gsG.add(gsBody);
+const gsPin1 = B(.006,.03,.003,M.copper); gsPin1.position.set(-.012,-.038,.004); gsPin1.rotation.x=.18; gsG.add(gsPin1);
+const gsPin2 = B(.006,.03,.003,M.copper); gsPin2.position.set( .012,-.038,.004); gsPin2.rotation.x=.18; gsG.add(gsPin2);
+addLabel(gsBody,'GS 轎門鎖開關（轎門全閉才導通）', .07, .05, 0, true);
+/* 斜面撞塊（裝在右吊門板，全閉時滑入 GS 下方橋接彈片） */
+const gsCam = extrude([[0,0],[.06,0],[.06,.014],[.012,.022],[0,.022]], .05, M.copper);
+gsCam.rotation.y=Math.PI/2; // 斜面朝行進方向
+
+/* ---- 吊門板（鈑金＋減重孔）＋PU 滑輪＋防跳輪＋門板 ---- */
+function puWheel(rOut, width){
+  const g=new THREE.Group();
+  const tread=CYL(rOut,width,M.pu); g.add(tread);
+  const sideA=CYL(rOut*.72,width+.005,M.alu); g.add(sideA);
+  const hub=CYL(.013,width+.012,M.dark); g.add(hub);
+  const nut=HEX(.0085,.008); nut.position.z=width/2+.01; g.add(nut);
+  return g;
+}
+function hanger(side){
+  const g = new THREE.Group(); scene.add(g);
+  // 鈑金吊門板：上角斜切＋兩個減重孔
+  const plate = extrude(
+    [[-.23,-.15],[.23,-.15],[.23,.10],[.185,.15],[-.185,.15],[-.23,.10]],
+    .012, M.hangerX, [[-.07,-.04,.036],[.07,-.04,.036]]);
+  plate.position.set(0,2.24,.082); g.add(plate);
+  const rollers=[];
+  for(const rx of [-.13,.13]){
+    const w=puWheel(.048,.026); w.position.set(rx,2.3705,.10); g.add(w); rollers.push(w);
+    const boss=CYL(.011,.02,M.steel); boss.position.set(rx,2.3705,.085); g.add(boss);
+  }
+  for(const rx of [-.175,.175]){ // 防跳輪（偏心調整）
+    const w=puWheel(.018,.022); w.position.set(rx,2.2595,.10); g.add(w); rollers.push(w);
+    const ecc=HEX(.008,.01); ecc.position.set(rx,2.2515,.085); g.add(ecc); // 偏心螺栓
+  }
+  // 皮帶夾（齒型壓板＋兩支螺栓）
+  const clampY = side<0 ? 2.44 : 2.56;
+  const post = B(.036, clampY-2.39+.03, .018, M.dark); post.position.set(side*.15,(2.39+clampY+.03)/2-.015,.112); g.add(post);
+  const clamp= B(.085,.046,.046,M.vane); clamp.position.set(side*.15,clampY,.10); g.add(clamp);
+  for(const bx of [-.025,.025]){ const b=HEX(.0055,.007); b.position.set(side*.15+bx,clampY,.126); g.add(b); }
+  // 門板（背面兩道補強肋）
+  const panel=B(PANEL_W,2.08,.03,M.panel); panel.position.set(0,1.06,.05); g.add(panel);
+  for(const rx of [-.12,.12]){ const rib=B(.05,1.9,.007,M.panel); rib.position.set(rx,1.06,.0695); g.add(rib); }
+  // 門滑塊（尼龍導靴，滑進地坎溝槽）＋固定座
+  const gibBkt=B(.07,.03,.012,M.steel); gibBkt.position.set(0,.058,.066); g.add(gibBkt);
+  const gib=B(.065,.035,.017,M.nylon); gib.position.set(0,.031,.066); g.add(gib);
+  // SDE 光幕鋁擠型條＋投受光點
+  const strip=B(.02,1.9,.025,M.curtain); strip.position.set(side*-1*(PANEL_W/2-.015),1.0,.03); g.add(strip);
+  for(let i=0;i<8;i++){
+    const dot=new THREE.Mesh(new THREE.SphereGeometry(.0045,10,10),M.lens);
+    dot.position.set(side*-1*(PANEL_W/2-.015), .22+i*1.56/7, .044); g.add(dot);
+  }
+  return {g, rollers, plate, panel, strip, clamp, post};
+}
+const hL = hanger(-1), hR = hanger(1);
+gsCam.position.set(-.185, 2.312, .091); hR.g.add(gsCam);  // 全閉時滑到 GS 下方（world x≈+0.095）
+addLabel(hL.plate,'吊門板（鈑金・減重孔）＋PU 滑輪', .2, -.1, 0);
+addLabel(hL.panel,'轎門板（左・背面補強肋）', -.35, -.12, .05);
+addLabel(hR.panel,'轎門板（右）', -.35, .12, .05);
+addLabel(hL.strip,'SDE 光幕（鋁擠型條・紅外線投受光點）', -.55, 0, .03, true);
+addLabel(hL.clamp,'皮帶夾（齒型壓板）', .05, -.06, 0);
+
+/* SDE 光束 */
+const NBEAM=10;
+const beamGeo=new THREE.BufferGeometry();
+beamGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(NBEAM*2*3),3));
+const beamMat=new THREE.LineBasicMaterial({color:0x37d67a, transparent:true, opacity:.85});
+const beams=new THREE.LineSegments(beamGeo,beamMat); scene.add(beams);
+
+/* ---- 門刀（兩片導入斜角刀片＋平行連桿＋拉簧）---- */
+const vaneG = new THREE.Group(); vaneG.position.set(0, 2.0, .03); hL.g.add(vaneG);
+const vaneMount = extrude([[-.09,-.05],[.09,-.05],[.09,.05],[-.09,.05]], .014, M.dark, [[-.06,0,.008],[.06,0,.008]]);
+vaneMount.position.set(0,.18,-.014); vaneG.add(vaneMount);
+function vaneBlade(){
+  // 刀片輪廓：上下端導入斜角（六角長條），厚 12mm；旋轉後輪廓寬度落在 Z（±.08）
+  const b=extrude([[-.08,-.13],[-.03,-.18],[.03,-.18],[.08,-.13],[.08,.13],[.03,.18],[-.03,.18],[-.08,.13]], .012, M.vane);
+  b.rotation.y=Math.PI/2;   // 厚度轉向 X、輪廓落在 YZ 面
+  const g=new THREE.Group(); b.position.set(-.006,0,0); g.add(b);
+  return g;
+}
+const bladeL = vaneBlade(); bladeL.position.set(-.03,0,-.075); vaneG.add(bladeL);
+const bladeR = vaneBlade(); bladeR.position.set( .03,0,-.075); vaneG.add(bladeR);
+const bladeLMesh = bladeL.children[0], bladeRMesh = bladeR.children[0];
+function vaneArm(){
+  const g=new THREE.Group();
+  const bar=B(.016,.1,.005,M.steel); g.add(bar);
+  const b1=HEX(.006,.008); b1.position.set(0,.05,.005); g.add(b1);
+  const b2=HEX(.006,.008); b2.position.set(0,-.05,.005); g.add(b2);
+  return g;
+}
+const linkL = vaneArm(); linkL.position.set(-.02,.16,-.02); linkL.rotation.z=.3; vaneG.add(linkL);
+const linkR = vaneArm(); linkR.position.set( .02,.16,-.02); linkR.rotation.z=-.3; vaneG.add(linkR);
+{ // 拉簧（兩刀片頂端之間）
+  const pts=[]; const N=90;
+  for(let i=0;i<=N;i++){ const u=i/N, a=u*Math.PI*2*7;
+    pts.push(new THREE.Vector3(-.028+.056*u, .21+Math.cos(a)*.006, -.05+Math.sin(a)*.006)); }
+  const spring=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),120,.0018,6),M.steel);
+  vaneG.add(spring);
+}
+addLabel(bladeLMesh,'門刀（夾緊式・導入斜角刀片＋平行連桿＋拉簧）', -.26, 0, 0);
+
+/* ---- 廳門總成 ---- */
+const lndHeader = B(2.5,.34,.03,M.dark); lndHeader.position.set(0,2.30,-.315); scene.add(lndHeader);
+addLabel(lndHeader,'廳門門楣（每層樓一套）', .21, .9, 0);
+const lndRailMesh = extrude([[0,0],[.026,0],[.026,.028],[.013,.04],[0,.028]], 2.34, M.steel);
+lndRailMesh.rotation.y=Math.PI/2; lndRailMesh.position.set(-1.17, 2.19, -.257); scene.add(lndRailMesh);
+function lndHanger(side){
+  const g=new THREE.Group(); scene.add(g);
+  const plate=extrude([[-.22,-.12],[.22,-.12],[.22,.08],[.18,.12],[-.18,.12],[-.22,.08]], .011, M.hangerX, [[0,-.02,.03]]);
+  plate.position.set(0,2.20,-.2455); g.add(plate);
+  const rollers=[];
+  for(const rx of [-.12,.12]){
+    const w=puWheel(.042,.024); w.position.set(rx,2.272,-.27); g.add(w); rollers.push(w);
+  }
+  const panel=B(PANEL_W,2.06,.028,M.landing); panel.position.set(0,1.05,-.21); g.add(panel);
+  const gibBkt=B(.07,.03,.012,M.steel); gibBkt.position.set(0,.058,-.21); g.add(gibBkt);
+  const gib=B(.065,.035,.017,M.nylon); gib.position.set(0,.031,-.215); g.add(gib);
+  return {g,plate,panel,rollers};
+}
+const lL = lndHanger(-1), lR = lndHanger(1);
+addLabel(lL.panel,'廳門板（被門刀帶動）', -.5, -.1, -.02);
+
+/* ---- 開鎖滾輪臂（軸承滾輪×2）---- */
+const armG = new THREE.Group(); armG.position.set(0, 2.10, -.24); lL.g.add(armG);
+const armBar = B(.028,.22,.012,M.steel); armBar.position.set(0,-.05,0); armG.add(armBar);
+function lockRoller(){
+  const g=new THREE.Group();
+  const tire=CYL(.026,.024,M.copper); g.add(tire);
+  const brg=CYL(.012,.03,M.steel); g.add(brg);
+  const nut=HEX(.007,.007); nut.position.z=.018; g.add(nut);
+  return g;
+}
+const cR1=lockRoller(); cR1.position.set(-.06,-.10,.135); armG.add(cR1);
+const cR2=lockRoller(); cR2.position.set( .06,-.10,.135); armG.add(cR2);
+const stand1=B(.011,.011,.27,M.steel); stand1.position.set(-.06,-.10,.0); armG.add(stand1);
+const stand2=B(.011,.011,.27,M.steel); stand2.position.set( .06,-.10,.0); armG.add(stand2);
+addLabel(cR1,'開鎖滾輪×2（被門刀夾住＝解鎖）', -.1, -.05, .05);
+
+/* ---- 廳門鎖鉤（真實鉤形鑄件）＋鎖座滾輪銷＋DS 彈片接點 ---- */
+const hookG = new THREE.Group(); hookG.position.set(-.02, 2.345, -.285); lL.g.add(hookG);
+/* 鉤體輪廓：樞軸圓頭 → 長臂 → 端部鉤喙（咬滾輪銷）→ 尾端接點橋座 */
+const hookBody = extrude(
+  [[-.085,.020],[ .16,.020],[.225,.012],[.247,-.012],[.247,-.045],[.236,-.066],[.216,-.066],
+   [.214,-.045],[.222,-.022],[.196,-.013],[.0,-.016],[-.085,-.016]],
+  .014, M.hook);
+hookBody.position.z=-.007; hookG.add(hookBody);
+const hookBoss = CYL(.024,.022,M.hook); hookG.add(hookBoss);
+const hookPin  = HEX(.009,.012,M.dark); hookPin.position.z=.014; hookG.add(hookPin);
+const bridge = B(.07,.012,.02,M.copper); bridge.position.set(-.065,.027,0); hookG.add(bridge);
+const sprAnchor = CYL(.005,.01,M.steel); sprAnchor.position.set(.06,.026,0); hookG.add(sprAnchor);
+addLabel(hookBody,'廳門鎖鉤（鉤喙咬鎖座滾輪銷・彈簧＋自重勾合）', .12, .1, 0);
+/* 鎖座：托架＋滾輪銷（鉤喙咬這顆） */
+const kBkt = B(.036,.06,.012,M.steel); kBkt.position.set(-.075,2.328,-.306); scene.add(kBkt);
+const keeper = CYL(.011,.034,M.steel); keeper.position.set(-.075,2.30,-.285); scene.add(keeper);
+const kRoll  = CYL(.0165,.02,M.copper); kRoll.position.set(-.075,2.30,-.285); scene.add(kRoll);
+addLabel(keeper,'鎖座滾輪銷（固定於門楣）', -.07, .05, 0);
+/* DS 接點座（電木座＋兩片彈片） */
+const contactBase = B(.1,.03,.03,M.dark); contactBase.position.set(-.335,2.42,-.285); scene.add(contactBase);
+const cPin1 = B(.007,.034,.003,M.copper); cPin1.position.set(-.355,2.398,-.283); cPin1.rotation.x=.15; cPin1.rotation.z=.08; scene.add(cPin1);
+const cPin2 = B(.007,.034,.003,M.copper); cPin2.position.set(-.315,2.398,-.283); cPin2.rotation.x=.15; cPin2.rotation.z=-.08; scene.add(cPin2);
+const lockLED = new THREE.Mesh(new THREE.SphereGeometry(.012,16,16),
+  new THREE.MeshStandardMaterial({color:0x333a42, emissive:0x000000}));
+lockLED.position.set(-.335,2.452,-.275); scene.add(lockLED);
+addLabel(contactBase,'DS 廳門鎖接點（彈片・串入 41DG 迴路）', .07, -.12, 0, true);
+
+/* ---- 廳門自閉重錘（斷電也會自動關門）---- */
+const cwPulley = CYL(.022,.014,M.steel); cwPulley.position.set(.62,2.16,-.30); scene.add(cwPulley);
+const cwWeight = new THREE.Mesh(new THREE.CylinderGeometry(.021,.021,.13,16),M.dark);
+cwWeight.castShadow=true; cwWeight.position.set(.62,1.6,-.30); scene.add(cwWeight);
+const ropeGeo=new THREE.BufferGeometry();
+ropeGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3*3),3));
+const rope=new THREE.Line(ropeGeo, new THREE.LineBasicMaterial({color:0x999999}));
+scene.add(rope);
+addLabel(cwWeight,'廳門自閉重錘（停電也能拉回關門）', -.1, 0, 0);
+
+/* ---- 貨物推車 ---- */
+const cart = new THREE.Group(); scene.add(cart);
+const cbody=B(.3,.42,.3,M.box); cbody.position.y=.3; cart.add(cbody);
+const ctop =B(.26,.06,.26,M.box); ctop.position.y=.54; cart.add(ctop);
+for(const [wx,wz] of [[-.11,-.11],[.11,-.11],[-.11,.11],[.11,.11]]){
+  const w=CYL(.035,.02,M.dark); w.rotation.y=Math.PI/2; w.position.set(wx,.035,wz); cart.add(w);
+}
+addLabel(cbody,'貨物（遮斷 SDE 光幕）', .45, 0, 0);
+
+/* ---- Highlight ---- */
+const FOCUS = {
+  beams   : [],
+  curtain : [hL.strip, hR.strip],
+  motor   : [motorBody, dp.body],
+  belt    : [beltUp, beltDn],
+  vane    : [bladeLMesh, bladeRMesh],
+  openLim : [swOpen.body],
+  closeLim: [swClose.body],
+  hook    : [hookBody],
+  contacts: [cPin1, cPin2, bridge],
+  gsSw    : [gsBody, gsCam],
+};
+let curFocusMats = [];
+function setFocus(keys){
+  for(const m of curFocusMats){ m.emissive.setHex(m.userData._em??0); m.emissiveIntensity=1; }
+  curFocusMats = [];
+  const seen = new Set();
+  for(const k of keys) for(const mesh of (FOCUS[k]||[])){
+    const m = mesh.material;
+    if(seen.has(m.uuid)) continue; seen.add(m.uuid);
+    if(m.userData._em===undefined) m.userData._em = m.emissive ? m.emissive.getHex() : 0;
+    curFocusMats.push(m);
+  }
+}
+
+/* ============ UI ============ */
+const ui = {
+  play  : document.getElementById('btnPlay'),
+  prev  : document.getElementById('btnPrev'),
+  next  : document.getElementById('btnNext'),
+  speed : document.getElementById('btnSpeed'),
+  xray  : document.getElementById('btnXray'),
+  label : document.getElementById('btnLabel'),
+  chipNo: document.querySelector('#stepChip .no'),
+  chipTi: document.querySelector('#stepChip .ti'),
+  timer : document.getElementById('timerChip'),
+  timerV: document.querySelector('#timerChip .v'),
+  banner: document.getElementById('banner'),
+  list  : document.getElementById('stepList'),
+  detail: document.getElementById('detail'),
+  flash : document.getElementById('loopFlash'),
+  sigs  : {
+    sde : document.getElementById('sigSDE'),
+    olt : document.getElementById('sigOLT'),
+    clt : document.getElementById('sigCLT'),
+    vane: document.getElementById('sigVane'),
+    gs  : document.getElementById('sigGS'),
+    ds  : document.getElementById('sigDS'),
+    dg41: document.getElementById('sig41'),
+  },
+  circ : {
+    gs : document.getElementById('cGS'),
+    ds1: document.getElementById('cDS1'),
+    dsn: document.getElementById('cDSn'),
+    dg : document.getElementById('c41'),
+    w1 : document.getElementById('w1'),
+    w2 : document.getElementById('w2'),
+    w3 : document.getElementById('w3'),
+  }
+};
+STEPS.forEach((s,i)=>{
+  const b=document.createElement('button'); b.textContent=`${s.no} ${s.short}`;
+  b.onclick=()=>{ T=s.t0+0.01; forceStep(); };
+  ui.list.appendChild(b);
+});
+function renderDetail(s){
+  ui.detail.innerHTML = `
+    <h2>${s.title}</h2>
+    <div class="field trig"><div class="k">觸發判定（什麼訊號讓它動）</div><div class="v">${s.trig}</div></div>
+    <div class="field ctrl"><div class="k">控制器動作（DOR 板下什麼令）</div><div class="v">${s.ctrl}</div></div>
+    <div class="field mech"><div class="k">機構動作（零件實際怎麼動）</div><div class="v">${s.mech}</div></div>
+    <div class="field next"><div class="k">進入下一步的條件</div><div class="v">${s.next}</div></div>
+    <div class="note">依據：上海三菱官方產品說明（NexWay 世代門機＝PM 永磁馬達直驅＋同步帶、無連桿無減速機）、
+    NexWay 故障碼表（OLT／CLT／41DG／SDE／E41S／DOPN）、ELENESSA 安全迴路資料（GS、DS 串聯）。
+    零件型態照實機特徵建模（碟型 PM 馬達、鈑金吊門板、PU 滑輪、鉤形鎖鉤、鋁擠型地坎、自閉重錘）；
+    尺寸為教學比例、門板 X-ray 半透明為透視用。按上方「📋 真實零件表」看全部零件對照。</div>`;
+}
+
+/* 速度曲線小圖 */
+const spCv=document.getElementById('speedCv'), spCtx=spCv.getContext('2d');
+const SAMPLES=[]; {
+  let vmax=0;
+  for(let i=0;i<=330;i++){ const t=i/330*T_TOTAL;
+    const v=Math.abs(dOf(t+.016)-dOf(t-.016))/.032; SAMPLES.push(v); vmax=Math.max(vmax,v); }
+  for(let i=0;i<SAMPLES.length;i++) SAMPLES[i]/=vmax;
+}
+function drawSpeed(t){
+  const w=spCv.width,h=spCv.height;
+  spCtx.clearRect(0,0,w,h);
+  spCtx.strokeStyle='#453734'; spCtx.beginPath(); spCtx.moveTo(0,h-8); spCtx.lineTo(w,h-8); spCtx.stroke();
+  spCtx.strokeStyle='#ff5560'; spCtx.lineWidth=1.5; spCtx.beginPath();
+  SAMPLES.forEach((v,i)=>{ const x=i/(SAMPLES.length-1)*w, y=h-8-v*(h-16);
+    i?spCtx.lineTo(x,y):spCtx.moveTo(x,y); });
+  spCtx.stroke();
+  const cx=t/T_TOTAL*w;
+  spCtx.fillStyle='#ffb02e'; spCtx.beginPath();
+  spCtx.moveTo(cx,h-2); spCtx.lineTo(cx-4,h+4-2); spCtx.lineTo(cx+4,h+4-2); spCtx.closePath(); spCtx.fill();
+  spCtx.fillRect(cx-.75,8,1.5,h-16);
+}
+
+/* ============ 主迴圈 ============ */
+let T=0, playing=true, speedIdx=1; const SPEEDS=[.5,1,2];
+let curStep=-1;
+const clock=new THREE.Clock();
+
+function stepOf(t){ for(let i=STEPS.length-1;i>=0;i--) if(t>=STEPS[i].t0) return i; return 0; }
+function forceStep(){ curStep=-1; }
+
+ui.play.onclick=()=>{ playing=!playing; ui.play.textContent=playing?'⏸ 暫停':'▶ 播放'; };
+ui.prev.onclick=()=>{ const i=stepOf(T);
+  const target=(T-STEPS[i].t0<.3)?Math.max(0,i-1):i;
+  T=STEPS[target].t0+0.01; forceStep(); };
+ui.next.onclick=()=>{ const i=stepOf(T); T=STEPS[Math.min(STEPS.length-1,i+1)].t0+0.01; forceStep(); };
+ui.speed.onclick=()=>{ speedIdx=(speedIdx+1)%SPEEDS.length; ui.speed.textContent=`速度 ${SPEEDS[speedIdx]}×`; };
+const XRAY_MATS=[[M.panel,.34],[M.landing,.30],[M.plateX,.30],[M.hangerX,.38]];
+ui.xray.onclick=()=>{
+  const solid = M.panel.opacity<.9;
+  for(const [m,op] of XRAY_MATS){
+    m.opacity=solid?1:op; m.transparent=!solid; m.needsUpdate=true;
+  }
+  ui.xray.classList.toggle('on',!solid);
+};
+ui.label.onclick=()=>{
+  const vis=!labels[0].visible; labels.forEach(l=>l.visible=vis);
+  ui.label.classList.toggle('on',vis);
+};
+document.getElementById('btnBom').onclick=()=>{ document.getElementById('bom').style.display='block'; };
+document.getElementById('bomClose').onclick=()=>{ document.getElementById('bom').style.display='none'; };
+const CAMS={
+  camAll    :{p:[0.4,1.9,4.4],  t:[0,1.5,0]},
+  camMachine:{p:[0.2,2.62,2.6], t:[0,2.44,0]},
+  camLock   :{p:[-1.1,2.6,0.95], t:[-0.2,2.28,-.25]},
+  camSide   :{p:[2.5,2.3,1.55], t:[0,1.85,-0.1]},
+};
+for(const id in CAMS){
+  document.getElementById(id).onclick=()=>{
+    camera.position.set(...CAMS[id].p); controls.target.set(...CAMS[id].t);
+    document.querySelectorAll('#camAll,#camMachine,#camLock,#camSide').forEach(b=>b.classList.remove('on'));
+    document.getElementById(id).classList.add('on');
+  };
+}
+
+function resize(){
+  const w=vp.clientWidth,h=vp.clientHeight;
+  camera.aspect=w/h; camera.updateProjectionMatrix();
+  renderer.setSize(w,h); labelRenderer.setSize(w,h);
+}
+addEventListener('resize',resize); resize();
+
+function update(){
+  const t=T;
+  const d=dOf(t), clamp=vaneClamp(t), hOpen=hookOpen(t);
+  const xl=-(PANEL_W/2)-TRAVEL*d, xr=(PANEL_W/2)+TRAVEL*d;
+
+  hL.g.position.x=xl; hR.g.position.x=xr;
+  lL.g.position.x=xl; lR.g.position.x=xr;
+
+  const beltDisp=TRAVEL*d;
+  const wrap=((beltDisp%PITCH)+PITCH)%PITCH;
+  teethUp.position.x= wrap; teethDn.position.x=-wrap;
+  drivePul.rotation.z=idlePul.rotation.z=-beltDisp/.06;
+  for(const r of hL.rollers) r.rotation.z= (TRAVEL*d)/.048;
+  for(const r of hR.rollers) r.rotation.z=-(TRAVEL*d)/.048;
+  for(const r of lL.rollers) r.rotation.z= (TRAVEL*d)/.042;
+  for(const r of lR.rollers) r.rotation.z=-(TRAVEL*d)/.042;
+
+  bladeL.position.x=-(.024+.008*clamp)-.006;
+  bladeR.position.x= (.024+.008*clamp)+.006;
+  linkL.rotation.z= .3+.25*(1-clamp);
+  linkR.rotation.z=-.3-.25*(1-clamp);
+
+  hookG.rotation.z=.62*hOpen;
+  const S=sig(t);
+  lockLED.material.emissive.setHex(S.ds?0x16c95e:0x000000);
+  lockLED.material.emissiveIntensity=S.ds?1.8:0;
+
+  swOpen.lever.rotation.z = d>.985 ? -1.1*seg(d,.985,1) : 0;
+  swClose.lever.rotation.z= d<.03  ?  1.1*(1-seg(d,0,.03)) : 0;
+
+  /* 廳門自閉重錘：門開 → 重錘被拉高（儲能） */
+  const wy = 1.42 + 0.42*d;
+  cwWeight.position.y = wy;
+  const rp = ropeGeo.attributes.position.array;
+  rp[0]=xl+0.2; rp[1]=2.27; rp[2]=-.30;
+  rp[3]=.62;   rp[4]=2.178; rp[5]=-.30;
+  rp[6]=.62;   rp[7]=wy+.065; rp[8]=-.30;
+  ropeGeo.attributes.position.needsUpdate=true;
+
+  const blocked=sdeBlocked(t);
+  const gapL=xl+PANEL_W/2-.015, gapR=xr-PANEL_W/2+.015;
+  const showBeams=(gapR-gapL)>.07;
+  beams.visible=showBeams;
+  if(showBeams){
+    const pos=beamGeo.attributes.position.array;
+    for(let i=0;i<NBEAM;i++){
+      const y=.18+i*(1.72/(NBEAM-1));
+      pos[i*6+0]=gapL; pos[i*6+1]=y; pos[i*6+2]=.03;
+      pos[i*6+3]=gapR; pos[i*6+4]=y; pos[i*6+5]=.03;
+    }
+    beamGeo.attributes.position.needsUpdate=true;
+    beamMat.color.setHex(blocked?0xff5252:0x37d67a);
+    beamMat.opacity=blocked?1:.55;
+  }
+  M.curtain.emissive.setHex(blocked?0x551111:0x07301c);
+  M.lens.emissive.setHex(blocked?0xff5252:0x16c95e);
+
+  cart.position.set(0,0,boxZ(t));
+
+  /* HUD */
+  ui.sigs.sde.className = 'sig '+(S.sde?'on':'bad');
+  ui.sigs.sde.innerHTML = `<i></i>SDE 光幕${S.sde?'導通':'遮斷！'}`;
+  ui.sigs.olt.className = 'sig '+(S.olt?'on':'');
+  ui.sigs.clt.className = 'sig '+(S.clt?'on':'');
+  ui.sigs.vane.className= 'sig '+(S.vane?'warn':'on');
+  ui.sigs.vane.innerHTML= `<i></i>${S.vane?'門刀夾持中（轎廳門連動）':'門刀已釋放'}`;
+  ui.sigs.gs.className  = 'sig '+(S.gs?'on':'');
+  ui.sigs.ds.className  = 'sig '+(S.ds?'on':'');
+  ui.sigs.dg41.className= 'sig '+(S.dg41?'on':'');
+
+  ui.circ.gs.className ='node'+(S.gs?' on':'');
+  ui.circ.ds1.className='node'+(S.ds?' on':'');
+  ui.circ.dsn.className='node'+(S.ds?' on':'');
+  ui.circ.dg.className ='node'+(S.dg41?' on':'');
+  ui.circ.w1.className ='wire'+(S.gs?' on':'');
+  ui.circ.w2.className ='wire'+((S.gs&&S.ds)?' on':'');
+  ui.circ.w3.className ='wire'+(S.dg41?' on':'');
+
+  if(t>=5.8&&t<8.8){ ui.timer.style.display='block'; ui.timerV.textContent=(8.8-t).toFixed(1)+' s'; }
+  else ui.timer.style.display='none';
+  ui.banner.classList.toggle('show', t>=15.0);
+
+  const si=stepOf(t);
+  if(si!==curStep){
+    curStep=si; const s=STEPS[si];
+    ui.chipNo.textContent=`STEP ${si+1} / ${STEPS.length} ・ t=${s.t0.toFixed(1)}s`;
+    ui.chipTi.textContent=s.title;
+    [...ui.list.children].forEach((b,i)=>b.classList.toggle('act',i===si));
+    renderDetail(s); setFocus(s.focus);
+  }
+  const pulse=(Math.sin(performance.now()/240)+1)/2;
+  for(const m of curFocusMats){ m.emissive.setHex(0x8a2a35); m.emissiveIntensity=.25+.75*pulse; }
+
+  drawSpeed(t);
+}
+
+let flashT=0;
+function loop(){
+  requestAnimationFrame(loop);
+  const dt=Math.min(clock.getDelta(),.1);
+  if(playing){
+    T+=dt*SPEEDS[speedIdx];
+    if(T>=T_TOTAL){ T=0; forceStep(); flashT=.5; }
+  }
+  if(flashT>0){ flashT-=dt; ui.flash.style.opacity=Math.min(.8,flashT*2); }
+  update();
+  controls.update();
+  renderer.render(scene,camera);
+  labelRenderer.render(scene,camera);
+}
+renderDetail(STEPS[0]);
+loop();
+
+/* 測試掛勾 */
+window.__setT=v=>{T=v;forceStep();update();};
+window.__pause=()=>{playing=false;ui.play.textContent='▶ 播放';};
+window.__state=()=>({T,d:dOf(T),step:stepOf(T),sig:sig(T)});
+window.__setCam=(p,t)=>{camera.position.set(...p);controls.target.set(...t);};
+window.__world=o=>{const v=new THREE.Vector3();({hook:hookBody,keeper,bridge,pin1:cPin1,blade:bladeLMesh,roller:cR1,gscam:gsCam,gssw:gsBody}[o]).getWorldPosition(v);return v.toArray();};
+</script>
+</body>
+</html>
