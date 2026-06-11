@@ -116,14 +116,7 @@
     <div id="viewport">
       <div id="stepChip"><div class="no">STEP</div><div class="ti">載入中…</div></div>
       <div id="timerChip"><div class="v">3.0 s</div><div class="l">門站時間倒數（SDE 再遮斷會歸零重數）</div></div>
-      <div id="banner">✓ 41DG 門連鎖迴路導通 — 允許電梯運行</div>
-      <div id="circuit">
-        <span class="tag">門連鎖串聯迴路</span>
-        <span class="node" id="cGS">GS 轎門鎖</span><span class="wire" id="w1"></span>
-        <span class="node" id="cDS1">DS 本層廳門鎖</span><span class="wire" id="w2"></span>
-        <span class="node" id="cDSn">DS 其他層×N</span><span class="wire" id="w3"></span>
-        <span class="node" id="c41">41DG</span>
-      </div>
+      <div id="banner">✓ 門已鎖閉 — 開關門循環完成</div>
       <div id="signals">
         <div class="sig" id="sigSDE"><i></i>SDE 光幕</div>
         <div class="sig" id="sigOLT"><i></i>OLT 開門到位</div>
@@ -131,7 +124,6 @@
         <div class="sig" id="sigVane"><i></i>門刀夾持中</div>
         <div class="sig" id="sigGS"><i></i>GS 轎門鎖</div>
         <div class="sig" id="sigDS"><i></i>DS 廳門鎖</div>
-        <div class="sig" id="sig41"><i></i>41DG</div>
       </div>
       <div id="speedBox"><div class="l">門速曲線（FG 速度回授）｜▲＝現在</div><canvas id="speedCv" width="216" height="64"></canvas></div>
       <div id="loopFlash"></div>
@@ -141,7 +133,7 @@
         <table>
           <tr><th>零件／訊號</th><th>代號</th><th>功能（白話）</th></tr>
           <tr><td>PM 永磁同步門機馬達</td><td>—</td><td>扁平碟型、外圈放射狀散熱鰭，直接驅動皮帶輪——沒有減速機、沒有連桿，這是 NexWay 世代門機的招牌（官方說明：由聯動機構改為 PM 電機直驅）</td></tr>
-          <tr><td>門機控制板</td><td>DOR 系列</td><td>門機的大腦：VVVF 變頻驅動馬達＋所有開關門判定都在這片板（市售料號如 DOR-144A、DOR-111B）；馬達動力線從出線管接入</td></tr>
+          <tr><td>門機控制板</td><td>DOR 系列</td><td>驅動馬達＋開關門判定；馬達動力線從出線管接入</td></tr>
           <tr><td>同步齒型帶</td><td>—</td><td>齒在內側咬合皮帶輪；上下兩股各夾一扇門，所以兩扇門永遠等速對開對關</td></tr>
           <tr><td>編碼器／速度回授</td><td>FG</td><td>馬達尾端小圓殼；回報門的位置與速度，減速點靠它判定</td></tr>
           <tr><td>吊門板（門掛板）＋滑輪</td><td>—</td><td>鈑金板（帶減重孔）掛門板；PU 胎面滑輪沿門導軌滾動；下方偏心調整的防跳輪防脫軌</td></tr>
@@ -149,14 +141,11 @@
           <tr><td>門刀（夾緊式）</td><td>—</td><td>兩片帶導入斜角的長刀片＋平行四邊形連桿＋拉簧；夾住廳門的開鎖滾輪，把廳門「咬」著一起開關</td></tr>
           <tr><td>開鎖滾輪</td><td>—</td><td>廳門側被門刀夾的兩顆軸承滾輪；被夾住時頂開廳門鎖鉤＝解鎖</td></tr>
           <tr><td>廳門鎖鉤＋接點</td><td>DS</td><td>鉤形鑄件（鉤喙咬住鎖座滾輪銷）；門刀放開後彈簧＋自重勾合；勾到底尾端接點橋才橋接 DS 接點導通</td></tr>
-          <tr><td>轎門鎖開關</td><td>GS</td><td>三菱特色：轎門也有電氣門鎖，轎門全閉、斜面撞塊壓上接點才導通（接在 RCE 板 B03）</td></tr>
-          <tr><td>門連鎖迴路</td><td>41DG</td><td>GS＋每一層 DS 全部串聯的總迴路；41DG 亮＝所有門都關好鎖好，電梯才准走。維保查門故障先看這顆燈</td></tr>
-          <tr><td>光幕／安全觸板</td><td>SDE</td><td>門邊鋁擠型條內一排紅外線投受光點；遮斷→立即重開門（故障碼 FSDE 系列）</td></tr>
-          <tr><td>開門到位訊號</td><td>OLT</td><td>門全開的判定（NexWay 由編碼器位置判定；故障碼 FOLT 系列）</td></tr>
-          <tr><td>關門到位訊號</td><td>CLT</td><td>門全關的判定（故障碼 FCLT 系列）</td></tr>
-          <tr><td>門鎖短接偵測</td><td>E41S</td><td>防呆：有人拿導線短接門鎖迴路（危險違規行為）會被系統偵測並鎖梯</td></tr>
-          <tr><td>運行中開門保護</td><td>DOPN</td><td>電梯走到一半 41DG 突然斷（門被扒開）→ 急停（故障碼 811SW_DOPN）</td></tr>
-          <tr><td>廳門自閉重錘</td><td>—</td><td>鋼索＋重錘掛在廳門吊板上：就算停電、門刀沒夾，廳門也會被重錘拉回關閉＋上鎖（防止有人掉進井道）</td></tr>
+          <tr><td>轎門鎖開關</td><td>GS</td><td>三菱特色：轎門也有電氣門鎖，轎門全閉、斜面撞塊壓上接點才導通</td></tr>
+          <tr><td>光幕／安全觸板</td><td>SDE</td><td>門邊鋁擠型條內一排紅外線投受光點；遮斷→立即重開門</td></tr>
+          <tr><td>開門到位訊號</td><td>OLT</td><td>門全開的判定（編碼器位置判定）</td></tr>
+          <tr><td>關門到位訊號</td><td>CLT</td><td>門全關的判定，之後才輪到門鎖勾合</td></tr>
+          <tr><td>廳門自閉重錘</td><td>—</td><td>鋼索＋重錘掛在廳門吊板上：停電、門刀沒夾時，廳門也會被重錘拉回關閉＋上鎖</td></tr>
           <tr><td>地坎＋門滑塊（導靴）</td><td>—</td><td>鋁擠型地坎帶溝槽；門板下端的尼龍滑塊在溝槽內滑行，防止門片下擺</td></tr>
         </table>
       </div>
@@ -228,65 +217,55 @@ const sig = t => ({
 
 /* ============ 步驟（三菱真實訊號版）============ */
 const STEPS = [
-{t0:0, t1:2.15, no:'S0', short:'關門中', title:'S0 關門中（首次嘗試）',
- trig:'門站時間計時到（或按關門鈕）→ 控制屏對門機控制板（<b>DOR 系列</b>）下「關門」指令。',
- ctrl:'DOR 板用 VVVF 變頻驅動 <b>PM 永磁同步馬達「直驅」皮帶輪</b>——沒有減速機、沒有連桿，這是 NexWay 世代門機的招牌。全程同時盯三件事：① <b>SDE</b>（光幕／安全觸板）有沒有遮斷 ② 馬達電流有沒有超過防夾門檻 ③ 編碼器位置＋<b>FG 速度回授</b>。',
- mech:'馬達直驅同步齒型帶（齒在內側咬皮帶輪）→ 上下兩股皮帶各夾一扇門（永遠等速對開對關）→ 吊門板 PU 滑輪沿斜頂門導軌滾動 → <b>門刀</b>夾著廳門的<b>開鎖滾輪</b>，把廳門「咬」著一起關。',
- next:'關門途中 SDE 被遮 → 跳 S1「重開門判定」；一路順利 → 直接到 S7（CLT 關門到位）。',
+{t0:0, t1:2.15, no:'S0', short:'關門中', title:'S0 關門中',
+ trig:'收到關門指令，PM 馬達開始轉。',
+ mech:'馬達直驅齒型帶 → 上下兩股各拉一扇門（永遠等速對開對關）→ 滑輪沿導軌滾動 → <b>門刀</b>夾著廳門的<b>開鎖滾輪</b>，把廳門一起帶著關。',
+ next:'光幕被擋 → S1 重開門；沒擋 → 直接到 S7。',
  focus:['beams','motor','belt']},
-{t0:2.15, t1:3.0, no:'S1', short:'SDE 遮斷', title:'S1 SDE 遮斷 → 判定重開門',
- trig:'貨物擋住光幕任一束 → <b>SDE 迴路瞬斷</b>（光束變紅）。SDE＝安全觸板訊號，新機多為非接觸式光幕；它失效會記 FSDE 系列故障碼。',
- ctrl:'判定邏輯：「正在關門」＋「SDE 斷」同時成立 → DOR 板毫秒級令馬達減速煞停、再反轉。備援判定：就算光幕故障，馬達電流超過防夾門檻（門真的碰到人）一樣觸發重開門。',
- mech:'皮帶煞停 → 切換反向。不是瞬間反彈，是「先煞停再反轉」，避免機構衝擊。',
- next:'反轉指令成立 → S2 重開門。',
+{t0:2.15, t1:3.0, no:'S1', short:'光幕遮斷', title:'S1 光幕（SDE）遮斷',
+ trig:'貨物擋住任一束光 → <b>SDE 光幕</b>訊號斷（光束變紅）。',
+ mech:'皮帶<b>先煞停、再反轉</b>——不是瞬間反彈，避免機構衝擊。',
+ next:'反轉開始 → S2。',
  focus:['beams','curtain']},
-{t0:3.0, t1:5.0, no:'S2', short:'重開門', title:'S2 重開門（馬達反轉）',
- trig:'執行中持續比對編碼器位置與 <b>FG 速度回授</b>（閉環控制：實際速度跟不上指令速度就報門機故障）。',
- ctrl:'改走開門方向速度曲線。開門通常比關門快——往安全方向可以快，往會夾人的方向必須慢。',
- mech:'皮帶反向 → 兩扇門對開；門刀仍夾著開鎖滾輪、廳門跟著一起開；<b>廳門鎖鉤</b>早在門刀夾緊時就被頂開，維持解鎖。廳門自閉重錘同時被拉高（儲存關門的力量）。',
- next:'編碼器數到全開位置 → <b>OLT</b> 訊號 ON。',
+{t0:3.0, t1:5.0, no:'S2', short:'重開門', title:'S2 重開門',
+ trig:'馬達反轉。',
+ mech:'兩扇門對開；門刀仍夾著開鎖滾輪、廳門跟著開；<b>鎖鉤維持被頂開</b>；自閉重錘被拉高（儲存關門的力量）。',
+ next:'門走到全開位置 → S3。',
  focus:['motor','belt','vane']},
-{t0:5.0, t1:5.8, no:'S3', short:'OLT 到位', title:'S3 開門到位判定（OLT）',
- trig:'<b>OLT（開門到位）訊號 ON</b>。NexWay 世代由編碼器位置判定（取代舊式機械限位），訊號名沿用 OLT；異常時報 FOLT 系列故障碼。',
- ctrl:'判定到位 → 停止行進輸出，保留小的「開門保持力矩」，門不會被人用手扒回去。',
- mech:'門停在全開位置。',
- next:'OLT 確認 → 啟動「門站時間」計時器。',
+{t0:5.0, t1:5.8, no:'S3', short:'開門到位', title:'S3 開門到位（OLT）',
+ trig:'<b>OLT 開門到位</b>訊號作動（左上角感知器，燈亮）。',
+ mech:'門停在全開，馬達只留一點保持力，防止門被手扒回去。',
+ next:'啟動開門等待計時。',
  focus:['openLim']},
-{t0:5.8, t1:8.8, no:'S4', short:'門站計時', title:'S4 開門等待（門站時間）',
- trig:'門站時間倒數（可在控制屏設定，畫面上方顯示）。',
- ctrl:'倒數期間 SDE 持續監測。判定規則：<b>SDE 再被遮一次，計時器歸零重數</b>——這就是一直有人進出時門不會關的原因。',
- mech:'門保持全開；貨物通過門口進到轎廂內，離開光束範圍後 SDE 恢復導通（綠燈）。',
- next:'三條件同時成立：① 計時到 0 ② SDE 導通 ③ 沒有人按著開門鈕。',
+{t0:5.8, t1:8.8, no:'S4', short:'等待計時', title:'S4 開門等待',
+ trig:'計時倒數；<b>光幕再被擋一次就歸零重數</b>（所以一直有人進出門不會關）。',
+ mech:'門保持全開；貨物通過門口進到轎廂內。',
+ next:'計時到 0 且光幕導通 → S5。',
  focus:['beams','curtain']},
-{t0:8.8, t1:9.6, no:'S5', short:'關門啟動', title:'S5 關門啟動判定',
- trig:'S4 三條件全過 → 控制屏發出「關門」指令。',
- ctrl:'DOR 板刻意低速起步——門剛開始合攏時最容易夾到正要進來的人，這段全程最慢。',
- mech:'皮帶慢速啟動，兩扇門開始合攏；門刀咬著廳門一起動。',
- next:'起步段走完（編碼器確認）→ S6 正常關門曲線。',
+{t0:8.8, t1:9.6, no:'S5', short:'關門啟動', title:'S5 關門啟動',
+ trig:'等待條件成立，重新下關門指令。',
+ mech:'皮帶<b>低速起步</b>——門剛合攏時最容易夾人，這段全程最慢。',
+ next:'起步段走完 → S6。',
  focus:['motor']},
 {t0:9.6, t1:12.4, no:'S6', short:'關門行程', title:'S6 關門行程（S 曲線）',
- trig:'全程以<b>編碼器位置</b>決定該跑多快。「減速點」本身就是位置判定：門走到離全關剩一小段，提前減速。',
- ctrl:'S 曲線：加速 → 等速 → 提前減速 → 低速爬行進站（右下角 FG 速度錶的 ▲ 游標）。FG 回授閉環＋持續監看 SDE 與防夾電流。',
- mech:'同 S0：皮帶拉門、滑輪滾動、門刀帶著廳門一起關。',
- next:'編碼器到「接近全關」→ 切低速爬行 → 等 <b>CLT</b> 作動。',
+ trig:'編碼器位置決定減速點：離全關剩一小段就提前減速。',
+ mech:'加速 → 等速 → 提前減速 → 低速爬行（看右下角速度錶 ▲）；門刀帶著廳門一起關。',
+ next:'進入低速爬行 → 等關門到位。',
  focus:['belt','motor']},
-{t0:12.4, t1:13.6, no:'S7', short:'CLT+門刀釋放', title:'S7 關門到位（CLT）＋ 門刀釋放',
- trig:'兩扇門合攏 → <b>CLT（關門到位）訊號 ON</b>（異常報 FCLT 系列故障碼）。',
- ctrl:'馬達停止行進，改輸出小的「關門保持力矩」，把門輕輕壓緊。',
- mech:'<b>門刀兩片刀片向內收攏 → 放開廳門的開鎖滾輪</b> → 轎門與廳門「脫鉤」。從這一刻起廳門要靠自己的鎖。建議切「門刀／門鎖特寫」鏡頭。',
- next:'門刀完全脫開滾輪 → 廳門鎖鉤失去支撐 → 可以落下勾合，進 S8。',
+{t0:12.4, t1:13.6, no:'S7', short:'到位+門刀釋放', title:'S7 關門到位（CLT）＋門刀釋放',
+ trig:'<b>CLT 關門到位</b>訊號作動。',
+ mech:'<b>門刀兩片刀片向內收攏 → 放開開鎖滾輪</b> → 轎門與廳門脫鉤。建議切「門刀／門鎖特寫」鏡頭看。',
+ next:'鎖鉤失去支撐 → S8。',
  focus:['vane','closeLim']},
-{t0:13.6, t1:14.6, no:'S8', short:'DS+GS 鎖閉', title:'S8 門鎖勾合 — DS 與 GS 兩道都要',
- trig:'門刀放開後，<b>廳門鎖鉤</b>靠彈簧＋自重落下、鉤喙咬住鎖座滾輪銷 → 勾到底時鉤尾銅接點橋接 <b>DS（廳門鎖）接點</b>。同一時間轎門全閉，斜面撞塊壓上 <b>GS（轎門鎖）接點</b>——三菱連轎門都有電氣門鎖，兩道缺一不可。',
- ctrl:'重點判定：「機械勾上」≠「系統知道」。鎖鉤必須勾到底接點才導通——差一點點都不算數。這是機械鎖＋電氣確認的雙重保險。',
- mech:'看特寫：鎖鉤落下 → 接點橋碰上兩片彈片接點 → DS 訊號燈亮；同時下方迴路燈條 GS、DS 依序亮起。',
- next:'GS＋DS 訊號送進門連鎖迴路 → S9 判定 41DG。',
+{t0:13.6, t1:14.6, no:'S8', short:'門鎖勾合', title:'S8 門鎖勾合（DS＋GS）',
+ trig:'門刀放開滾輪。',
+ mech:'<b>鎖鉤</b>靠彈簧＋自重落下、鉤喙咬住鎖座滾輪銷；鉤尾接點橋同時碰上兩片彈片 → <b>DS 接點導通</b>（綠燈亮）。同時轎門全閉、撞塊壓上 <b>GS 接點</b>。',
+ next:'鉤到底＋接點導通 → S9。',
  focus:['hook','contacts','gsSw']},
-{t0:14.6, t1:16.5, no:'S9', short:'41DG 導通', title:'S9 41DG 門連鎖迴路導通 → 允許運行',
- trig:'<b>GS＋每一層樓每一扇廳門的 DS，全部「串聯」成一條迴路＝41DG</b>。任何一層沒鎖好，41DG 不亮、電梯不走。維保口訣：查門故障，先看控制屏上的 41DG 指示燈。',
- ctrl:'控制屏量到 41DG ON → 解除運行禁止 → 主機抱閘才允許鬆開。加碼兩道保護：① <b>E41S 短接偵測</b>——有人拿導線短接門鎖迴路會被系統抓到並鎖梯 ② 運行中 41DG 突然斷（門被扒開）→ <b>DOPN「運行中開門」</b>立即急停。',
- mech:'白話比喻：像一串老式聖誕燈泡，少一顆全串不亮。電梯永遠不會在「哪扇門沒鎖好」的狀態下移動。',
- next:'電梯起動離站；到站後又從開門開始下一輪循環（本動畫自動重播）。',
+{t0:14.6, t1:16.5, no:'S9', short:'鎖閉完成', title:'S9 鎖閉完成',
+ trig:'機械勾到底＋電氣接點導通，雙重確認都成立。',
+ mech:'廳門被機械鎖死（在外面扒不開）、轎門全閉——門機構完成一輪開關門。',
+ next:'下一站到站再從開門開始（動畫自動重播）。',
  focus:['contacts','hook','gsSw']},
 ];
 
@@ -727,16 +706,6 @@ const ui = {
     vane: document.getElementById('sigVane'),
     gs  : document.getElementById('sigGS'),
     ds  : document.getElementById('sigDS'),
-    dg41: document.getElementById('sig41'),
-  },
-  circ : {
-    gs : document.getElementById('cGS'),
-    ds1: document.getElementById('cDS1'),
-    dsn: document.getElementById('cDSn'),
-    dg : document.getElementById('c41'),
-    w1 : document.getElementById('w1'),
-    w2 : document.getElementById('w2'),
-    w3 : document.getElementById('w3'),
   }
 };
 STEPS.forEach((s,i)=>{
@@ -748,13 +717,10 @@ function renderDetail(s){
   ui.detail.innerHTML = `
     <h2>${s.title}</h2>
     <div class="field trig"><div class="k">觸發判定（什麼訊號讓它動）</div><div class="v">${s.trig}</div></div>
-    <div class="field ctrl"><div class="k">控制器動作（DOR 板下什麼令）</div><div class="v">${s.ctrl}</div></div>
-    <div class="field mech"><div class="k">機構動作（零件實際怎麼動）</div><div class="v">${s.mech}</div></div>
+    <div class="field mech"><div class="k">機構動作（哪個零件怎麼動）</div><div class="v">${s.mech}</div></div>
     <div class="field next"><div class="k">進入下一步的條件</div><div class="v">${s.next}</div></div>
-    <div class="note">依據：上海三菱官方產品說明（NexWay 世代門機＝PM 永磁馬達直驅＋同步帶、無連桿無減速機）、
-    NexWay 故障碼表（OLT／CLT／41DG／SDE／E41S／DOPN）、ELENESSA 安全迴路資料（GS、DS 串聯）。
-    零件型態照實機特徵建模（碟型 PM 馬達、鈑金吊門板、PU 滑輪、鉤形鎖鉤、鋁擠型地坎、自閉重錘）；
-    尺寸為教學比例、門板 X-ray 半透明為透視用。按上方「📋 真實零件表」看全部零件對照。</div>`;
+    <div class="note">機型：三菱 NexWay 世代門機（PM 永磁直驅＋同步帶、無連桿無減速機）。零件型態照實機特徵建模、
+    尺寸為教學比例；門板 X-ray 半透明為透視用。按「📋 真實零件表」看零件對照。</div>`;
 }
 
 /* 速度曲線小圖 */
@@ -896,15 +862,6 @@ function update(){
   ui.sigs.vane.innerHTML= `<i></i>${S.vane?'門刀夾持中（轎廳門連動）':'門刀已釋放'}`;
   ui.sigs.gs.className  = 'sig '+(S.gs?'on':'');
   ui.sigs.ds.className  = 'sig '+(S.ds?'on':'');
-  ui.sigs.dg41.className= 'sig '+(S.dg41?'on':'');
-
-  ui.circ.gs.className ='node'+(S.gs?' on':'');
-  ui.circ.ds1.className='node'+(S.ds?' on':'');
-  ui.circ.dsn.className='node'+(S.ds?' on':'');
-  ui.circ.dg.className ='node'+(S.dg41?' on':'');
-  ui.circ.w1.className ='wire'+(S.gs?' on':'');
-  ui.circ.w2.className ='wire'+((S.gs&&S.ds)?' on':'');
-  ui.circ.w3.className ='wire'+(S.dg41?' on':'');
 
   if(t>=5.8&&t<8.8){ ui.timer.style.display='block'; ui.timerV.textContent=(8.8-t).toFixed(1)+' s'; }
   else ui.timer.style.display='none';

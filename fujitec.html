@@ -116,22 +116,14 @@
     <div id="viewport">
       <div id="stepChip"><div class="no">STEP</div><div class="ti">載入中…</div></div>
       <div id="timerChip"><div class="v">3.0 s</div><div class="l">門站時間倒數（光幕再遮斷會歸零重數）</div></div>
-      <div id="banner">✓ 門鎖回路＋安全回路反饋成立 — 允許電梯運行</div>
-      <div id="circuit">
-        <span class="tag">門鎖回路（串聯・24VDC）</span>
-        <span class="node" id="cGS">轎門鎖</span><span class="wire" id="w1"></span>
-        <span class="node" id="cDS1">本層廳門鎖</span><span class="wire" id="w2"></span>
-        <span class="node" id="cDSn">其他層廳門鎖×N</span><span class="wire" id="w3"></span>
-        <span class="node" id="c41">門鎖回路反饋</span>
-      </div>
+      <div id="banner">✓ 門已鎖閉 — 開關門循環完成</div>
       <div id="signals">
         <div class="sig" id="sigSDE"><i></i>光幕</div>
         <div class="sig" id="sigOLT"><i></i>開門到位</div>
         <div class="sig" id="sigCLT"><i></i>關門到位</div>
         <div class="sig" id="sigVane"><i></i>門刀夾持中</div>
-        <div class="sig" id="sigGS"><i></i>轎門鎖（E35 監測）</div>
+        <div class="sig" id="sigGS"><i></i>轎門鎖</div>
         <div class="sig" id="sigDS"><i></i>廳門鎖</div>
-        <div class="sig" id="sig41"><i></i>門鎖回路</div>
       </div>
       <div id="speedBox"><div class="l">門速曲線（VVVF・編碼器回授）｜▲＝現在</div><canvas id="speedCv" width="216" height="64"></canvas></div>
       <div id="loopFlash"></div>
@@ -141,17 +133,14 @@
         <table>
           <tr><th>零件／訊號</th><th>代號</th><th>功能（白話）</th></tr>
           <tr><td>超薄永磁同步門機</td><td>—</td><td>華升富士達官方特色：門機厚度比傳統減少 50%、省電 35%——所以本模型的機座板特別薄、馬達特別扁</td></tr>
-          <tr><td>門機控制板</td><td>VVVF</td><td>變頻驅動馬達＋開關門判定；維保讀碼：把 <b>SEL 開關轉到「F」</b>顯示最新故障碼（無故障時 LED 全部閃爍）</td></tr>
-          <tr><td>調試軟體</td><td>PMC／EEC</td><td>富士達專用調試維修軟體（PMC 調試維修、EEC 輔助維修、ROM 讀寫）——筆電接上去看參數與故障史</td></tr>
+          <tr><td>門機控制板</td><td>VVVF</td><td>驅動馬達＋開關門判定；馬達動力線從出線管接入</td></tr>
           <tr><td>同步齒型帶</td><td>—</td><td>齒在內側咬合皮帶輪；上下兩股各夾一扇門，永遠等速對開對關</td></tr>
           <tr><td>編碼器</td><td>—</td><td>回報門的位置與速度，減速點與「開門到位／關門到位」判定靠它</td></tr>
           <tr><td>吊門板＋滑輪</td><td>—</td><td>鈑金板（帶減重孔）掛門板；PU 胎面滑輪沿門導軌滾動；下方偏心調整的防跳輪防脫軌</td></tr>
           <tr><td>門刀（夾緊式）</td><td>—</td><td>兩片帶導入斜角的長刀片＋平行四邊形連桿＋拉簧；夾住廳門的開鎖滾輪，把廳門「咬」著一起開關</td></tr>
           <tr><td>開鎖滾輪</td><td>—</td><td>廳門側被門刀夾的兩顆軸承滾輪；被夾住時頂開廳門鎖鉤＝解鎖</td></tr>
           <tr><td>廳門鎖鉤＋接點</td><td>—</td><td>鉤形鑄件（鉤喙咬住鎖座滾輪銷）；門刀放開後彈簧＋自重勾合；勾到底尾端接點橋才導通</td></tr>
-          <tr><td>轎門鎖</td><td>E35 監測</td><td>轎門全閉才導通；<b>E35＝轎門鎖檢測異常</b>（E3 開頭＝門系統故障）。常見原因：機械卡阻、接點氧化、線路斷路短路</td></tr>
-          <tr><td>門鎖回路</td><td>24VDC</td><td>轎門鎖＋每層廳門鎖串聯；門鎖訊號輸入約 24VDC。<b>Err2＝門鎖信號異常</b>。診斷：先量回路通斷，再量控制板輸入端電壓</td></tr>
-          <tr><td>運行必要條件</td><td>—</td><td>「門鎖回路反饋＋安全回路反饋有效」＝電梯運行的必要條件（兩個都要成立才能走）</td></tr>
+          <tr><td>轎門鎖</td><td>—</td><td>轎門全閉、撞塊壓上接點才導通</td></tr>
           <tr><td>光幕／安全觸板</td><td>—</td><td>門邊鋁擠型條內一排紅外線投受光點；遮斷→立即重開門</td></tr>
           <tr><td>開門到位訊號</td><td>—</td><td>門全開的判定（維修手冊用語「門機開門到位信號動作」）</td></tr>
           <tr><td>關門到位訊號</td><td>—</td><td>門全關的判定，之後才輪到門鎖勾合</td></tr>
@@ -227,65 +216,55 @@ const sig = t => ({
 
 /* ============ 步驟（三菱真實訊號版）============ */
 const STEPS = [
-{t0:0, t1:2.15, no:'S0', short:'關門中', title:'S0 關門中（首次嘗試）',
- trig:'門站時間計時到（或按關門鈕）→ 控制屏對門機控制板下「關門」指令。',
- ctrl:'VVVF 變頻驅動<b>超薄永磁同步門機</b>——華升富士達官方特色：門機厚度比傳統減半、省電 35%（注意看本模型的機座板與馬達都特別薄）。全程同時盯三件事：① <b>光幕</b>有沒有遮斷 ② 馬達電流有沒有超過防夾門檻 ③ 編碼器位置與速度。',
- mech:'超薄 PM 馬達直驅同步齒型帶（齒在內側咬皮帶輪）→ 上下兩股各夾一扇門（永遠等速對開對關）→ 吊門板 PU 滑輪沿斜頂門導軌滾動 → <b>門刀</b>夾著廳門的<b>開鎖滾輪</b>，把廳門「咬」著一起關。',
- next:'關門途中光幕被遮 → 跳 S1「重開門判定」；一路順利 → 直接到 S7（關門到位）。',
+{t0:0, t1:2.15, no:'S0', short:'關門中', title:'S0 關門中',
+ trig:'收到關門指令，超薄 PM 馬達開始轉。',
+ mech:'馬達直驅齒型帶 → 上下兩股各拉一扇門（永遠等速對開對關）→ 滑輪沿導軌滾動 → <b>門刀</b>夾著廳門的<b>開鎖滾輪</b>，把廳門一起帶著關。',
+ next:'光幕被擋 → S1 重開門；沒擋 → 直接到 S7。',
  focus:['beams','motor','belt']},
-{t0:2.15, t1:3.0, no:'S1', short:'光幕遮斷', title:'S1 光幕遮斷 → 判定重開門',
- trig:'貨物擋住光幕任一束 → 光幕訊號瞬斷（光束變紅）。',
- ctrl:'判定邏輯：「正在關門」＋「光幕斷」同時成立 → 門機板毫秒級令馬達減速煞停、再反轉。備援判定：就算光幕故障，馬達電流超過防夾門檻（門真的碰到人）一樣觸發重開門。',
- mech:'皮帶煞停 → 切換反向。不是瞬間反彈，是「先煞停再反轉」，避免機構衝擊。',
- next:'反轉指令成立 → S2 重開門。',
+{t0:2.15, t1:3.0, no:'S1', short:'光幕遮斷', title:'S1 光幕遮斷',
+ trig:'貨物擋住任一束光 → 光幕訊號斷（光束變紅）。',
+ mech:'皮帶<b>先煞停、再反轉</b>——不是瞬間反彈，避免機構衝擊。',
+ next:'反轉開始 → S2。',
  focus:['beams','curtain']},
-{t0:3.0, t1:5.0, no:'S2', short:'重開門', title:'S2 重開門（馬達反轉）',
- trig:'執行中持續比對編碼器位置與速度（閉環控制）。',
- ctrl:'改走開門方向速度曲線。開門通常比關門快——往安全方向可以快，往會夾人的方向必須慢。',
- mech:'皮帶反向 → 兩扇門對開；門刀仍夾著開鎖滾輪、廳門跟著一起開；<b>廳門鎖鉤</b>早在門刀夾緊時就被頂開，維持解鎖。廳門自閉重錘同時被拉高（儲存關門的力量）。',
- next:'編碼器數到全開位置 → <b>開門到位</b>訊號動作。',
+{t0:3.0, t1:5.0, no:'S2', short:'重開門', title:'S2 重開門',
+ trig:'馬達反轉。',
+ mech:'兩扇門對開；門刀仍夾著開鎖滾輪、廳門跟著開；<b>鎖鉤維持被頂開</b>；自閉重錘被拉高（儲存關門的力量）。',
+ next:'門走到全開位置 → S3。',
  focus:['motor','belt','vane']},
-{t0:5.0, t1:5.8, no:'S3', short:'開門到位', title:'S3 開門到位判定',
- trig:'<b>「門機開門到位信號動作」</b>（維修手冊原文用語）——由編碼器位置判定門已全開。',
- ctrl:'判定到位 → 停止行進輸出，保留小的「開門保持力」，門不會被人用手扒回去。',
- mech:'門停在全開位置。',
- next:'開門到位確認 → 啟動「門站時間」計時器。',
+{t0:5.0, t1:5.8, no:'S3', short:'開門到位', title:'S3 開門到位',
+ trig:'<b>開門到位訊號</b>動作（編碼器位置判定）。',
+ mech:'門停在全開，馬達只留一點保持力，防止門被手扒回去。',
+ next:'啟動開門等待計時。',
  focus:['openLim']},
-{t0:5.8, t1:8.8, no:'S4', short:'門站計時', title:'S4 開門等待（門站時間）',
- trig:'門站時間倒數（控制屏參數可設定，畫面上方顯示）。',
- ctrl:'倒數期間光幕持續監測。判定規則：<b>光幕再被遮一次，計時器歸零重數</b>——這就是一直有人進出時門不會關的原因。',
- mech:'門保持全開；貨物通過門口進到轎廂內，離開光束範圍後光幕恢復導通（綠燈）。',
- next:'三條件同時成立：① 計時到 0 ② 光幕導通 ③ 沒有人按著開門鈕。',
+{t0:5.8, t1:8.8, no:'S4', short:'等待計時', title:'S4 開門等待',
+ trig:'計時倒數；<b>光幕再被擋一次就歸零重數</b>（所以一直有人進出門不會關）。',
+ mech:'門保持全開；貨物通過門口進到轎廂內。',
+ next:'計時到 0 且光幕導通 → S5。',
  focus:['beams','curtain']},
-{t0:8.8, t1:9.6, no:'S5', short:'關門啟動', title:'S5 關門啟動判定',
- trig:'S4 三條件全過 → 控制屏發出「關門」指令。',
- ctrl:'門機板刻意低速起步——門剛開始合攏時最容易夾到正要進來的人，這段全程最慢。',
- mech:'皮帶慢速啟動，兩扇門開始合攏；門刀咬著廳門一起動。',
- next:'起步段走完（編碼器確認）→ S6 正常關門曲線。',
+{t0:8.8, t1:9.6, no:'S5', short:'關門啟動', title:'S5 關門啟動',
+ trig:'等待條件成立，重新下關門指令。',
+ mech:'皮帶<b>低速起步</b>——門剛合攏時最容易夾人，這段全程最慢。',
+ next:'起步段走完 → S6。',
  focus:['motor']},
 {t0:9.6, t1:12.4, no:'S6', short:'關門行程', title:'S6 關門行程（S 曲線）',
- trig:'全程以<b>編碼器位置</b>決定該跑多快。「減速點」本身就是位置判定：門走到離全關剩一小段，提前減速。',
- ctrl:'S 曲線：加速 → 等速 → 提前減速 → 低速爬行進站（右下角速度錶 ▲ 游標）。編碼器閉環＋持續監看光幕與防夾電流。',
- mech:'同 S0：皮帶拉門、滑輪滾動、門刀帶著廳門一起關。',
- next:'編碼器到「接近全關」→ 切低速爬行 → 等<b>關門到位</b>訊號。',
+ trig:'編碼器位置決定減速點：離全關剩一小段就提前減速。',
+ mech:'加速 → 等速 → 提前減速 → 低速爬行（看右下角速度錶 ▲）；門刀帶著廳門一起關。',
+ next:'進入低速爬行 → 等關門到位。',
  focus:['belt','motor']},
-{t0:12.4, t1:13.6, no:'S7', short:'到位+門刀釋放', title:'S7 關門到位 ＋ 門刀釋放',
- trig:'兩扇門合攏 → <b>關門到位訊號動作</b>。',
- ctrl:'馬達停止行進，改輸出小的「關門保持力」，把門輕輕壓緊。',
- mech:'<b>門刀兩片刀片向內收攏 → 放開廳門的開鎖滾輪</b> → 轎門與廳門「脫鉤」。從這一刻起廳門要靠自己的鎖。建議切「門刀／門鎖特寫」鏡頭。',
- next:'門刀完全脫開滾輪 → 廳門鎖鉤失去支撐 → 可以落下勾合，進 S8。',
+{t0:12.4, t1:13.6, no:'S7', short:'到位+門刀釋放', title:'S7 關門到位＋門刀釋放',
+ trig:'<b>關門到位訊號</b>動作。',
+ mech:'<b>門刀兩片刀片向內收攏 → 放開開鎖滾輪</b> → 轎門與廳門脫鉤。建議切「門刀／門鎖特寫」鏡頭看。',
+ next:'鎖鉤失去支撐 → S8。',
  focus:['vane','closeLim']},
-{t0:13.6, t1:14.6, no:'S8', short:'門鎖勾合', title:'S8 門鎖勾合 — 轎門鎖（E35 監測）＋廳門鎖',
- trig:'門刀放開後，<b>廳門鎖鉤</b>靠彈簧＋自重落下、鉤喙咬住鎖座滾輪銷 → 勾到底時鉤尾銅接點橋接<b>廳門鎖接點</b>。同一時間轎門全閉，撞塊壓上<b>轎門鎖接點</b>——富士達控制系統持續監測轎門鎖狀態，異常就報 <b>E35（轎門鎖檢測異常）</b>。',
- ctrl:'重點判定：「機械勾上」≠「系統知道」。鎖鉤必須勾到底接點才導通（門鎖訊號輸入約 <b>24VDC</b>）。E35 的常見原因正是這裡：門鎖機械卡阻、接點氧化、線路斷路短路。',
- mech:'看特寫：鎖鉤落下 → 接點橋碰上兩片彈片接點 → 廳門鎖訊號燈亮；同時下方迴路燈條依序亮起。',
- next:'轎門鎖＋廳門鎖訊號送進門鎖回路 → S9 判定。',
+{t0:13.6, t1:14.6, no:'S8', short:'門鎖勾合', title:'S8 門鎖勾合（轎門鎖＋廳門鎖）',
+ trig:'門刀放開滾輪。',
+ mech:'<b>鎖鉤</b>靠彈簧＋自重落下、鉤喙咬住鎖座滾輪銷；鉤尾接點橋同時碰上兩片彈片 → <b>廳門鎖接點導通</b>（綠燈亮）。同時轎門全閉、撞塊壓上<b>轎門鎖接點</b>。',
+ next:'鉤到底＋接點導通 → S9。',
  focus:['hook','contacts','gsSw']},
-{t0:14.6, t1:16.5, no:'S9', short:'門鎖回路', title:'S9 門鎖回路反饋成立 → 允許運行',
- trig:'<b>轎門鎖＋每一層樓每一扇廳門鎖，全部「串聯」成門鎖回路</b>。任何一層沒鎖好，回路不通（<b>Err2＝門鎖信號異常</b>）、電梯不走。',
- ctrl:'運行的必要條件（原文）：「<b>門鎖回路反饋＋安全回路反饋有效</b>」——兩個都成立，控制屏才解除運行禁止、主機抱閘才允許鬆開。維保讀碼：<b>SEL 開關轉到「F」</b>看最新故障碼，或接 <b>PMC 調試軟體</b>看完整故障史。診斷口訣：先量門鎖回路通斷，再量控制板輸入端電壓（約 24VDC）。',
- mech:'白話比喻：像一串老式聖誕燈泡，少一顆全串不亮。電梯永遠不會在「哪扇門沒鎖好」的狀態下移動。',
- next:'電梯起動離站；到站後又從開門開始下一輪循環（本動畫自動重播）。',
+{t0:14.6, t1:16.5, no:'S9', short:'鎖閉完成', title:'S9 鎖閉完成',
+ trig:'機械勾到底＋電氣接點導通，雙重確認都成立。',
+ mech:'廳門被機械鎖死（在外面扒不開）、轎門全閉——門機構完成一輪開關門。',
+ next:'下一站到站再從開門開始（動畫自動重播）。',
  focus:['contacts','hook','gsSw']},
 ];
 
@@ -455,7 +434,7 @@ for(const [bx,by] of [[-.155,.105],[.155,.105],[-.155,-.105],[.155,-.105]]){
 for(let i=0;i<5;i++){ const fin=B(.012,.18,.028,M.steel); fin.position.set(.50+i*.06,2.52,.14); scene.add(fin); }
 const gl1=CYL(.011,.03,M.cable); gl1.rotation.x=Math.PI/2; gl1.position.set(.54,2.39,.175); scene.add(gl1);
 const gl2=CYL(.011,.03,M.cable); gl2.rotation.x=Math.PI/2; gl2.position.set(.70,2.39,.175); scene.add(gl2);
-addLabel(dorBox,'門機控制板（VVVF・SEL 轉「F」讀故障碼）', .17, 0, .03, true);
+addLabel(dorBox,'門機控制板（VVVF）', .17, 0, .03, true);
 
 /* ---- 馬達 → DOR 板 動力出線管 ---- */
 {
@@ -498,7 +477,7 @@ const gsG = new THREE.Group(); gsG.position.set(.10, 2.355, .105); scene.add(gsG
 const gsBody = B(.055,.05,.035,M.sw); gsG.add(gsBody);
 const gsPin1 = B(.006,.03,.003,M.copper); gsPin1.position.set(-.012,-.038,.004); gsPin1.rotation.x=.18; gsG.add(gsPin1);
 const gsPin2 = B(.006,.03,.003,M.copper); gsPin2.position.set( .012,-.038,.004); gsPin2.rotation.x=.18; gsG.add(gsPin2);
-addLabel(gsBody,'轎門鎖接點（E35 監測・轎門全閉才導通）', .07, .05, 0, true);
+addLabel(gsBody,'轎門鎖接點（轎門全閉才導通）', .07, .05, 0, true);
 /* 斜面撞塊（裝在右吊門板，全閉時滑入 GS 下方橋接彈片） */
 const gsCam = extrude([[0,0],[.06,0],[.06,.014],[.012,.022],[0,.022]], .05, M.copper);
 gsCam.rotation.y=Math.PI/2; // 斜面朝行進方向
@@ -656,7 +635,7 @@ const cPin2 = B(.007,.034,.003,M.copper); cPin2.position.set(-.315,2.398,-.283);
 const lockLED = new THREE.Mesh(new THREE.SphereGeometry(.012,16,16),
   new THREE.MeshStandardMaterial({color:0x333a42, emissive:0x000000}));
 lockLED.position.set(-.335,2.452,-.275); scene.add(lockLED);
-addLabel(contactBase,'廳門鎖接點（彈片・串入門鎖回路 24VDC）', .07, -.12, 0, true);
+addLabel(contactBase,'廳門鎖接點（彈片）', .07, -.12, 0, true);
 
 /* ---- 廳門自閉重錘（斷電也會自動關門）---- */
 const cwPulley = CYL(.022,.014,M.steel); cwPulley.position.set(.62,2.16,-.30); scene.add(cwPulley);
@@ -726,16 +705,6 @@ const ui = {
     vane: document.getElementById('sigVane'),
     gs  : document.getElementById('sigGS'),
     ds  : document.getElementById('sigDS'),
-    dg41: document.getElementById('sig41'),
-  },
-  circ : {
-    gs : document.getElementById('cGS'),
-    ds1: document.getElementById('cDS1'),
-    dsn: document.getElementById('cDSn'),
-    dg : document.getElementById('c41'),
-    w1 : document.getElementById('w1'),
-    w2 : document.getElementById('w2'),
-    w3 : document.getElementById('w3'),
   }
 };
 STEPS.forEach((s,i)=>{
@@ -747,13 +716,10 @@ function renderDetail(s){
   ui.detail.innerHTML = `
     <h2>${s.title}</h2>
     <div class="field trig"><div class="k">觸發判定（什麼訊號讓它動）</div><div class="v">${s.trig}</div></div>
-    <div class="field ctrl"><div class="k">控制器動作（控制屏／門機板下什麼令）</div><div class="v">${s.ctrl}</div></div>
-    <div class="field mech"><div class="k">機構動作（零件實際怎麼動）</div><div class="v">${s.mech}</div></div>
+    <div class="field mech"><div class="k">機構動作（哪個零件怎麼動）</div><div class="v">${s.mech}</div></div>
     <div class="field next"><div class="k">進入下一步的條件</div><div class="v">${s.next}</div></div>
-    <div class="note">依據：華升富士達官方資料（超薄永磁同步門機＝厚度減半、省電 35%）、富士達維修資料
-    （E35 轎門鎖檢測異常、E3 開頭＝門系統、門鎖訊號 24VDC、Err2 門鎖信號異常、SEL 轉「F」讀碼、PMC／EEC 調試軟體、
-    「門鎖回路反饋＋安全回路反饋＝運行必要條件」）。零件型態照實機特徵建模；
-    尺寸為教學比例、門板 X-ray 半透明為透視用。按上方「📋 真實零件表」看全部零件對照。</div>`;
+    <div class="note">機型：富士達超薄永磁同步門機（官方特色：厚度比傳統減半——機座板與馬達特別薄）。
+    零件型態照實機特徵建模、尺寸為教學比例；門板 X-ray 半透明為透視用。按「📋 真實零件表」看零件對照。</div>`;
 }
 
 /* 速度曲線小圖 */
@@ -895,15 +861,6 @@ function update(){
   ui.sigs.vane.innerHTML= `<i></i>${S.vane?'門刀夾持中（轎廳門連動）':'門刀已釋放'}`;
   ui.sigs.gs.className  = 'sig '+(S.gs?'on':'');
   ui.sigs.ds.className  = 'sig '+(S.ds?'on':'');
-  ui.sigs.dg41.className= 'sig '+(S.dg41?'on':'');
-
-  ui.circ.gs.className ='node'+(S.gs?' on':'');
-  ui.circ.ds1.className='node'+(S.ds?' on':'');
-  ui.circ.dsn.className='node'+(S.ds?' on':'');
-  ui.circ.dg.className ='node'+(S.dg41?' on':'');
-  ui.circ.w1.className ='wire'+(S.gs?' on':'');
-  ui.circ.w2.className ='wire'+((S.gs&&S.ds)?' on':'');
-  ui.circ.w3.className ='wire'+(S.dg41?' on':'');
 
   if(t>=5.8&&t<8.8){ ui.timer.style.display='block'; ui.timerV.textContent=(8.8-t).toFixed(1)+' s'; }
   else ui.timer.style.display='none';

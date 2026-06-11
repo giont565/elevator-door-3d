@@ -116,14 +116,7 @@
     <div id="viewport">
       <div id="stepChip"><div class="no">STEP</div><div class="ti">載入中…</div></div>
       <div id="timerChip"><div class="v">3.0 s</div><div class="l">門站時間倒數（光電再遮斷會歸零重數）</div></div>
-      <div id="banner">✓ 門鎖回路導通 — LCE 允許電梯運行</div>
-      <div id="circuit">
-        <span class="tag">門鎖回路（串聯）</span>
-        <span class="node" id="cGS">轎門觸點</span><span class="wire" id="w1"></span>
-        <span class="node" id="cDS1">本層廳門鎖</span><span class="wire" id="w2"></span>
-        <span class="node" id="cDSn">其他層廳門鎖×N</span><span class="wire" id="w3"></span>
-        <span class="node" id="c41">LCE 門鎖回路</span>
-      </div>
+      <div id="banner">✓ 門已鎖閉 — 開關門循環完成</div>
       <div id="signals">
         <div class="sig" id="sigSDE"><i></i>光電 X15/X16</div>
         <div class="sig" id="sigOLT"><i></i>開門極限 (10)</div>
@@ -131,7 +124,6 @@
         <div class="sig" id="sigVane"><i></i>門刀夾持中</div>
         <div class="sig" id="sigGS"><i></i>轎門觸點</div>
         <div class="sig" id="sigDS"><i></i>廳門鎖</div>
-        <div class="sig" id="sig41"><i></i>門鎖回路</div>
       </div>
       <div id="speedBox"><div class="l">門速曲線（SP1–SP4・編碼器回授）｜▲＝現在</div><canvas id="speedCv" width="216" height="64"></canvas></div>
       <div id="loopFlash"></div>
@@ -141,23 +133,20 @@
         <table>
           <tr><th>零件／訊號</th><th>代號</th><th>功能（白話）</th></tr>
           <tr><td>AMD 門機馬達</td><td>AMD 2.0</td><td>三相交流永磁同步馬達（調試文件原文），直驅「線性齒帶驅動機構」——通力門機的正式名稱就叫 AMD</td></tr>
-          <tr><td>門機控制板</td><td>—</td><td>含故障自診斷：狀態燈以「兩次長滅之間的閃爍次數」報故障碼；監測短路、編碼器故障、18VDC 低電壓、馬達轉子角度偵測失敗</td></tr>
+          <tr><td>門機控制板</td><td>—</td><td>驅動馬達＋開關門判定；馬達動力線從出線管接入</td></tr>
           <tr><td>速度曲線 DIP 開關</td><td>SP1–SP4</td><td>板上 DIP 開關選 4 段速度曲線；門機有「自學習」功能，先學一次行程才知道全開全關在哪</td></tr>
           <tr><td>線性齒帶（同步帶）</td><td>—</td><td>齒在內側咬合皮帶輪；上下兩股各夾一扇門，永遠等速對開對關</td></tr>
           <tr><td>編碼器</td><td>—</td><td>「連續位置及速度反饋」（原文），減速點與到位判定都靠它</td></tr>
           <tr><td>吊門板＋滑輪</td><td>—</td><td>鈑金板（帶減重孔）掛門板；PU 胎面滑輪沿門導軌滾動；下方偏心調整的防跳輪防脫軌</td></tr>
           <tr><td>門刀</td><td>—</td><td>調試文件稱「全機械門刀」：兩片刀片夾住廳門開鎖滾輪，把廳門「咬」著一起開關</td></tr>
           <tr><td>開鎖滾輪</td><td>—</td><td>廳門側被門刀夾的兩顆軸承滾輪；被夾住時頂開廳門鎖鉤＝解鎖</td></tr>
-          <tr><td>廳門鎖鉤＋接點</td><td>0022 監測</td><td>鉤形鑄件咬住鎖座滾輪銷；勾到底接點才導通。LCE 故障碼 0022＝廳門電氣鎖開關或接線異常</td></tr>
-          <tr><td>轎門觸點</td><td>0023 監測</td><td>轎門全閉才閉合；LCE 故障碼 0023＝轎門電氣鎖開關或接線異常</td></tr>
-          <tr><td>門鎖回路</td><td>LCE 監測</td><td>轎門觸點＋每層廳門鎖串聯；LCE（通力主控系統）量到整條導通才允許運行</td></tr>
-          <tr><td>光電傳感器</td><td>X15/2、X16/2</td><td>門口紅外線光電（光幕）；遮斷→重開門觸點 (31)(32) 輸出</td></tr>
-          <tr><td>安全觸板</td><td>X17、X18</td><td>機械式防夾觸板輸入，與光電並行的第二道防夾</td></tr>
-          <tr><td>開門極限</td><td>(10)</td><td>「到達完全打開位置前 10mm 有效」（原文）——開門到位判定</td></tr>
-          <tr><td>關門極限</td><td>(9)</td><td>「到達完全關閉位置前 10mm 有效」——關門到位判定</td></tr>
-          <tr><td>有限開門</td><td>(27)</td><td>通力特色功能：只開到 800mm 的指令（人流大時省開關門時間）；(40)＝開門距≥800mm 位置訊號</td></tr>
-          <tr><td>多次關門失敗保護</td><td>0044</td><td>連續關門都失敗 → 報 0044 鎖梯等維保；0089＝非轎廂位置廳門開（有人扒開廳門）→ 失去服務</td></tr>
-          <tr><td>廳門自閉重錘</td><td>—</td><td>鋼索＋重錘：停電、門刀沒夾時廳門也會自動關閉＋上鎖（防止有人掉進井道）</td></tr>
+          <tr><td>廳門鎖鉤＋接點</td><td>—</td><td>鉤形鑄件咬住鎖座滾輪銷；勾到底接點才導通</td></tr>
+          <tr><td>轎門觸點</td><td>—</td><td>轎門全閉、撞塊壓上才閉合</td></tr>
+          <tr><td>光電傳感器</td><td>X15/2、X16/2</td><td>門口紅外線光電（光幕）；遮斷→立即重開門</td></tr>
+          <tr><td>安全觸板</td><td>X17、X18</td><td>機械式防夾觸板，與光電並行的第二道防夾</td></tr>
+          <tr><td>開門極限</td><td>(10)</td><td>開門到位判定——到達全開位置前 10mm 就觸發</td></tr>
+          <tr><td>關門極限</td><td>(9)</td><td>關門到位判定——到達全關位置前 10mm 就觸發</td></tr>
+          <tr><td>廳門自閉重錘</td><td>—</td><td>鋼索＋重錘：停電、門刀沒夾時廳門也會自動關閉＋上鎖</td></tr>
           <tr><td>地坎＋門滑塊（導靴）</td><td>—</td><td>鋁擠型地坎帶溝槽；門板下端尼龍滑塊在溝槽內滑行，防止門片下擺</td></tr>
         </table>
       </div>
@@ -229,65 +218,55 @@ const sig = t => ({
 
 /* ============ 步驟（三菱真實訊號版）============ */
 const STEPS = [
-{t0:0, t1:2.15, no:'S0', short:'關門中', title:'S0 關門中（首次嘗試）',
- trig:'門站時間計時到（或按關門鈕）→ <b>LCE</b>（通力主控系統）對 AMD 門機板下「關門命令」——實機端子編號就是 <b>(17) 關門命令</b>、(16) 開門命令、(11) 強迫關門。',
- ctrl:'AMD 門機＝<b>三相交流永磁同步馬達＋線性齒帶驅動機構</b>（調試文件原文）。全程同時盯三件事：① <b>光電 X15/2、X16/2</b>（光幕）與<b>安全觸板 X17、X18</b> ② 馬達電流防夾 ③ 編碼器「連續位置及速度反饋」。',
- mech:'馬達直驅線性齒帶（齒在內側咬皮帶輪）→ 上下兩股各夾一扇門（永遠等速對開對關）→ 吊門板 PU 滑輪沿斜頂門導軌滾動 → <b>全機械門刀</b>夾著廳門的<b>開鎖滾輪</b>，把廳門「咬」著一起關。',
- next:'關門途中光電被遮 → 跳 S1「重開門判定」；一路順利 → 直接到 S7（關門極限 (9)）。',
+{t0:0, t1:2.15, no:'S0', short:'關門中', title:'S0 關門中',
+ trig:'收到關門命令（端子 17），AMD 馬達開始轉。',
+ mech:'馬達直驅線性齒帶 → 上下兩股各拉一扇門（永遠等速對開對關）→ 滑輪沿導軌滾動 → <b>全機械門刀</b>夾著廳門的<b>開鎖滾輪</b>，把廳門一起帶著關。',
+ next:'光電被擋 → S1 重開門；沒擋 → 直接到 S7。',
  focus:['beams','motor','belt']},
-{t0:2.15, t1:3.0, no:'S1', short:'光電遮斷', title:'S1 光電 X15/X16 遮斷 → 判定重開門',
- trig:'貨物擋住光電任一束 → 光電輸入 <b>X15/2、X16/2</b> 瞬斷（光束變紅）。',
- ctrl:'判定邏輯：「正在關門」＋「光電斷」同時成立 → 門機板輸出<b>重新開門觸點 (31)(32)</b>。備援判定：① 安全觸板 X17、X18 被壓到 ② 馬達電流超過防夾門檻——三道防線任一觸發都重開門。',
- mech:'齒帶煞停 → 切換反向。不是瞬間反彈，是「先煞停再反轉」，避免機構衝擊。',
- next:'反轉指令成立 → S2 重開門。',
+{t0:2.15, t1:3.0, no:'S1', short:'光電遮斷', title:'S1 光電 X15/X16 遮斷',
+ trig:'貨物擋住任一束光 → <b>光電 X15/2、X16/2</b> 訊號斷（光束變紅）；安全觸板 X17/X18 被壓到也一樣。',
+ mech:'齒帶<b>先煞停、再反轉</b>——不是瞬間反彈，避免機構衝擊。',
+ next:'反轉開始 → S2。',
  focus:['beams','curtain']},
-{t0:3.0, t1:5.0, no:'S2', short:'重開門', title:'S2 重開門（馬達反轉）',
- trig:'執行中持續比對編碼器的連續位置與速度反饋（閉環控制）。行程的「全開／全關」位置是門機<b>自學習</b>來的——裝機時先慢速走一趟記住行程。',
- ctrl:'改走開門方向速度曲線。通力另有特色指令 <b>(27) 有限開門</b>：人流大的樓層可只開 800mm（(40)＝開門距≥800mm 位置訊號），省下開關門時間。本展示為全開。',
- mech:'齒帶反向 → 兩扇門對開；門刀仍夾著開鎖滾輪、廳門跟著一起開；<b>廳門鎖鉤</b>早在門刀夾緊時就被頂開，維持解鎖。廳門自閉重錘同時被拉高（儲存關門的力量）。',
- next:'編碼器數到全開位置 → <b>開門極限 (10)</b> 訊號 ON。',
+{t0:3.0, t1:5.0, no:'S2', short:'重開門', title:'S2 重開門',
+ trig:'馬達反轉（全開位置是門機<b>自學習</b>記下來的）。',
+ mech:'兩扇門對開；門刀仍夾著開鎖滾輪、廳門跟著開；<b>鎖鉤維持被頂開</b>；自閉重錘被拉高（儲存關門的力量）。',
+ next:'門走到全開位置 → S3。',
  focus:['motor','belt','vane']},
-{t0:5.0, t1:5.8, no:'S3', short:'開門極限(10)', title:'S3 開門到位判定 — 開門極限 (10)',
- trig:'<b>開門極限 (10) 訊號 ON</b>。實機細節：這個訊號「到達完全打開位置<b>前 10mm</b> 就有效」——提前一點點觸發，讓控制端有時間收尾。',
- ctrl:'判定到位 → 停止行進輸出，保留小的「開門保持力」，門不會被人用手扒回去。',
- mech:'門停在全開位置。',
- next:'開門極限確認 → 啟動「門站時間」計時器。',
+{t0:5.0, t1:5.8, no:'S3', short:'開門極限(10)', title:'S3 開門到位 — 開門極限 (10)',
+ trig:'<b>開門極限 (10)</b> 作動——實機在到達全開位置<b>前 10mm</b> 就觸發。',
+ mech:'門停在全開，馬達只留一點保持力，防止門被手扒回去。',
+ next:'啟動開門等待計時。',
  focus:['openLim']},
-{t0:5.8, t1:8.8, no:'S4', short:'門站計時', title:'S4 開門等待（門站時間）',
- trig:'門站時間倒數（LCE 參數可設定，畫面上方顯示）。',
- ctrl:'倒數期間光電持續監測。判定規則：<b>光電再被遮一次，計時器歸零重數</b>——這就是一直有人進出時門不會關的原因。',
- mech:'門保持全開；貨物通過門口進到轎廂內，離開光束範圍後光電恢復導通（綠燈）。',
- next:'三條件同時成立：① 計時到 0 ② 光電導通 ③ 沒有人按著開門鈕。',
+{t0:5.8, t1:8.8, no:'S4', short:'等待計時', title:'S4 開門等待',
+ trig:'計時倒數；<b>光電再被擋一次就歸零重數</b>（所以一直有人進出門不會關）。',
+ mech:'門保持全開；貨物通過門口進到轎廂內。',
+ next:'計時到 0 且光電導通 → S5。',
  focus:['beams','curtain']},
-{t0:8.8, t1:9.6, no:'S5', short:'關門啟動', title:'S5 關門啟動判定',
- trig:'S4 三條件全過 → LCE 發出關門命令（端子 17）。',
- ctrl:'門機板刻意低速起步——門剛開始合攏時最容易夾到正要進來的人，這段全程最慢。注意：通力有 <b>0044「多次關門失敗」</b>保護，連續幾次都關不成會鎖梯等維保。',
- mech:'齒帶慢速啟動，兩扇門開始合攏；門刀咬著廳門一起動。',
- next:'起步段走完（編碼器確認）→ S6 正常關門曲線。',
+{t0:8.8, t1:9.6, no:'S5', short:'關門啟動', title:'S5 關門啟動',
+ trig:'等待條件成立，重新下關門命令。',
+ mech:'齒帶<b>低速起步</b>——門剛合攏時最容易夾人，這段全程最慢。',
+ next:'起步段走完 → S6。',
  focus:['motor']},
 {t0:9.6, t1:12.4, no:'S6', short:'關門行程', title:'S6 關門行程（SP 速度曲線）',
- trig:'全程以<b>編碼器位置</b>決定該跑多快。「減速點」本身就是位置判定：門走到離全關剩一小段，提前減速。',
- ctrl:'速度曲線由門機板上的 <b>DIP 開關 SP1–SP4</b> 選擇（4 段曲線，看右下角速度錶 ▲ 游標）。編碼器閉環＋持續監看光電與防夾電流。門機板同時自我監測：短路、編碼器故障、18VDC 低電壓、轉子角度偵測失敗——有問題就用狀態燈閃爍次數報故障碼。',
- mech:'同 S0：齒帶拉門、滑輪滾動、門刀帶著廳門一起關。',
- next:'編碼器到「接近全關」→ 切低速爬行 → 等<b>關門極限 (9)</b> 作動。',
+ trig:'編碼器位置決定減速點；速度曲線用門機板上的 <b>DIP 開關 SP1–SP4</b> 選。',
+ mech:'加速 → 等速 → 提前減速 → 低速爬行（看右下角速度錶 ▲）；門刀帶著廳門一起關。',
+ next:'進入低速爬行 → 等關門極限。',
  focus:['belt','motor']},
-{t0:12.4, t1:13.6, no:'S7', short:'關門極限(9)', title:'S7 關門到位 — 關門極限 (9) ＋ 門刀釋放',
- trig:'兩扇門合攏 → <b>關門極限 (9) 訊號 ON</b>（同樣是「到達完全關閉位置前 10mm 有效」）。',
- ctrl:'馬達停止行進，「門以較小的力保持完全關閉狀態」（調試文件原文）。',
- mech:'<b>全機械門刀兩片刀片向內收攏 → 放開廳門的開鎖滾輪</b> → 轎門與廳門「脫鉤」。從這一刻起廳門要靠自己的鎖。建議切「門刀／門鎖特寫」鏡頭。',
- next:'門刀完全脫開滾輪 → 廳門鎖鉤失去支撐 → 可以落下勾合，進 S8。',
+{t0:12.4, t1:13.6, no:'S7', short:'關門極限(9)', title:'S7 關門到位 — 關門極限 (9) ＋門刀釋放',
+ trig:'<b>關門極限 (9)</b> 作動（同樣是到位前 10mm 觸發）。',
+ mech:'<b>門刀兩片刀片向內收攏 → 放開開鎖滾輪</b> → 轎門與廳門脫鉤。建議切「門刀／門鎖特寫」鏡頭看。',
+ next:'鎖鉤失去支撐 → S8。',
  focus:['vane','closeLim']},
-{t0:13.6, t1:14.6, no:'S8', short:'門鎖勾合', title:'S8 門鎖勾合 — 廳門鎖＋轎門觸點',
- trig:'門刀放開後，<b>廳門鎖鉤</b>靠彈簧＋自重落下、鉤喙咬住鎖座滾輪銷 → 勾到底時鉤尾銅接點橋接<b>廳門鎖接點</b>。同一時間轎門全閉，撞塊壓上<b>轎門觸點</b>。LCE 分開監測這兩道：<b>0022＝廳門電氣鎖異常、0023＝轎門電氣鎖異常</b>。',
- ctrl:'重點判定：「機械勾上」≠「系統知道」。鎖鉤必須勾到底接點才導通——差一點點都不算數。這是機械鎖＋電氣確認的雙重保險。',
- mech:'看特寫：鎖鉤落下 → 接點橋碰上兩片彈片接點 → 廳門鎖訊號燈亮；同時下方迴路燈條依序亮起。',
- next:'轎門觸點＋廳門鎖訊號送進門鎖回路 → S9 LCE 判定。',
+{t0:13.6, t1:14.6, no:'S8', short:'門鎖勾合', title:'S8 門鎖勾合（廳門鎖＋轎門觸點）',
+ trig:'門刀放開滾輪。',
+ mech:'<b>鎖鉤</b>靠彈簧＋自重落下、鉤喙咬住鎖座滾輪銷；鉤尾接點橋同時碰上兩片彈片 → <b>廳門鎖接點導通</b>（綠燈亮）。同時轎門全閉、撞塊壓上<b>轎門觸點</b>。',
+ next:'鉤到底＋接點導通 → S9。',
  focus:['hook','contacts','gsSw']},
-{t0:14.6, t1:16.5, no:'S9', short:'門鎖回路', title:'S9 門鎖回路導通 → LCE 允許運行',
- trig:'<b>轎門觸點＋每一層樓每一扇廳門鎖，全部「串聯」成門鎖回路</b>。任何一層沒鎖好，回路不通、電梯不走。',
- ctrl:'LCE 量到門鎖回路導通 → 解除運行禁止 → 主機抱閘才允許鬆開。加碼保護：① <b>0089＝非轎廂位置廳門開</b>（有人扒開廳門）→ 電梯失去服務直到維保處理 ② <b>0046＝門觸點／門位置丟失</b> ③ 運行中回路突然斷 → 立即急停。',
- mech:'白話比喻：像一串老式聖誕燈泡，少一顆全串不亮。電梯永遠不會在「哪扇門沒鎖好」的狀態下移動。',
- next:'電梯起動離站；到站後又從開門開始下一輪循環（本動畫自動重播）。',
+{t0:14.6, t1:16.5, no:'S9', short:'鎖閉完成', title:'S9 鎖閉完成',
+ trig:'機械勾到底＋電氣接點導通，雙重確認都成立。',
+ mech:'廳門被機械鎖死（在外面扒不開）、轎門全閉——門機構完成一輪開關門。',
+ next:'下一站到站再從開門開始（動畫自動重播）。',
  focus:['contacts','hook','gsSw']},
 ];
 
@@ -504,7 +483,7 @@ const gsG = new THREE.Group(); gsG.position.set(.10, 2.355, .105); scene.add(gsG
 const gsBody = B(.055,.05,.035,M.sw); gsG.add(gsBody);
 const gsPin1 = B(.006,.03,.003,M.copper); gsPin1.position.set(-.012,-.038,.004); gsPin1.rotation.x=.18; gsG.add(gsPin1);
 const gsPin2 = B(.006,.03,.003,M.copper); gsPin2.position.set( .012,-.038,.004); gsPin2.rotation.x=.18; gsG.add(gsPin2);
-addLabel(gsBody,'轎門觸點（轎門全閉才導通・0023 監測）', .07, .05, 0, true);
+addLabel(gsBody,'轎門觸點（轎門全閉才導通）', .07, .05, 0, true);
 /* 斜面撞塊（裝在右吊門板，全閉時滑入 GS 下方橋接彈片） */
 const gsCam = extrude([[0,0],[.06,0],[.06,.014],[.012,.022],[0,.022]], .05, M.copper);
 gsCam.rotation.y=Math.PI/2; // 斜面朝行進方向
@@ -662,7 +641,7 @@ const cPin2 = B(.007,.034,.003,M.copper); cPin2.position.set(-.315,2.398,-.283);
 const lockLED = new THREE.Mesh(new THREE.SphereGeometry(.012,16,16),
   new THREE.MeshStandardMaterial({color:0x333a42, emissive:0x000000}));
 lockLED.position.set(-.335,2.452,-.275); scene.add(lockLED);
-addLabel(contactBase,'廳門鎖接點（彈片・串入門鎖回路・0022 監測）', .07, -.12, 0, true);
+addLabel(contactBase,'廳門鎖接點（彈片）', .07, -.12, 0, true);
 
 /* ---- 廳門自閉重錘（斷電也會自動關門）---- */
 const cwPulley = CYL(.022,.014,M.steel); cwPulley.position.set(.62,2.16,-.30); scene.add(cwPulley);
@@ -732,16 +711,6 @@ const ui = {
     vane: document.getElementById('sigVane'),
     gs  : document.getElementById('sigGS'),
     ds  : document.getElementById('sigDS'),
-    dg41: document.getElementById('sig41'),
-  },
-  circ : {
-    gs : document.getElementById('cGS'),
-    ds1: document.getElementById('cDS1'),
-    dsn: document.getElementById('cDSn'),
-    dg : document.getElementById('c41'),
-    w1 : document.getElementById('w1'),
-    w2 : document.getElementById('w2'),
-    w3 : document.getElementById('w3'),
   }
 };
 STEPS.forEach((s,i)=>{
@@ -753,12 +722,10 @@ function renderDetail(s){
   ui.detail.innerHTML = `
     <h2>${s.title}</h2>
     <div class="field trig"><div class="k">觸發判定（什麼訊號讓它動）</div><div class="v">${s.trig}</div></div>
-    <div class="field ctrl"><div class="k">控制器動作（LCE／門機板下什麼令）</div><div class="v">${s.ctrl}</div></div>
-    <div class="field mech"><div class="k">機構動作（零件實際怎麼動）</div><div class="v">${s.mech}</div></div>
+    <div class="field mech"><div class="k">機構動作（哪個零件怎麼動）</div><div class="v">${s.mech}</div></div>
     <div class="field next"><div class="k">進入下一步的條件</div><div class="v">${s.next}</div></div>
-    <div class="note">依據：通力 AMD 2.0 門機調試資料（三相交流永磁同步馬達＋線性齒帶＋全機械門刀；端子 (9)(10)(16)(17)(27)(31)(32)(40)；
-    光電 X15/2・X16/2、安全觸板 X17・X18；DIP SP1–SP4；狀態燈閃碼自診斷）、LCE 故障碼表（0022／0023／0044／0046／0089）。
-    零件型態照實機特徵建模；尺寸為教學比例、門板 X-ray 半透明為透視用。按上方「📋 真實零件表」看全部零件對照。</div>`;
+    <div class="note">機型：通力 AMD 門機（三相交流永磁同步馬達＋線性齒帶＋全機械門刀）。零件型態照實機特徵建模、
+    尺寸為教學比例；門板 X-ray 半透明為透視用。按「📋 真實零件表」看零件對照。</div>`;
 }
 
 /* 速度曲線小圖 */
@@ -900,15 +867,6 @@ function update(){
   ui.sigs.vane.innerHTML= `<i></i>${S.vane?'門刀夾持中（轎廳門連動）':'門刀已釋放'}`;
   ui.sigs.gs.className  = 'sig '+(S.gs?'on':'');
   ui.sigs.ds.className  = 'sig '+(S.ds?'on':'');
-  ui.sigs.dg41.className= 'sig '+(S.dg41?'on':'');
-
-  ui.circ.gs.className ='node'+(S.gs?' on':'');
-  ui.circ.ds1.className='node'+(S.ds?' on':'');
-  ui.circ.dsn.className='node'+(S.ds?' on':'');
-  ui.circ.dg.className ='node'+(S.dg41?' on':'');
-  ui.circ.w1.className ='wire'+(S.gs?' on':'');
-  ui.circ.w2.className ='wire'+((S.gs&&S.ds)?' on':'');
-  ui.circ.w3.className ='wire'+(S.dg41?' on':'');
 
   if(t>=5.8&&t<8.8){ ui.timer.style.display='block'; ui.timerV.textContent=(8.8-t).toFixed(1)+' s'; }
   else ui.timer.style.display='none';
