@@ -89,6 +89,7 @@
       <button id="btnXray" class="on">X-ray 透視</button>
       <button id="btnLabel" class="on">零件標籤</button>
       <button id="btnDrive">驅動：直驅（新式）</button>
+      <button id="btnSafety">防夾：光幕（新式）</button>
       <a class="btn" href="mitsubishi.html">🔴 三菱</a>
       <a class="btn" href="fujitec.html">🟠 富士達</a>
       <a class="btn" href="kone.html">🔵 通力</a>
@@ -135,17 +136,28 @@ const eo  = t => 1-(1-t)*(1-t);
 const eio = t => t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
 const seg = (t,a,b) => Math.min(1, Math.max(0,(t-a)/(b-a)));
 
+let safetyMode='curtain';   // 'curtain'=光幕（新式） / 'edge'=機械安全門邊（舊式）
 function dOf(t){
-  if (t < 2.15)  return 1 - 0.45*ei(seg(t,0,2.15));
-  if (t < 2.50)  return 0.55 - 0.035*eo(seg(t,2.15,2.50));
-  if (t < 3.00)  return 0.515;
-  if (t < 5.00)  return 0.515 + 0.485*eio(seg(t,3.0,5.0));
+  if(safetyMode==='edge'){
+    // 機械式：門要一路關到「真的碰到貨物」、門邊條被壓縮到底，開關才作動 → 反轉
+    if (t < 2.15)  return 1 - 0.60*ei(seg(t,0,2.15));
+    if (t < 2.45)  return 0.40 - 0.12*eo(seg(t,2.15,2.45));
+    if (t < 3.00)  return 0.28;
+    if (t < 5.00)  return 0.28 + 0.72*eio(seg(t,3.0,5.0));
+  }else{
+    if (t < 2.15)  return 1 - 0.45*ei(seg(t,0,2.15));
+    if (t < 2.50)  return 0.55 - 0.035*eo(seg(t,2.15,2.50));
+    if (t < 3.00)  return 0.515;
+    if (t < 5.00)  return 0.515 + 0.485*eio(seg(t,3.0,5.0));
+  }
   if (t < 8.80)  return 1;
   if (t < 9.60)  return 1 - 0.06*ei(seg(t,8.8,9.6));
   if (t < 12.40) return 0.94 - 0.88*eio(seg(t,9.6,12.4));
   if (t < 12.85) return 0.06 - 0.06*eo(seg(t,12.4,12.85));
   return 0;
 }
+/* 門邊條壓縮量（0~1）：門邊外凸 12mm，貨物在門口時被門壓回 */
+const comp01 = d => Math.min(1, Math.max(0, (0.3067 - d) / 0.0267));
 function vaneClamp(t){
   if (t < 12.90) return 1;
   if (t < 13.50) return 1 - eio(seg(t,12.9,13.5));
@@ -157,15 +169,17 @@ function hookOpen(t){
   return 0;
 }
 function boxZ(t){
+  const hold = safetyMode==='edge' ? -0.02 : -0.15;  // 機械式：貨物站在門縫線上才會被門邊碰到
   if (t < 1.0)  return -1.5;
-  if (t < 2.15) return -1.5 + 1.35*eio(seg(t,1.0,2.15));
-  if (t < 4.6)  return -0.15;
-  if (t < 6.2)  return -0.15 + 1.25*eio(seg(t,4.6,6.2));
+  if (t < 2.15) return -1.5 + (hold+1.5)*eio(seg(t,1.0,2.15));
+  if (t < 4.6)  return hold;
+  if (t < 6.2)  return hold + (1.1-hold)*eio(seg(t,4.6,6.2));
   return 1.1;
 }
 const curtainBlocked = t => Math.abs(boxZ(t)) < 0.27 && dOf(t) > 0.12;
+const edgePressed = t => safetyMode==='edge' && Math.abs(boxZ(t)) < 0.16 && comp01(dOf(t)) > 0.8;
 const sig = t => ({
-  sde  : !curtainBlocked(t),
+  sde  : safetyMode==='edge' ? !edgePressed(t) : !curtainBlocked(t),
   olt  : dOf(t) > 0.995,
   clt  : dOf(t) < 0.005 && t > 12.5,
   vane : vaneClamp(t) > 0.5,
@@ -179,10 +193,14 @@ const STEPS = [
  trig:'收到關門指令，馬達開始轉。',
  mech:'馬達驅動齒型帶 → 上下兩股各拉一扇門（永遠等速對開對關）→ 滑輪沿導軌滾動 → <b>門刀</b>夾著廳門的<b>開鎖滾輪</b>，把廳門一起帶著關。',
  next:'光幕被擋 → S1 重開門；沒擋 → 直接到 S7。',
+ nextE:'門邊真的碰到障礙物 → S1 重開門；沒碰到 → 直接到 S7。',
  focus:['beams','motor','belt']},
 {t0:2.15, t1:3.0, no:'S1', short:'光幕遮斷', title:'S1 光幕遮斷',
- trig:'貨物擋住任一束紅外線 → 光幕訊號斷（光束變紅）。',
+ titleE:'S1 安全門邊壓到障礙物',
+ trig:'貨物擋住任一束紅外線 → 光幕訊號斷（光束變紅）。<b>還沒碰到就反轉</b>——這是光幕的優點。',
+ trigE:'門一路關到<b>真的碰到貨物</b> → 門邊條被往內壓 12mm → 連桿拉動開關作動。機械式一定要「碰到」才知道——人進出太慢就會被夾到，這就是它的缺點（也是後來換成光幕的原因）。',
  mech:'皮帶<b>先煞停、再反轉</b>——不是瞬間反彈，避免機構衝擊。',
+ mechE:'門邊條內縮 → 開關作動 → 皮帶煞停再反轉。注意看門關得比光幕模式更深、真的頂到貨物才回頭。',
  next:'反轉開始 → S2。',
  focus:['beams','curtain']},
 {t0:3.0, t1:5.0, no:'S2', short:'重開門', title:'S2 重開門',
@@ -197,8 +215,10 @@ const STEPS = [
  focus:['openLim']},
 {t0:5.8, t1:8.8, no:'S4', short:'等待計時', title:'S4 開門等待',
  trig:'計時倒數；<b>光幕再被擋一次就歸零重數</b>（所以一直有人進出門不會關）。',
+ trigE:'計時倒數。注意：<b>機械門邊看不到人</b>——有人通過也不會重數，時間到照關（光幕才有「看到人就重數」的功能）。',
  mech:'門保持全開；貨物通過門口進到車廂內。',
  next:'計時到 0 且光幕導通 → S5。',
+ nextE:'計時到 0 → S5（不檢查門口有沒有人——舊式的風險點）。',
  focus:['beams','curtain']},
 {t0:8.8, t1:9.6, no:'S5', short:'關門啟動', title:'S5 關門啟動',
  trig:'等待條件成立，重新下關門指令。',
@@ -494,18 +514,32 @@ function hanger(side){
   const gibBkt=B(.07,.03,.012,M.steel); gibBkt.position.set(0,.058,.066); g.add(gibBkt);
   const gib=B(.065,.035,.017,M.nylon); gib.position.set(0,.031,.066); g.add(gib);
   const strip=B(.02,1.9,.025,M.curtain); strip.position.set(side*-1*(PANEL_W/2-.015),1.0,.03); g.add(strip);
+  const dots=[];
   for(let i=0;i<8;i++){
     const dot=new THREE.Mesh(new THREE.SphereGeometry(.0045,10,10),M.lens);
-    dot.position.set(side*-1*(PANEL_W/2-.015), .22+i*1.56/7, .044); g.add(dot);
+    dot.position.set(side*-1*(PANEL_W/2-.015), .22+i*1.56/7, .044); g.add(dot); dots.push(dot);
   }
-  return {g, rollers, plate, panel, strip, clamp, post};
+  /* 機械式安全門邊（舊式・依現場更新前照片）：外凸門邊條＋上下連桿＋作動開關 */
+  const me=new THREE.Group(); me.visible=false; g.add(me);
+  const mstrip=B(.018,1.9,.045,M.alu);
+  const mBaseX = side*-1*(PANEL_W/2+.012);
+  mstrip.position.set(mBaseX,1.0,.05); me.add(mstrip);
+  const arms=[];
+  for(const ay of [1.72,.42]){
+    const arm=B(.008,.15,.006,M.steel);
+    arm.position.set(side*-1*(PANEL_W/2-.07), ay, .070);
+    arm.rotation.z=side*-0.55; me.add(arm); arms.push(arm);
+  }
+  const mSw=B(.032,.026,.02,M.sw); mSw.position.set(side*-1*(PANEL_W/2-.13),1.86,.070); me.add(mSw);
+  return {g, rollers, plate, panel, strip, dots, clamp, post, me, mstrip, mBaseX, side};
 }
 const hL = hanger(-1), hR = hanger(1);
 gsCam.position.set(-.185, 2.312, .091); hR.g.add(gsCam);
 addLabel(hL.plate,'吊門板（鈑金・減重孔）＋PU 滑輪', .2, -.1, 0);
 addLabel(hL.panel,'車門板（左・背面補強肋）', -.35, -.12, .05);
 addLabel(hR.panel,'車門板（右）', -.35, .12, .05);
-addLabel(hL.strip,'光幕（紅外線投受光點）', -.55, 0, .03);
+const curtainLbl = addLabel(hL.strip,'光幕（紅外線投受光點・新式）', -.55, 0, .03);
+const edgeLbl = addLabel(hL.mstrip,'機械式安全門邊（要碰到才作動・舊式）', -.40, 0, .03);
 addLabel(hL.clamp,'皮帶夾（寬幅壓板）', .05, -.06, 0);
 
 /* 光幕光束 */
@@ -629,6 +663,7 @@ addLabel(cbody,'貨物（遮斷光幕）', .45, 0, 0);
 const FOCUS = {
   beams   : [],
   curtain : [hL.strip, hR.strip],
+  edge    : [hL.mstrip, hR.mstrip],
   motor   : [motorBody, dp.body],
   belt    : [beltUp, beltDn],
   vane    : [bladeLMesh, bladeRMesh],
@@ -643,7 +678,8 @@ function setFocus(keys){
   for(const m of curFocusMats){ m.emissive.setHex(m.userData._em??0); m.emissiveIntensity=1; }
   curFocusMats = [];
   const seen = new Set();
-  for(const k of keys) for(const mesh of (FOCUS[k]||[])){
+  const eff = safetyMode==='edge' ? keys.map(k=>(k==='beams'||k==='curtain')?'edge':k) : keys;
+  for(const k of eff) for(const mesh of (FOCUS[k]||[])){
     const m = mesh.material;
     if(seen.has(m.uuid)) continue; seen.add(m.uuid);
     if(m.userData._em===undefined) m.userData._em = m.emissive ? m.emissive.getHex() : 0;
@@ -682,25 +718,31 @@ STEPS.forEach((s,i)=>{
   b.onclick=()=>{ T=s.t0+0.01; forceStep(); };
   ui.list.appendChild(b);
 });
+const stepTitle = s => (safetyMode==='edge' && s.titleE) ? s.titleE : s.title;
 function renderDetail(s){
+  const e = safetyMode==='edge';
+  const trig = (e&&s.trigE)||s.trig, mech=(e&&s.mechE)||s.mech, next=(e&&s.nextE)||s.next;
   ui.detail.innerHTML = `
-    <h2>${s.title}</h2>
-    <div class="field trig"><div class="k">觸發判定（什麼訊號讓它動）</div><div class="v">${s.trig}</div></div>
-    <div class="field mech"><div class="k">機構動作（哪個零件怎麼動）</div><div class="v">${s.mech}</div></div>
-    <div class="field next"><div class="k">進入下一步的條件</div><div class="v">${s.next}</div></div>
+    <h2>${stepTitle(s)}</h2>
+    <div class="field trig"><div class="k">觸發判定（什麼訊號讓它動）</div><div class="v">${trig}</div></div>
+    <div class="field mech"><div class="k">機構動作（哪個零件怎麼動）</div><div class="v">${mech}</div></div>
+    <div class="field next"><div class="k">進入下一步的條件</div><div class="v">${next}</div></div>
     <div class="note">機型：永磁直驅＋同步帶門機。本版已依現場照片校正：寬幅齒帶＋大型皮帶夾、
-    直立散熱鰭驅動箱、鍍鋅鈑金機座、黃色車頂護欄。按上方「驅動」鈕可切換舊式「減速輪＋V帶」門機對照外觀。
+    直立散熱鰭驅動箱、鍍鋅鈑金機座、黃色車頂護欄。上方兩顆切換鈕：「驅動」＝新式直驅 ⇄ 舊式減速輪＋V帶；
+    「防夾」＝新式光幕（沒碰到就反轉）⇄ 舊式機械門邊（要碰到才反轉，依更新前後照片）。
     門板 X-ray 半透明為透視用；滑鼠拖曳旋轉、滾輪縮放。</div>`;
 }
 
 /* 速度曲線小圖 */
 const spCv=document.getElementById('speedCv'), spCtx=spCv.getContext('2d');
-const SAMPLES=[]; {
-  let vmax=0;
+const SAMPLES=[];
+function buildSamples(){
+  SAMPLES.length=0; let vmax=0;
   for(let i=0;i<=330;i++){ const t=i/330*T_TOTAL;
     const v=Math.abs(dOf(t+.016)-dOf(t-.016))/.032; SAMPLES.push(v); vmax=Math.max(vmax,v); }
   for(let i=0;i<SAMPLES.length;i++) SAMPLES[i]/=vmax;
 }
+buildSamples();
 function drawSpeed(t){
   const w=spCv.width,h=spCv.height;
   spCtx.clearRect(0,0,w,h);
@@ -746,7 +788,7 @@ function syncDriveVis(){
 ui.label.onclick=()=>{
   labelsOn=!labelsOn; labels.forEach(l=>l.visible=labelsOn);
   ui.label.classList.toggle('on',labelsOn);
-  syncDriveVis();
+  syncDriveVis(); syncSafetyVis();
 };
 ui.drive.onclick=()=>{
   const old=!redG.visible;
@@ -757,6 +799,25 @@ ui.drive.onclick=()=>{
   syncDriveVis();
 };
 syncDriveVis();
+/* 防夾裝置切換：光幕（新式）⇄ 機械門邊（舊式） */
+const btnSafety=document.getElementById('btnSafety');
+function syncSafetyVis(){
+  const e = safetyMode==='edge';
+  for(const h of [hL,hR]){
+    h.strip.visible=!e; h.dots.forEach(dt=>dt.visible=!e);
+    h.me.visible=e;
+  }
+  curtainLbl.visible = labelsOn && !e;
+  edgeLbl.visible    = labelsOn && e;
+}
+btnSafety.onclick=()=>{
+  safetyMode = safetyMode==='edge' ? 'curtain' : 'edge';
+  const e = safetyMode==='edge';
+  btnSafety.textContent = e ? '防夾：機械門邊（舊式）' : '防夾：光幕（新式）';
+  btnSafety.classList.toggle('on', e);
+  syncSafetyVis(); buildSamples(); forceStep();
+};
+syncSafetyVis();
 const CAMS={
   camAll    :{p:[0.4,1.9,4.4],  t:[0,1.5,0]},
   camMachine:{p:[0.2,2.62,2.6], t:[0,2.44,0]},
@@ -820,9 +881,15 @@ function update(){
   rp[6]=.62;   rp[7]=wy+.065; rp[8]=-.30;
   ropeGeo.attributes.position.needsUpdate=true;
 
+  const eMode = safetyMode==='edge';
+  /* 機械門邊：貨物在門口且門關到頂住 → 門邊條被壓回 */
+  const comp = (eMode && Math.abs(boxZ(t))<0.16) ? comp01(d) : 0;
+  hL.mstrip.position.x = hL.mBaseX + comp*0.012;
+  hR.mstrip.position.x = hR.mBaseX - comp*0.012;
+
   const blocked=curtainBlocked(t);
   const gapL=xl+PANEL_W/2-.015, gapR=xr-PANEL_W/2+.015;
-  const showBeams=(gapR-gapL)>.07;
+  const showBeams=(gapR-gapL)>.07 && !eMode;
   beams.visible=showBeams;
   if(showBeams){
     const pos=beamGeo.attributes.position.array;
@@ -841,7 +908,9 @@ function update(){
   cart.position.set(0,0,boxZ(t));
 
   ui.sigs.sde.className = 'sig '+(S.sde?'on':'bad');
-  ui.sigs.sde.innerHTML = `<i></i>光幕${S.sde?'導通':'遮斷！'}`;
+  ui.sigs.sde.innerHTML = eMode
+    ? `<i></i>安全門邊${S.sde?'待命':'作動！（碰到了）'}`
+    : `<i></i>光幕${S.sde?'導通':'遮斷！'}`;
   ui.sigs.olt.className = 'sig '+(S.olt?'on':'');
   ui.sigs.clt.className = 'sig '+(S.clt?'on':'');
   ui.sigs.vane.className= 'sig '+(S.vane?'warn':'on');
@@ -857,7 +926,7 @@ function update(){
   if(si!==curStep){
     curStep=si; const s=STEPS[si];
     ui.chipNo.textContent=`STEP ${si+1} / ${STEPS.length} ・ t=${s.t0.toFixed(1)}s`;
-    ui.chipTi.textContent=s.title;
+    ui.chipTi.textContent=stepTitle(s);
     [...ui.list.children].forEach((b,i)=>b.classList.toggle('act',i===si));
     renderDetail(s); setFocus(s.focus);
   }
@@ -891,6 +960,7 @@ window.__state=()=>({T,d:dOf(T),step:stepOf(T),sig:sig(T)});
 window.__setCam=(p,t)=>{camera.position.set(...p);controls.target.set(...t);};
 window.__world=o=>{const v=new THREE.Vector3();({hook:hookBody,keeper,bridge,pin1:cPin1,blade:bladeLMesh,roller:cR1,gscam:gsCam,gssw:gsBody}[o]).getWorldPosition(v);return v.toArray();};
 window.__drive=()=>ui.drive.click();
+window.__safety=()=>btnSafety.click();
 </script>
 </body>
 </html>
