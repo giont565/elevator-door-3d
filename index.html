@@ -509,7 +509,7 @@ const swOpen  = limitSwitch(-.95,'開門到位感知');
 const swClose = limitSwitch(-.04,'關門到位感知');
 
 /* ---- 轎門鎖（撞塊＋彈片接點）---- */
-const gsG = new THREE.Group(); gsG.position.set(.10, 2.355, .105); scene.add(gsG);
+const gsG = new THREE.Group(); gsG.position.set(0.0, 2.40, .125); scene.add(gsG);  // 移到雙門接合中心、避開吊門板滾輪(±.12)
 const gsBody = B(.055,.05,.035,M.sw); gsG.add(gsBody);
 const gsPin1 = B(.006,.03,.003,M.copper); gsPin1.position.set(-.012,-.038,.004); gsPin1.rotation.x=.18; gsG.add(gsPin1);
 const gsPin2 = B(.006,.03,.003,M.copper); gsPin2.position.set( .012,-.038,.004); gsPin2.rotation.x=.18; gsG.add(gsPin2);
@@ -571,7 +571,7 @@ function hanger(side){
   return {g, rollers, plate, panel, strip, dots, clamp, post, me, mstrip, mBaseX, side};
 }
 const hL = hanger(-1), hR = hanger(1);
-gsCam.position.set(-.185, 2.312, .091); hR.g.add(gsCam);
+gsCam.position.set(-.238, 2.39, .112); hR.g.add(gsCam);  // 隨右門合到中心、滑入 GS 開關下方
 addLabel(hL.plate,'吊門板（鈑金・減重孔）＋PU 滑輪', .2, -.1, 0);
 addLabel(hL.panel,'車門板（左・背面補強肋）', -.35, -.12, .05);
 addLabel(hR.panel,'車門板（右）', -.35, .12, .05);
