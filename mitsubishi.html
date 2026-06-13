@@ -101,7 +101,7 @@
       <span style="width:8px"></span>
       <button id="camAll" class="on">全景</button>
       <button id="camMachine">門機特寫</button>
-      <button id="camLock">門刀／門鎖特寫</button>
+      <button id="camLock">羽棒／門閉鎖器特寫</button>
       <button id="camSide">側面剖視</button>
       <span style="width:8px"></span>
       <button id="btnXray" class="on">X-ray 透視</button>
@@ -122,7 +122,7 @@
         <div class="sig" id="sigSDE"><i></i>SDE 光幕</div>
         <div class="sig" id="sigOLT"><i></i>OLT 開門到位</div>
         <div class="sig" id="sigCLT"><i></i>CLT 關門到位</div>
-        <div class="sig" id="sigVane"><i></i>門刀夾持中</div>
+        <div class="sig" id="sigVane"><i></i>羽棒夾持中</div>
         <div class="sig" id="sigGS"><i></i>GS 轎門鎖</div>
         <div class="sig" id="sigDS"><i></i>DS 廳門鎖</div>
       </div>
@@ -130,25 +130,32 @@
       <div id="loopFlash"></div>
       <div id="bom">
         <button class="close" id="bomClose">✕ 關閉</button>
-        <h3>📋 三菱門系統真實零件對照表</h3>
+        <h3>📋 三菱門系統零件對照表（依廠內實機照片用詞）</h3>
         <table>
-          <tr><th>零件／訊號</th><th>代號</th><th>功能（白話）</th></tr>
-          <tr><td>PM 永磁同步門機馬達</td><td>—</td><td>扁平碟型、外圈放射狀散熱鰭，直接驅動皮帶輪——沒有減速機、沒有連桿，這是 NexWay 世代門機的招牌（官方說明：由聯動機構改為 PM 電機直驅）</td></tr>
-          <tr><td>門機控制板</td><td>DOR 系列</td><td>驅動馬達＋開關門判定；馬達動力線從出線管接入</td></tr>
-          <tr><td>同步齒型帶</td><td>—</td><td>齒在內側咬合皮帶輪；上下兩股各夾一扇門，所以兩扇門永遠等速對開對關</td></tr>
-          <tr><td>編碼器／速度回授</td><td>FG</td><td>馬達尾端小圓殼；回報門的位置與速度，減速點靠它判定</td></tr>
-          <tr><td>吊門板（門掛板）＋滑輪</td><td>—</td><td>鈑金板（帶減重孔）掛門板；PU 胎面滑輪沿門導軌滾動；下方偏心調整的防跳輪防脫軌</td></tr>
-          <tr><td>門導軌</td><td>—</td><td>斜頂面斷面的鋼軌，滑輪騎在斜頂上自動對中</td></tr>
-          <tr><td>門刀（夾緊式）</td><td>—</td><td>兩片帶導入斜角的長刀片＋平行四邊形連桿＋拉簧；夾住廳門的開鎖滾輪，把廳門「咬」著一起開關</td></tr>
-          <tr><td>開鎖滾輪</td><td>—</td><td>三菱型特徵：兩顆軸承滾輪「<b>垂直排列</b>」直接裝在鎖鉤臂上；門刀夾住＝頂開鎖鉤＝解鎖（依改造文件實照）</td></tr>
-          <tr><td>廳門鎖鉤臂＋接點</td><td>DS</td><td>鍍鋅鈑金鉤臂＋復位彈簧；門刀放開後彈簧拉回、鉤口咬住鎖座銷；臂尾壓塊同時壓上接點開關＝DS 導通（依改造文件實照）</td></tr>
-          <tr><td>連動鋼索</td><td>—</td><td>橫貫門楣的鋼索＋兩端滑輪：兩扇廳門各夾上下股，一扇動、另一扇等速跟動（依改造文件實照）</td></tr>
-          <tr><td>轎門鎖開關</td><td>GS</td><td>三菱特色：轎門也有電氣門鎖，轎門全閉、斜面撞塊壓上接點才導通</td></tr>
-          <tr><td>光幕／安全觸板</td><td>SDE</td><td>門邊鋁擠型條內一排紅外線投受光點；遮斷→立即重開門</td></tr>
-          <tr><td>開門到位訊號</td><td>OLT</td><td>門全開的判定（編碼器位置判定）</td></tr>
-          <tr><td>關門到位訊號</td><td>CLT</td><td>門全關的判定，之後才輪到門鎖勾合</td></tr>
-          <tr><td>廳門自閉重錘</td><td>—</td><td>鋼索＋重錘掛在廳門吊板上：停電、門刀沒夾時，廳門也會被重錘拉回關閉＋上鎖</td></tr>
-          <tr><td>地坎＋門滑塊（導靴）</td><td>—</td><td>鋁擠型地坎帶溝槽；門板下端的尼龍滑塊在溝槽內滑行，防止門片下擺</td></tr>
+          <tr><th>零件名稱（廠內用詞）</th><th>代號／別名</th><th>功能（白話）</th></tr>
+          <tr><td>車廂門活動羽棒</td><td>羽棒／門刀</td><td>裝在車廂門前緣的活動垂直棒；由扇形轉盤＋支臂推出，伸入廳門「門閉鎖器」的兩滾輪之間，把廳門咬著一起開關</td></tr>
+          <tr><td>扇形轉盤／羽棒支臂</td><td>—</td><td>扇形旋轉盤＋平行支臂；隨車廂門連動，把活動羽棒「伸出（夾住廳門）／收回（放開）」</td></tr>
+          <tr><td>門閉鎖器</td><td>DS</td><td>廳門的機械鎖（照片特寫）：<b>兩顆垂直排列大滾輪</b>＋彈簧鉤。羽棒夾住兩滾輪＝頂開＝解鎖；羽棒放開＝彈簧把鉤落下、鎖住廳門，同時壓上接點開關導通</td></tr>
+          <tr><td>乘場門連動鋼索輪</td><td>—</td><td>門楣兩端的<b>黑色滑輪</b>＋鋼索；連動兩扇廳門，一扇動、另一扇等速跟動</td></tr>
+          <tr><td>門吊錘＋門吊錘鋼索輪</td><td>—</td><td>廳門吊板上的重錘＋鋼索滑輪；停電、羽棒沒夾時把廳門拉回關閉＋上鎖（防墜）</td></tr>
+          <tr><td>門吊板</td><td>—</td><td>掛門板的鈑金板（帶減重孔）＋PU 滑輪沿門軌滾動；下方防跳輪防脫軌</td></tr>
+          <tr><td>門軌</td><td>—</td><td>門吊板滑輪行走的軌道（斜頂斷面自動對中）</td></tr>
+          <tr><td>連動皮帶</td><td>同步齒型帶</td><td>門機驅動；上下股各夾一扇車廂門，等速對開對關</td></tr>
+          <tr><td>皮帶固定座</td><td>—</td><td>把連動皮帶夾在車廂門吊板上的固定座，皮帶動＝門板動</td></tr>
+          <tr><td>位置開關（門開度）</td><td>OLT／CLT</td><td>偵測「門開到位／門關到位」的位置開關（門開度）</td></tr>
+          <tr><td>車廂門SW開關</td><td>GS</td><td>車廂門全閉才導通的電氣門鎖開關；撞塊壓上接點＝導通</td></tr>
+          <tr><td>光幕開關／安全門邊</td><td>SDE</td><td>防夾：<b>更新後</b>＝電子光幕（遮光即反向開門）；<b>更新前</b>＝機械安全門邊（一定要碰到才反向，人慢易被夾）</td></tr>
+          <tr><td>安全門邊支臂＋門護弓</td><td>—</td><td>機械安全門邊的連桿臂＋前緣護弓；被壓到→帶動安全門邊SW開關→反向開門</td></tr>
+          <tr><td>安全門邊SW開關</td><td>—</td><td>安全門邊作動時切換的開關</td></tr>
+          <tr><td>阻擋橡皮</td><td>—</td><td>兩扇門對接邊的緩衝橡皮；關門到底吸震＋密合，避免硬碰</td></tr>
+          <tr><td>門腳</td><td>導靴</td><td>門板下端的尼龍導靴，在門檻溝槽內滑行，防止門片下擺</td></tr>
+          <tr><td>車廂門門檻／乘場門門檻</td><td>地坎</td><td>車廂門/廳門的鋁擠型地坎，內含門腳滑行溝槽</td></tr>
+          <tr><td>車廂護板／乘場護板</td><td>—</td><td>門檻下方延伸的金屬護板（防夾腳、防止物件掉進門縫）</td></tr>
+          <tr><td>外門開關鑰匙孔</td><td>—</td><td>廳門上的緊急開鎖鑰匙孔（受困救援、維保時從外面開門用）</td></tr>
+          <tr><td>EMO</td><td>—</td><td>車頂緊急停止按鈕（維修在車頂作業時急停用）</td></tr>
+          <tr><td>PM 永磁同步門機</td><td>NexWay</td><td>扁碟型永磁馬達直驅皮帶輪，無減速機無連桿</td></tr>
+          <tr><td>門機控制板</td><td>DOR</td><td>VVVF 驅動馬達＋所有開關門判定</td></tr>
+          <tr><td>編碼器</td><td>FG</td><td>回報門位置/速度，減速點與到位判定靠它</td></tr>
         </table>
       </div>
     </div>
@@ -232,7 +239,7 @@ const sig = t => ({
 const STEPS = [
 {t0:0, t1:2.15, no:'S0', short:'關門中', title:'S0 關門中',
  trig:'收到關門指令，PM 馬達開始轉。',
- mech:'馬達直驅齒型帶 → 上下兩股各拉一扇門（永遠等速對開對關）→ 滑輪沿導軌滾動 → <b>門刀</b>夾著廳門的<b>開鎖滾輪</b>，把廳門一起帶著關。',
+ mech:'馬達直驅齒型帶 → 上下兩股各拉一扇門（永遠等速對開對關）→ 滑輪沿導軌滾動 → <b>車廂門活動羽棒</b>夾著<b>門閉鎖器的滾輪</b>，把廳門一起帶著關。',
  next:'光幕被擋 → S1 重開門；沒擋 → 直接到 S7。',
  nextE:'門邊真的碰到障礙物 → S1 重開門；沒碰到 → 直接到 S7。',
  focus:['beams','motor','belt']},
@@ -246,7 +253,7 @@ const STEPS = [
  focus:['beams','curtain']},
 {t0:3.0, t1:5.0, no:'S2', short:'重開門', title:'S2 重開門',
  trig:'馬達反轉。',
- mech:'兩扇門對開；門刀仍夾著開鎖滾輪、廳門跟著開；<b>鎖鉤維持被頂開</b>；自閉重錘被拉高（儲存關門的力量）。',
+ mech:'兩扇門對開；活動羽棒仍夾著門閉鎖器滾輪、廳門跟著開；<b>閉鎖器鉤維持被頂開</b>；門吊錘被拉高（儲存關門的力量）。',
  next:'門走到全開位置 → S3。',
  focus:['motor','belt','vane']},
 {t0:5.0, t1:5.8, no:'S3', short:'開門到位', title:'S3 開門到位（OLT）',
@@ -268,17 +275,17 @@ const STEPS = [
  focus:['motor']},
 {t0:9.6, t1:12.4, no:'S6', short:'關門行程', title:'S6 關門行程（S 曲線）',
  trig:'編碼器位置決定減速點：離全關剩一小段就提前減速。',
- mech:'加速 → 等速 → 提前減速 → 低速爬行（看右下角速度錶 ▲）；門刀帶著廳門一起關。',
+ mech:'加速 → 等速 → 提前減速 → 低速爬行（看右下角速度錶 ▲）；活動羽棒帶著廳門一起關。',
  next:'進入低速爬行 → 等關門到位。',
  focus:['belt','motor']},
-{t0:12.4, t1:13.6, no:'S7', short:'到位+門刀釋放', title:'S7 關門到位（CLT）＋門刀釋放',
+{t0:12.4, t1:13.6, no:'S7', short:'到位+羽棒釋放', title:'S7 關門到位（CLT）＋活動羽棒釋放',
  trig:'<b>CLT 關門到位</b>訊號作動。',
- mech:'<b>門刀兩片刀片向內收攏 → 放開開鎖滾輪</b> → 轎門與廳門脫鉤。建議切「門刀／門鎖特寫」鏡頭看。',
- next:'鎖鉤失去支撐 → S8。',
+ mech:'<b>活動羽棒收回 → 放開門閉鎖器的兩滾輪</b> → 車廂門與廳門脫鉤。建議切「羽棒／門閉鎖器特寫」鏡頭看。',
+ next:'門閉鎖器失去支撐 → S8。',
  focus:['vane','closeLim']},
-{t0:13.6, t1:14.6, no:'S8', short:'門鎖勾合', title:'S8 門鎖勾合（DS＋GS）',
- trig:'門刀放開垂直雙滾輪。',
- mech:'<b>鎖鉤臂</b>被復位彈簧拉回 → 臂頂鉤口咬住鎖座銷（機械鎖死）；臂尾壓塊同時壓上<b>接點開關 → DS 導通</b>（綠燈亮）。同時轎門全閉、撞塊壓上 <b>GS 接點</b>。',
+{t0:13.6, t1:14.6, no:'S8', short:'門鎖勾合', title:'S8 門閉鎖器勾合（DS＋車廂門SW）',
+ trig:'活動羽棒放開門閉鎖器的垂直雙滾輪。',
+ mech:'<b>門閉鎖器的彈簧鉤落下</b> → 鉤口咬住鎖座銷（機械鎖死廳門）；臂尾壓塊同時壓上<b>接點開關 → DS 導通</b>（綠燈亮）。同時車廂門全閉、撞塊壓上 <b>車廂門SW開關</b>。',
  next:'鉤到底＋接點導通 → S9。',
  focus:['hook','contacts','gsSw']},
 {t0:14.6, t1:16.5, no:'S9', short:'鎖閉完成', title:'S9 鎖閉完成',
@@ -392,9 +399,9 @@ carSill.rotation.y=Math.PI/2; carSill.position.set(-1.15, 0, .15); scene.add(car
 const lndSill = extrude(sillProfile(), 2.3, M.sill);
 lndSill.rotation.y=Math.PI/2; lndSill.position.set(-1.15, 0, -.135); scene.add(lndSill);
 const sillLbl1=new THREE.Object3D(); sillLbl1.position.set(1.05,.05,.085); scene.add(sillLbl1);
-addLabel(sillLbl1,'轎門地坎（鋁擠型・含滑塊溝槽）');
+addLabel(sillLbl1,'車廂門門檻（地坎・含門腳溝槽）');
 const sillLbl2=new THREE.Object3D(); sillLbl2.position.set(-1.05,.05,-.2); scene.add(sillLbl2);
-addLabel(sillLbl2,'廳門地坎');
+addLabel(sillLbl2,'乘場門門檻（地坎）');
 
 /* ---- 門機機座板＋導軌 ---- */
 const PANEL_W=.5, TRAVEL=.45;
@@ -468,7 +475,7 @@ addLabel(dorBox,'門機控制板（DOR 系列・VVVF）', .17, 0, .03, true);
 /* ---- 同步齒型帶（齒在內側）---- */
 const beltUp = B(2.0,.012,.034, M.belt); beltUp.position.set(0,2.56,.10); scene.add(beltUp);
 const beltDn = B(2.0,.012,.034, M.belt); beltDn.position.set(0,2.44,.10); scene.add(beltDn);
-addLabel(beltUp,'同步齒型帶（齒在內側・上下股各拉一扇門）', .06, .1, 0);
+addLabel(beltUp,'連動皮帶（同步齒型帶・上下股各拉一扇門）', .06, .1, 0);
 const PITCH=.05, NT=40;
 const teethUp = new THREE.Group(), teethDn = new THREE.Group();
 for(let i=0;i<NT;i++){
@@ -489,15 +496,15 @@ function limitSwitch(x, name){
   addLabel(body,name,-.06,0,.02,true);
   return {g,lever,body};
 }
-const swOpen  = limitSwitch(-.95,'OLT 開門到位');
-const swClose = limitSwitch(-.04,'CLT 關門到位');
+const swOpen  = limitSwitch(-.95,'位置開關 OLT（門開到位）');
+const swClose = limitSwitch(-.04,'位置開關 CLT（門關到位）');
 
 /* ---- GS 轎門鎖開關（彈片接點＋斜面撞塊）---- */
-const gsG = new THREE.Group(); gsG.position.set(.10, 2.355, .105); scene.add(gsG);
+const gsG = new THREE.Group(); gsG.position.set(0.0, 2.40, .125); scene.add(gsG);  // 雙門接合中心、避開吊門板滾輪(±.12)
 const gsBody = B(.055,.05,.035,M.sw); gsG.add(gsBody);
 const gsPin1 = B(.006,.03,.003,M.copper); gsPin1.position.set(-.012,-.038,.004); gsPin1.rotation.x=.18; gsG.add(gsPin1);
 const gsPin2 = B(.006,.03,.003,M.copper); gsPin2.position.set( .012,-.038,.004); gsPin2.rotation.x=.18; gsG.add(gsPin2);
-addLabel(gsBody,'GS 轎門鎖開關（轎門全閉才導通）', .07, .05, 0, true);
+addLabel(gsBody,'車廂門SW開關（車廂門全閉才導通）', .07, .05, 0, true);
 /* 斜面撞塊（裝在右吊門板，全閉時滑入 GS 下方橋接彈片） */
 const gsCam = extrude([[0,0],[.06,0],[.06,.014],[.012,.022],[0,.022]], .05, M.copper);
 gsCam.rotation.y=Math.PI/2; // 斜面朝行進方向
@@ -559,13 +566,13 @@ function hanger(side){
   return {g, rollers, plate, panel, strip, dots, clamp, post, me, mstrip, mBaseX};
 }
 const hL = hanger(-1), hR = hanger(1);
-gsCam.position.set(-.185, 2.312, .091); hR.g.add(gsCam);  // 全閉時滑到 GS 下方（world x≈+0.095）
-addLabel(hL.plate,'吊門板（鈑金・減重孔）＋PU 滑輪', .2, -.1, 0);
-addLabel(hL.panel,'轎門板（左・背面補強肋）', -.35, -.12, .05);
-addLabel(hR.panel,'轎門板（右）', -.35, .12, .05);
-const curtainLbl = addLabel(hL.strip,'SDE 光幕（更新後・紅外線投受光點）', -.55, 0, .03, true);
-const edgeLbl = addLabel(hL.mstrip,'機械式安全門邊（更新前・要碰到才作動）', -.40, 0, .03, true);
-addLabel(hL.clamp,'皮帶夾（齒型壓板）', .05, -.06, 0);
+gsCam.position.set(-.238, 2.39, .112); hR.g.add(gsCam);  // 隨右門合到中心、滑入 SW 開關下方
+addLabel(hL.plate,'車廂門吊板（鈑金減重孔）＋PU 滑輪', .2, -.1, 0);
+addLabel(hL.panel,'車廂門板（左）', -.35, -.12, .05);
+addLabel(hR.panel,'車廂門板（右）', -.35, .12, .05);
+const curtainLbl = addLabel(hL.strip,'光幕開關／安全門邊（更新後・紅外線）', -.55, 0, .03, true);
+const edgeLbl = addLabel(hL.mstrip,'安全門邊（更新前・要碰到才作動）', -.40, 0, .03, true);
+addLabel(hL.clamp,'皮帶固定座', .05, -.06, 0);
 
 /* SDE 光束 */
 const NBEAM=10;
@@ -604,7 +611,14 @@ const linkR = vaneArm(); linkR.position.set( .02,.16,-.02); linkR.rotation.z=-.3
   const spring=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),120,.0018,6),M.steel);
   vaneG.add(spring);
 }
-addLabel(bladeLMesh,'門刀（夾緊式・導入斜角刀片＋平行連桿＋拉簧）', -.26, 0, 0);
+/* 扇形轉盤（fan-shaped 旋轉盤・驅動活動羽棒伸縮・依廠內照片）＋中心樞軸 */
+const sectorPlate = new THREE.Mesh(
+  new THREE.CircleGeometry(.078, 32, Math.PI*0.96, Math.PI*0.62), M.steel);
+sectorPlate.position.set(.02,.225,-.045); vaneG.add(sectorPlate);
+const sectorHub = CYL(.013,.034,M.dark); sectorHub.position.set(.02,.225,-.045); vaneG.add(sectorHub);
+const sectorHole = CYL(.006,.038,M.dark); sectorHole.position.set(-.04,.195,-.045); vaneG.add(sectorHole);
+addLabel(sectorPlate,'扇形轉盤／羽棒支臂（推動活動羽棒伸出/收回）', .10, -.05, 0);
+addLabel(bladeLMesh,'車廂門活動羽棒（被扇形轉盤推動・夾廳門滾輪）', -.26, 0, 0);
 
 /* ---- 廳門總成 ---- */
 const lndHeader = B(2.5,.34,.03,M.dark); lndHeader.position.set(0,2.30,-.315); scene.add(lndHeader);
@@ -625,7 +639,7 @@ function lndHanger(side){
   return {g,plate,panel,rollers};
 }
 const lL = lndHanger(-1), lR = lndHanger(1);
-addLabel(lL.panel,'廳門板（被門刀帶動）', -.5, -.1, -.02);
+addLabel(lL.panel,'外門板／乘場門（被活動羽棒帶動）', -.5, -.1, -.02);
 
 /* ---- 三菱型廳門鎖總成（依改造文件實photo）----
    鍍鋅鈑金鉤臂＋「垂直排列」雙開鎖滾輪（門刀夾這兩顆）＋彈簧＋接點開關 */
@@ -649,7 +663,7 @@ const cR1=lockRoller(); cR1.position.set(.045,-.045,.15); hookG.add(cR1);
 const cR2=lockRoller(); cR2.position.set(.045,-.105,.15); hookG.add(cR2);
 const stand1=B(.011,.011,.145,M.steel); stand1.position.set(.045,-.045,.0725); hookG.add(stand1);
 const stand2=B(.011,.011,.145,M.steel); stand2.position.set(.045,-.105,.0725); hookG.add(stand2);
-addLabel(cR1,'開鎖滾輪×2（垂直排列・門刀夾這裡＝解鎖）', -.08, 0, .05);
+addLabel(cR1,'門閉鎖器滾輪×2（垂直排列・羽棒夾這裡＝解鎖）', -.08, 0, .05);
 /* 復位彈簧（拉臂回鎖閉位置） */
 {
   const pts=[]; const N=60;
@@ -659,7 +673,7 @@ addLabel(cR1,'開鎖滾輪×2（垂直排列・門刀夾這裡＝解鎖）', -.0
   hookG.add(spring);
 }
 const bridge = B(.034,.012,.022,M.copper); bridge.position.set(.004,-.146,-.03); hookG.add(bridge);
-addLabel(hookBody,'廳門鎖鉤臂（鍍鋅鈑金・三菱型）', .14, .04, 0);
+addLabel(hookBody,'門閉鎖器（彈簧鉤・羽棒放開即落下鎖住廳門）', .14, .04, 0);
 /* 鎖座銷（固定於門楣，鉤口咬這支） */
 const kBkt = B(.026,.04,.014,M.steel); kBkt.position.set(-.2035,2.42,-.296); scene.add(kBkt);
 const keeper = CYL(.010,.044,M.steel); keeper.position.set(-.2035,2.392,-.282); scene.add(keeper);
@@ -670,11 +684,18 @@ const cPin1 = CYL(.006,.014,M.copper); cPin1.rotation.x=Math.PI/2; cPin1.positio
 const lockLED = new THREE.Mesh(new THREE.SphereGeometry(.012,16,16),
   new THREE.MeshStandardMaterial({color:0x333a42, emissive:0x000000}));
 lockLED.position.set(-.291,2.118,-.275); scene.add(lockLED);
-addLabel(contactBase,'DS 廳門鎖接點開關（串入 41DG 迴路）', -.06, -.10, 0, true);
+addLabel(contactBase,'門閉鎖器接點開關（DS・串入安全迴路）', -.06, -.10, 0, true);
 
 /* ---- 廳門連動鋼索（兩扇廳門等速連動・依改造文件照片）---- */
-const cordPulL=CYL(.028,.012,M.steel); cordPulL.position.set(-1.10,2.13,-.30); scene.add(cordPulL);
-const cordPulR=CYL(.028,.012,M.steel); cordPulR.position.set( 1.10,2.13,-.30); scene.add(cordPulR);
+/* 乘場門連動鋼索輪：門楣兩端的黑色滑輪（依廠內照片・明顯黑色） */
+function cordSheave(x){
+  const g=new THREE.Group(); g.position.set(x,2.13,-.30); scene.add(g);
+  const tyre=CYL(.046,.022,M.belt); g.add(tyre);
+  const cheek=CYL(.05,.006,M.dark); cheek.position.z=.013; g.add(cheek);
+  const hub=CYL(.014,.03,M.steel); g.add(hub);
+  return g;
+}
+const cordPulL=cordSheave(-1.10), cordPulR=cordSheave(1.10);
 {
   const g=new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(new Float32Array([
@@ -684,17 +705,19 @@ const cordPulR=CYL(.028,.012,M.steel); cordPulR.position.set( 1.10,2.13,-.30); s
 }
 const cordClampL=B(.04,.016,.014,M.dark); cordClampL.position.set(.18,2.158,-.30); lL.g.add(cordClampL);
 const cordClampR=B(.04,.016,.014,M.dark); cordClampR.position.set(-.18,2.102,-.30); lR.g.add(cordClampR);
-addLabel(cordPulR,'連動鋼索（一扇動、另一扇跟著動）', .07, -.4, 0);
+addLabel(cordPulR,'乘場門連動鋼索輪（一扇動、另一扇等速跟動）', .07, -.4, 0);
 
 /* ---- 廳門自閉重錘（斷電也會自動關門）---- */
-const cwPulley = CYL(.022,.014,M.steel); cwPulley.position.set(.62,2.16,-.30); scene.add(cwPulley);
+const cwPulley = CYL(.032,.018,M.belt); cwPulley.position.set(.62,2.16,-.30); scene.add(cwPulley);  // 門吊錘鋼索輪（黑色）
+const cwPulHub = CYL(.011,.024,M.steel); cwPulHub.position.set(.62,2.16,-.30); scene.add(cwPulHub);
+addLabel(cwPulley,'門吊錘鋼索輪', .06, .12, 0);
 const cwWeight = new THREE.Mesh(new THREE.CylinderGeometry(.021,.021,.13,16),M.dark);
 cwWeight.castShadow=true; cwWeight.position.set(.62,1.6,-.30); scene.add(cwWeight);
 const ropeGeo=new THREE.BufferGeometry();
 ropeGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3*3),3));
 const rope=new THREE.Line(ropeGeo, new THREE.LineBasicMaterial({color:0x999999}));
 scene.add(rope);
-addLabel(cwWeight,'廳門自閉重錘（停電也能拉回關門）', -.1, 0, 0);
+addLabel(cwWeight,'門吊錘（停電也能把廳門拉回關閉上鎖）', -.1, 0, 0);
 
 /* ---- 貨物推車 ---- */
 const cart = new THREE.Group(); scene.add(cart);
@@ -703,7 +726,7 @@ const ctop =B(.26,.06,.26,M.box); ctop.position.y=.54; cart.add(ctop);
 for(const [wx,wz] of [[-.11,-.11],[.11,-.11],[-.11,.11],[.11,.11]]){
   const w=CYL(.035,.02,M.dark); w.rotation.y=Math.PI/2; w.position.set(wx,.035,wz); cart.add(w);
 }
-addLabel(cbody,'貨物（遮斷 SDE 光幕）', .45, 0, 0);
+addLabel(cbody,'貨物（遮斷光幕）', .45, 0, 0);
 
 /* ---- Highlight ---- */
 const FOCUS = {
@@ -772,8 +795,8 @@ function renderDetail(s){
     <div class="field trig"><div class="k">觸發判定（什麼訊號讓它動）</div><div class="v">${trig}</div></div>
     <div class="field mech"><div class="k">機構動作（哪個零件怎麼動）</div><div class="v">${mech}</div></div>
     <div class="field next"><div class="k">進入下一步的條件</div><div class="v">${next}</div></div>
-    <div class="note">機型：三菱門機（PM 永磁直驅＋同步帶）。廳門鎖總成（鍍鋅鉤臂＋垂直雙開鎖滾輪＋接點開關）、
-    連動鋼索、門滑腳、機械門邊⇄光幕切換——皆依三菱電梯改造文件實照建模。
+    <div class="note">機型：三菱門機（PM 永磁直驅＋同步帶）。零件用詞依廠內實機照片：活動羽棒/扇形轉盤、門閉鎖器（垂直雙滾輪＋彈簧鉤＋接點開關）、乘場門連動鋼索輪、門吊錘、
+    門腳、機械門邊⇄光幕切換——皆依廠內實機照片與三菱改造文件建模。
     按「防夾」鈕對照更新前（機械門邊）/更新後（光幕）；按「📋 真實零件表」看零件對照。</div>`;
 }
 
@@ -943,7 +966,7 @@ function update(){
   ui.sigs.olt.className = 'sig '+(S.olt?'on':'');
   ui.sigs.clt.className = 'sig '+(S.clt?'on':'');
   ui.sigs.vane.className= 'sig '+(S.vane?'warn':'on');
-  ui.sigs.vane.innerHTML= `<i></i>${S.vane?'門刀夾持中（轎廳門連動）':'門刀已釋放'}`;
+  ui.sigs.vane.innerHTML= `<i></i>${S.vane?'羽棒夾持中（車廳門連動）':'羽棒已釋放'}`;
   ui.sigs.gs.className  = 'sig '+(S.gs?'on':'');
   ui.sigs.ds.className  = 'sig '+(S.ds?'on':'');
 
