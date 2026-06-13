@@ -446,6 +446,13 @@ for(const cz of [-.045,.045]){ // 微動開關本體＋白色端子＋撥桿
   const lever=B(.006,.05,.005,M.steel); lever.position.set(-.052,.03,cz); lever.rotation.z=-.55; camG.add(lever);
 }
 const camLbl = addLabel(camShaft,'凸輪限位開關組（凸輪盤＋微動開關・偵測開關門到位）', .14, 0, 0);
+/* 改造型動力走線：乳白馬達端子盒 → VVVF 箱（隨 retroG 顯隱） */
+{
+  const rp=[new THREE.Vector3(-1.07,2.42,.205), new THREE.Vector3(-1.0,2.55,.21),
+            new THREE.Vector3(-.3,2.62,.20), new THREE.Vector3(.5,2.62,.19), new THREE.Vector3(.78,2.52,.19)];
+  const retroCable=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(rp),48,.0075,10),M.cable);
+  retroCable.castShadow=true; retroG.add(retroCable);
+}
 
 /* ---- VVVF 門機驅動箱（直立散熱鰭・新式/改造型都有；最舊型隱藏）---- */
 const vvvfG = new THREE.Group(); scene.add(vvvfG);
@@ -839,7 +846,7 @@ function applyDrive(){
   retroG.visible = (driveMode==='retro');
   redG.visible   = (driveMode==='reduction');
   vvvfG.visible  = (driveMode!=='reduction');   // 最舊型沒有變頻器
-  powerCable.visible = (driveMode!=='reduction');
+  powerCable.visible = (driveMode==='pm');   // PM 馬達專屬走線；retro 有自己的 retroCable
   ui.drive.textContent = DRIVE_LABEL[driveMode];
   ui.drive.classList.toggle('on', driveMode!=='pm');
   syncDriveVis();
@@ -918,7 +925,7 @@ function update(){
   }
   if(retroG.visible){
     ciPul.rotation.z=-beltDisp/.05;
-    camStack.rotation.z=beltDisp/.04;   // 凸輪隨門行程轉動，到位角度觸發微動開關
+    camStack.rotation.z=beltDisp*4.2;   // 凸輪減速軸：全行程轉<1圈，到位角度觸發微動開關
   }
   for(const r of hL.rollers) r.rotation.z= (TRAVEL*d)/.048;
   for(const r of hR.rollers) r.rotation.z=-(TRAVEL*d)/.048;
