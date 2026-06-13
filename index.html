@@ -289,6 +289,8 @@ const M = {
   frame  : new THREE.MeshStandardMaterial({color:0x2e3a47, metalness:.4,  roughness:.7}),
   motor  : new THREE.MeshStandardMaterial({color:0x3f6f9e, metalness:.55, roughness:.42}),
   oldmtr : new THREE.MeshStandardMaterial({color:0x32383f, metalness:.5,  roughness:.5}),
+  cream  : new THREE.MeshStandardMaterial({color:0xd9d4c2, metalness:.25, roughness:.5}),
+  finblk : new THREE.MeshStandardMaterial({color:0x1c1c1e, metalness:.45, roughness:.5}),
   belt   : new THREE.MeshStandardMaterial({color:0x14181c, roughness:.92}),
   tooth  : new THREE.MeshStandardMaterial({color:0x3c444c, roughness:.8}),
   cable  : new THREE.MeshStandardMaterial({color:0x191919, roughness:.9}),
@@ -409,14 +411,49 @@ const oldBkt = B(.07,.30,.04,M.frame); oldBkt.position.set(-1.0,2.62,.085); redG
 const smallPul = CYL(.035,.03,M.pulley); smallPul.position.set(-1.0,2.715,.19); redG.add(smallPul);
 const vb1=B(.008,.21,.012,M.belt); vb1.position.set(-1.085,2.61,.19); vb1.rotation.z=.50; redG.add(vb1);
 const vb2=B(.008,.21,.012,M.belt); vb2.position.set(-0.915,2.61,.19); vb2.rotation.z=-.50; redG.add(vb2);
-const rimLbl = addLabel(rim,'減速皮帶輪（輻條式）＋V帶（舊式門機）', -.20, 0, 0);
+const rimLbl = addLabel(rim,'減速皮帶輪（輻條式）＋V帶（最舊型）', -.20, 0, 0);
 
-/* ---- 門機驅動箱（直立散熱鰭・依現場照片）---- */
-const drvBox = B(.18,.34,.12,M.dark); drvBox.position.set(.80,2.48,.17); scene.add(drvBox);
-for(let i=0;i<6;i++){ const fin=B(.014,.30,.02,M.steel); fin.position.set(.737+i*.025,2.48,.24); scene.add(fin); }
-const eStop = CYL(.014,.014,M.estop); eStop.rotation.x=Math.PI/2; eStop.position.set(.84,2.66,.17); scene.add(eStop);
-const gl1=CYL(.011,.03,M.cable); gl1.rotation.x=Math.PI/2; gl1.position.set(.76,2.30,.17); scene.add(gl1);
-addLabel(drvBox,'門機驅動箱（變頻器・散熱鰭）', .22, 0, .03);
+/* ---- 改造型門控（依「門控系統馬達更新」實照：乳白立式感應馬達＋VVVF散熱鰭箱＋凸輪限位開關）---- */
+const retroG = new THREE.Group(); retroG.visible=false; scene.add(retroG);
+/* 乳白立式感應馬達（照片左側）：直立圓筒＋頂端端蓋＋外殼散熱筋＋斜撐拉桿 */
+const ciMot = new THREE.Mesh(new THREE.CylinderGeometry(.072,.072,.24,28), M.cream);
+ciMot.castShadow=true; ciMot.position.set(-1.0,2.40,.205); retroG.add(ciMot);
+for(let i=0;i<16;i++){ const a=i/16*Math.PI*2; const rib=B(.006,.22,.012,M.cream);
+  rib.position.set(-1.0+Math.cos(a)*.078, 2.40, .205+Math.sin(a)*.078); rib.rotation.y=-a; retroG.add(rib); }
+const ciCap = new THREE.Mesh(new THREE.CylinderGeometry(.05,.062,.04,24), M.cream);
+ciCap.castShadow=true; ciCap.position.set(-1.0,2.535,.205); retroG.add(ciCap);
+const ciTbox = B(.05,.05,.04,M.cream); ciTbox.position.set(-1.07,2.40,.205); retroG.add(ciTbox);
+const ciFoot = new THREE.Mesh(new THREE.CylinderGeometry(.085,.085,.022,24), M.dark);
+ciFoot.position.set(-1.0,2.273,.205); retroG.add(ciFoot);
+/* 斜撐拉桿（照片：自馬達下方斜伸固定到車頂） */
+const brace = B(.014,.34,.014,M.steel); brace.position.set(-1.06,2.16,.205); brace.rotation.z=.42; retroG.add(brace);
+const braceFt = B(.05,.02,.05,M.frame); braceFt.position.set(-1.13,2.0,.205); retroG.add(braceFt);
+/* 馬達主動小皮帶輪（驅動齒帶） */
+const ciPul = CYL(.05,.05,M.pulley); ciPul.position.set(-1.0,2.50,.10); retroG.add(ciPul);
+const ciMotLbl = addLabel(ciMot,'門控馬達（立式感應馬達・改造更新）', .19, 0, 0);
+/* 右側凸輪限位開關組（照片右側軸＋凸輪堆＋微動開關＋白色端子）*/
+const camG = new THREE.Group(); camG.position.set(.92,2.50,.255); retroG.add(camG);
+const camHubLink = CYL(.014,.12,M.steel); camHubLink.position.set(.06,0,-.10); camG.add(camHubLink); // 連回惰輪軸
+const camShaft = CYL(.012,.13,M.steel); camG.add(camShaft);
+const camStack = new THREE.Group(); camG.add(camStack);
+for(let i=0;i<3;i++){ // 凸輪盤（偏心圓盤・到位角度撥動開關）
+  const cam = new THREE.Mesh(new THREE.CylinderGeometry(.038,.038,.014,24), M.oldmtr);
+  cam.rotation.x=Math.PI/2; cam.position.set(.013*Math.cos(i*2.1),.013*Math.sin(i*2.1),-.04+i*.04);
+  camStack.add(cam); }
+for(const cz of [-.045,.045]){ // 微動開關本體＋白色端子＋撥桿
+  const sw=B(.028,.052,.03,M.sw); sw.position.set(-.075,-.005,cz); camG.add(sw);
+  const term=B(.02,.02,.024, M.alu); term.position.set(-.098,.022,cz); camG.add(term);
+  const lever=B(.006,.05,.005,M.steel); lever.position.set(-.052,.03,cz); lever.rotation.z=-.55; camG.add(lever);
+}
+const camLbl = addLabel(camShaft,'凸輪限位開關組（凸輪盤＋微動開關・偵測開關門到位）', .14, 0, 0);
+
+/* ---- VVVF 門機驅動箱（直立散熱鰭・新式/改造型都有；最舊型隱藏）---- */
+const vvvfG = new THREE.Group(); scene.add(vvvfG);
+const drvBox = B(.18,.34,.12,M.finblk); drvBox.position.set(.80,2.48,.17); vvvfG.add(drvBox);
+for(let i=0;i<6;i++){ const fin=B(.014,.30,.02,M.steel); fin.position.set(.737+i*.025,2.48,.24); vvvfG.add(fin); }
+const eStop = CYL(.014,.014,M.estop); eStop.rotation.x=Math.PI/2; eStop.position.set(.84,2.66,.17); vvvfG.add(eStop);
+const gl1=CYL(.011,.03,M.cable); gl1.rotation.x=Math.PI/2; gl1.position.set(.76,2.30,.17); vvvfG.add(gl1);
+const drvLbl = addLabel(drvBox,'VVVF 門機驅動箱（變頻器・散熱鰭）', .22, 0, .03);
 
 /* ---- 皮帶輪＋寬幅齒型帶（依現場照片加寬）---- */
 function toothedPulley(){
@@ -742,8 +779,8 @@ function renderDetail(s){
     <div class="field mech"><div class="k">機構動作（哪個零件怎麼動）</div><div class="v">${mech}</div></div>
     <div class="field next"><div class="k">進入下一步的條件</div><div class="v">${next}</div></div>
     <div class="note">機型：永磁直驅＋同步帶門機。本版已依現場照片校正：寬幅齒帶＋大型皮帶夾、
-    直立散熱鰭驅動箱、鍍鋅鈑金機座、黃色車頂護欄。上方兩顆切換鈕：「驅動」＝新式直驅 ⇄ 舊式減速輪＋V帶；
-    「防夾」＝新式光幕（沒碰到就反轉）⇄ 舊式機械門邊（要碰到才反轉，依更新前後照片）。
+    直立散熱鰭驅動箱、鍍鋅鈑金機座、黃色車頂護欄。上方兩顆切換鈕：「門控」＝三代輪播（新式直驅 → 改造型感應馬達＋VVVF＋凸輪開關 → 最舊型減速輪＋V帶）；
+    「防夾」＝新式光幕（沒碰到就反轉）⇄ 舊式機械門邊（要碰到才反轉，依更新前後照片）。改造型門控依「門控系統馬達更新」實照建模。
     門板 X-ray 半透明為透視用；滑鼠拖曳旋轉、滾輪縮放。</div>`;
 }
 
@@ -794,10 +831,24 @@ ui.xray.onclick=()=>{
   ui.xray.classList.toggle('on',!solid);
 };
 let labelsOn=true;
+/* 三代門控切換：pm 新式直驅 → retro 改造型(感應馬達+VVVF+凸輪開關) → reduction 最舊型(減速輪+V帶) */
+let driveMode='pm';
+const DRIVE_LABEL={ pm:'門控：直驅（新式）', retro:'門控：感應馬達＋凸輪開關（改造型）', reduction:'門控：減速輪＋V帶（最舊型）' };
+function applyDrive(){
+  motorG.visible = motorBracket.visible = (driveMode==='pm');
+  retroG.visible = (driveMode==='retro');
+  redG.visible   = (driveMode==='reduction');
+  vvvfG.visible  = (driveMode!=='reduction');   // 最舊型沒有變頻器
+  powerCable.visible = (driveMode!=='reduction');
+  ui.drive.textContent = DRIVE_LABEL[driveMode];
+  ui.drive.classList.toggle('on', driveMode!=='pm');
+  syncDriveVis();
+}
 function syncDriveVis(){
   mtrLbl.visible = encLbl.visible = labelsOn && motorG.visible;
   rimLbl.visible = labelsOn && redG.visible;
-  powerCable.visible = motorG.visible;
+  ciMotLbl.visible = camLbl.visible = labelsOn && retroG.visible;
+  drvLbl.visible = labelsOn && vvvfG.visible;
 }
 ui.label.onclick=()=>{
   labelsOn=!labelsOn; labels.forEach(l=>l.visible=labelsOn);
@@ -805,14 +856,10 @@ ui.label.onclick=()=>{
   syncDriveVis(); syncSafetyVis();
 };
 ui.drive.onclick=()=>{
-  const old=!redG.visible;
-  redG.visible=old;
-  motorG.visible=!old; motorBracket.visible=!old;
-  ui.drive.textContent = old ? '驅動：減速輪＋V帶（舊式）' : '驅動：直驅（新式）';
-  ui.drive.classList.toggle('on', old);
-  syncDriveVis();
+  driveMode = driveMode==='pm' ? 'retro' : driveMode==='retro' ? 'reduction' : 'pm';
+  applyDrive();
 };
-syncDriveVis();
+applyDrive();
 /* 防夾裝置切換：光幕（新式）⇄ 機械門邊（舊式） */
 const btnSafety=document.getElementById('btnSafety');
 function syncSafetyVis(){
@@ -868,6 +915,10 @@ function update(){
   if(redG.visible){
     bigWheel.rotation.z=-beltDisp/.06;
     smallPul.rotation.z=-beltDisp/.06*(0.15/0.035);
+  }
+  if(retroG.visible){
+    ciPul.rotation.z=-beltDisp/.05;
+    camStack.rotation.z=beltDisp/.04;   // 凸輪隨門行程轉動，到位角度觸發微動開關
   }
   for(const r of hL.rollers) r.rotation.z= (TRAVEL*d)/.048;
   for(const r of hR.rollers) r.rotation.z=-(TRAVEL*d)/.048;
@@ -974,6 +1025,8 @@ window.__state=()=>({T,d:dOf(T),step:stepOf(T),sig:sig(T)});
 window.__setCam=(p,t)=>{camera.position.set(...p);controls.target.set(...t);};
 window.__world=o=>{const v=new THREE.Vector3();({hook:hookBody,keeper,bridge,pin1:cPin1,blade:bladeLMesh,roller:cR1,gscam:gsCam,gssw:gsBody}[o]).getWorldPosition(v);return v.toArray();};
 window.__drive=()=>ui.drive.click();
+window.__dbg=()=>({driveMode, pm:motorG.visible, retro:retroG.visible, reduction:redG.visible, vvvf:vvvfG.visible,
+  L:{mtr:mtrLbl.visible, ciMot:ciMotLbl.visible, cam:camLbl.visible, rim:rimLbl.visible, drv:drvLbl.visible}});
 window.__safety=()=>btnSafety.click();
 </script>
 </body>
