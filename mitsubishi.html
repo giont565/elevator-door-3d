@@ -123,8 +123,8 @@
         <div class="sig" id="sigOLT"><i></i>OLT 開門到位</div>
         <div class="sig" id="sigCLT"><i></i>CLT 關門到位</div>
         <div class="sig" id="sigVane"><i></i>羽棒夾持中</div>
-        <div class="sig" id="sigGS"><i></i>GS 轎門鎖</div>
-        <div class="sig" id="sigDS"><i></i>DS 廳門鎖</div>
+        <div class="sig" id="sigGS"><i></i>車廂門SW（GS）</div>
+        <div class="sig" id="sigDS"><i></i>門閉鎖器（DS）</div>
       </div>
       <div id="speedBox"><div class="l">門速曲線（FG 速度回授）｜▲＝現在</div><canvas id="speedCv" width="216" height="64"></canvas></div>
       <div id="loopFlash"></div>
@@ -612,9 +612,13 @@ const linkR = vaneArm(); linkR.position.set( .02,.16,-.02); linkR.rotation.z=-.3
   vaneG.add(spring);
 }
 /* 扇形轉盤（fan-shaped 旋轉盤・驅動活動羽棒伸縮・依廠內照片）＋中心樞軸 */
-const sectorPlate = new THREE.Mesh(
-  new THREE.CircleGeometry(.078, 32, Math.PI*0.96, Math.PI*0.62), M.steel);
-sectorPlate.position.set(.02,.225,-.045); vaneG.add(sectorPlate);
+const sectorPlate = (()=>{
+  const a0=Math.PI*0.96, a1=a0+Math.PI*0.62, r=.078, s=new THREE.Shape();
+  s.moveTo(0,0); for(let i=0;i<=24;i++){ const a=a0+(a1-a0)*i/24; s.lineTo(Math.cos(a)*r,Math.sin(a)*r); } s.closePath();
+  const m=new THREE.Mesh(new THREE.ExtrudeGeometry(s,{depth:.014,bevelEnabled:false}), M.steel);
+  m.castShadow=true; return m;
+})();
+sectorPlate.position.set(.02,.225,-.052); vaneG.add(sectorPlate);   // 實心扇形（有厚度・側視不消失）
 const sectorHub = CYL(.013,.034,M.dark); sectorHub.position.set(.02,.225,-.045); vaneG.add(sectorHub);
 const sectorHole = CYL(.006,.038,M.dark); sectorHole.position.set(-.04,.195,-.045); vaneG.add(sectorHole);
 addLabel(sectorPlate,'扇形轉盤／羽棒支臂（推動活動羽棒伸出/收回）', .10, -.05, 0);
