@@ -563,7 +563,18 @@ function hanger(side){
     arm.rotation.z=side*-0.55; me.add(arm);
   }
   const mSw=B(.032,.026,.02,M.sw); mSw.position.set(side*-1*(PANEL_W/2-.13),1.86,.070); me.add(mSw);
-  return {g, rollers, plate, panel, strip, dots, clamp, post, me, mstrip, mBaseX};
+  /* 門護弓（安全門邊前緣護弓・弧形・隨機械門邊顯示） */
+  const bowX = side*-1*(PANEL_W/2-.005);
+  const bowPts=[ new THREE.Vector3(bowX,1.82,.04), new THREE.Vector3(bowX+side*-.018,1.78,.092),
+                 new THREE.Vector3(bowX+side*-.022,1.0,.10), new THREE.Vector3(bowX+side*-.018,.22,.092),
+                 new THREE.Vector3(bowX,.18,.04) ];
+  const bow=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(bowPts),40,.007,8), M.dark);
+  bow.castShadow=true; me.add(bow);
+  /* 阻擋橡皮（兩扇門對接邊緩衝・左右錯 z 避免關門時 z-fight） */
+  const bumpX = side*-1*(PANEL_W/2-.004);
+  const bumpZ = side<0 ? .042 : .060;
+  const bumper=B(.012,1.94,.026,M.belt); bumper.position.set(bumpX,1.0,bumpZ); g.add(bumper);
+  return {g, rollers, plate, panel, strip, dots, clamp, post, me, mstrip, mBaseX, gib, bumper, bow};
 }
 const hL = hanger(-1), hR = hanger(1);
 gsCam.position.set(-.238, 2.39, .112); hR.g.add(gsCam);  // 隨右門合到中心、滑入 SW 開關下方
@@ -573,6 +584,20 @@ addLabel(hR.panel,'車廂門板（右）', -.35, .12, .05);
 const curtainLbl = addLabel(hL.strip,'光幕開關／安全門邊（更新後・紅外線）', -.55, 0, .03, true);
 const edgeLbl = addLabel(hL.mstrip,'安全門邊（更新前・要碰到才作動）', -.40, 0, .03, true);
 addLabel(hL.clamp,'皮帶固定座', .05, -.06, 0);
+addLabel(hL.bumper,'阻擋橡皮（對接邊緩衝）', -.85, 0, .04);
+const bowLbl = addLabel(hL.bow,'安全門邊支臂＋門護弓', -.70, 0, .05);
+
+/* ---- 車廂護板／乘場護板（門檻下方金屬護板・固定）---- */
+const carApron = B(2.2,.42,.016, M.steel); carApron.position.set(0,-.21,.145); scene.add(carApron);
+const lndApron = B(2.2,.42,.016, M.steel); lndApron.position.set(0,-.21,-.135); scene.add(lndApron);
+addLabel(carApron,'車廂護板（門檻下方）', -.05, 1.0, 0);
+addLabel(lndApron,'乘場護板（門檻下方）', -.12, -1.0, 0);
+
+/* ---- EMO 車頂緊急停止按鈕（固定於門機機座）---- */
+const emoBase = B(.05,.05,.03,M.dark); emoBase.position.set(-.62,2.62,.20); scene.add(emoBase);
+const emoBtn = new THREE.Mesh(new THREE.CylinderGeometry(.026,.03,.022,20), M.estop);
+emoBtn.rotation.x=Math.PI/2; emoBtn.position.set(-.62,2.62,.225); scene.add(emoBtn);
+addLabel(emoBtn,'EMO（車頂緊急停止）', .07, 0, .03, true);
 
 /* SDE 光束 */
 const NBEAM=10;
@@ -644,6 +669,11 @@ function lndHanger(side){
 }
 const lL = lndHanger(-1), lR = lndHanger(1);
 addLabel(lL.panel,'外門板／乘場門（被活動羽棒帶動）', -.5, -.1, -.02);
+/* 外門開關鑰匙孔（廳門上的緊急開鎖孔・隨左廳門・在門楣下方廳門板上） */
+const keyEsc = new THREE.Mesh(new THREE.CylinderGeometry(.02,.02,.008,20), M.steel);
+keyEsc.rotation.x=Math.PI/2; keyEsc.position.set(.16,1.92,-.197); lL.g.add(keyEsc);
+const keyHole = B(.004,.014,.014,M.dark); keyHole.position.set(.16,1.92,-.205); lL.g.add(keyHole);
+addLabel(keyEsc,'外門開關鑰匙孔（緊急開鎖）', -.30, 0, -.02, true);
 
 /* ---- 三菱型廳門鎖總成（依改造文件實photo）----
    鍍鋅鈑金鉤臂＋「垂直排列」雙開鎖滾輪（門刀夾這兩顆）＋彈簧＋接點開關 */
@@ -693,7 +723,7 @@ addLabel(contactBase,'門閉鎖器接點開關（DS・串入安全迴路）', -.
 /* ---- 廳門連動鋼索（兩扇廳門等速連動・依改造文件照片）---- */
 /* 乘場門連動鋼索輪：門楣兩端的黑色滑輪（依廠內照片・明顯黑色） */
 function cordSheave(x){
-  const g=new THREE.Group(); g.position.set(x,2.13,-.30); scene.add(g);
+  const g=new THREE.Group(); g.position.set(x,2.04,-.30); scene.add(g);   // 下移至門楣下方、避免埋進門楣樑
   const tyre=CYL(.046,.022,M.belt); g.add(tyre);
   const cheek=CYL(.05,.006,M.dark); cheek.position.z=.013; g.add(cheek);
   const hub=CYL(.014,.03,M.steel); g.add(hub);
@@ -703,12 +733,12 @@ const cordPulL=cordSheave(-1.10), cordPulR=cordSheave(1.10);
 {
   const g=new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(new Float32Array([
-    -1.10,2.158,-.30,  1.10,2.158,-.30,
-    -1.10,2.102,-.30,  1.10,2.102,-.30]),3));
+    -1.10,2.068,-.30,  1.10,2.068,-.30,
+    -1.10,2.012,-.30,  1.10,2.012,-.30]),3));
   scene.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({color:0xaaaaaa})));
 }
-const cordClampL=B(.04,.016,.014,M.dark); cordClampL.position.set(.18,2.158,-.30); lL.g.add(cordClampL);
-const cordClampR=B(.04,.016,.014,M.dark); cordClampR.position.set(-.18,2.102,-.30); lR.g.add(cordClampR);
+const cordClampL=B(.04,.016,.014,M.dark); cordClampL.position.set(.18,2.068,-.30); lL.g.add(cordClampL);
+const cordClampR=B(.04,.016,.014,M.dark); cordClampR.position.set(-.18,2.012,-.30); lR.g.add(cordClampR);
 addLabel(cordPulR,'乘場門連動鋼索輪（一扇動、另一扇等速跟動）', .07, -.4, 0);
 
 /* ---- 廳門自閉重錘（斷電也會自動關門）---- */
@@ -866,6 +896,7 @@ function syncSafetyVis(){
   }
   curtainLbl.visible = labelsOn && !e;
   edgeLbl.visible    = labelsOn && e;
+  bowLbl.visible     = labelsOn && e;
 }
 btnSafety.onclick=()=>{
   safetyMode = safetyMode==='edge' ? 'curtain' : 'edge';
@@ -1016,6 +1047,43 @@ window.__state=()=>({T,d:dOf(T),step:stepOf(T),sig:sig(T)});
 window.__setCam=(p,t)=>{camera.position.set(...p);controls.target.set(...t);};
 window.__world=o=>{const v=new THREE.Vector3();({hook:hookBody,keeper,bridge,pin1:cPin1,blade:bladeLMesh,roller:cR1,gscam:gsCam,gssw:gsBody}[o]).getWorldPosition(v);return v.toArray();};
 window.__safety=()=>btnSafety.click();
+
+/* ---- 碰撞稽核：逐零件世界 AABB 量測，回報「不同門/動對固定」之間的穿透 ---- */
+window.__auditList=[
+ {n:'羽棒',o:bladeLMesh,d:'cL'},{n:'扇形轉盤',o:sectorPlate,d:'cL'},{n:'羽棒座',o:vaneMount,d:'cL'},
+ {n:'皮帶座L',o:hL.clamp,d:'cL'},{n:'門腳L',o:hL.gib,d:'cL'},{n:'阻擋橡皮L',o:hL.bumper,d:'cL'},{n:'門護弓L',o:hL.bow,d:'cL'},
+ {n:'皮帶座R',o:hR.clamp,d:'cR'},{n:'門腳R',o:hR.gib,d:'cR'},{n:'阻擋橡皮R',o:hR.bumper,d:'cR'},{n:'門護弓R',o:hR.bow,d:'cR'},{n:'SW撞塊',o:gsCam,d:'cR'},
+ {n:'閉鎖鉤',o:hookBody,d:'hl'},{n:'鎖輪1',o:cR1,d:'hl'},{n:'鎖輪2',o:cR2,d:'hl'},{n:'索夾L',o:cordClampL,d:'hl'},{n:'鑰匙孔',o:keyEsc,d:'hl'},{n:'外門板L',o:lL.panel,d:'hl'},
+ {n:'索夾R',o:cordClampR,d:'hr'},{n:'外門板R',o:lR.panel,d:'hr'},
+ {n:'車廂門SW',o:gsBody,d:'fix'},{n:'位置OLT',o:swOpen.body,d:'fix'},{n:'位置CLT',o:swClose.body,d:'fix'},
+ {n:'門楣',o:lndHeader,d:'fix'},{n:'VVVF箱',o:dorBox,d:'fix'},{n:'皮帶上',o:beltUp,d:'fix'},{n:'皮帶下',o:beltDn,d:'fix'},
+ {n:'索輪L',o:cordPulL,d:'fix'},{n:'索輪R',o:cordPulR,d:'fix'},{n:'吊錘輪',o:cwPulley,d:'fix'},{n:'門吊錘',o:cwWeight,d:'fix'},
+ {n:'鎖座銷',o:keeper,d:'fix'},{n:'閉鎖接點',o:contactBase,d:'fix'},{n:'車廂護板',o:carApron,d:'fix'},{n:'乘場護板',o:lndApron,d:'fix'},{n:'EMO',o:emoBtn,d:'fix'}
+];
+function __shown(o){ for(let p=o;p;p=p.parent){ if(p.visible===false) return false; } return true; }
+window.__audit=(thr=0.005)=>{
+  const boxes=window.__auditList.filter(p=>__shown(p.o)).map(p=>({p,b:new THREE.Box3().setFromObject(p.o)}));
+  const out=[];
+  for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++){
+    const A=boxes[i],C=boxes[j];
+    if(A.p.d===C.p.d) continue;
+    if(A.p.d==='fix'&&C.p.d==='fix') continue;
+    const ox=Math.min(A.b.max.x,C.b.max.x)-Math.max(A.b.min.x,C.b.min.x);
+    const oy=Math.min(A.b.max.y,C.b.max.y)-Math.max(A.b.min.y,C.b.min.y);
+    const oz=Math.min(A.b.max.z,C.b.max.z)-Math.max(A.b.min.z,C.b.min.z);
+    if(ox>thr&&oy>thr&&oz>thr) out.push({a:A.p.n,b:C.p.n,pen:[+ox.toFixed(3),+oy.toFixed(3),+oz.toFixed(3)]});
+  }
+  return out;
+};
+/* 全程掃描：t=0..16.5，回傳每對的最大穿透（兩種防夾模式各掃一次） */
+window.__sweep=(thr=0.005)=>{
+  const agg={};
+  const scan=(tag)=>{ for(let t=0;t<=16.5;t+=0.25){ window.__setT(t);
+    for(const h of window.__audit(thr)){ const k=tag+'|'+[h.a,h.b].sort().join(' × ');
+      const m=Math.max(...h.pen); if(!agg[k]||m>agg[k].m) agg[k]={m:+m.toFixed(3),pen:h.pen,t:+t.toFixed(2)}; } } };
+  scan('幕'); window.__safety(); scan('邊'); window.__safety();   // 掃完切回原模式
+  return Object.entries(agg).map(([k,v])=>({pair:k,maxPen:v.m,at_t:v.t})).sort((a,b)=>b.maxPen-a.maxPen);
+};
 </script>
 </body>
 </html>
