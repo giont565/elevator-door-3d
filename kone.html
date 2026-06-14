@@ -390,27 +390,23 @@ for(const bx of [-.9,-.45,.45,.9]){ const b=HEX(.007,.008); b.position.set(bx,2.
 const railLbl=new THREE.Object3D(); railLbl.position.set(1.0,2.345,.10); scene.add(railLbl);
 addLabel(railLbl,'門軌 Car door railing');
 
-/* ---- PM 永磁碟型馬達（直驅・放射散熱鰭）＋編碼器＋出線管 ---- */
-const motorG = new THREE.Group(); motorG.position.set(-1.0, 2.50, 0); scene.add(motorG);
-const motorBody = CYL(.112, .115, M.motor); motorBody.position.z=.21; motorG.add(motorBody);
-for(let i=0;i<24;i++){ // 放射狀散熱鰭
-  const a=i/24*Math.PI*2;
-  const fin=B(.024,.006,.10,M.motor);
-  fin.position.set(Math.cos(a)*.122, Math.sin(a)*.122, .21);
-  fin.rotation.z=a; motorG.add(fin);
-}
-const faceCap=CYL(.05,.022,M.dark); faceCap.position.z=.144; motorG.add(faceCap);
-for(let i=0;i<4;i++){ const a=i/4*Math.PI*2+.4;
-  const bolt=HEX(.007,.01); bolt.position.set(Math.cos(a)*.085,Math.sin(a)*.085,.155); motorG.add(bolt); }
-const namePlt=B(.05,.026,.002,M.alu); namePlt.position.set(0,-.078,.2685); motorG.add(namePlt);
-const encoder = CYL(.045,.05, M.dark); encoder.position.z=.295; motorG.add(encoder);
-const encCap  = CYL(.02,.012, M.alu);  encCap.position.z=.323; motorG.add(encCap);
-/* 減速齒輪箱（齒輪式門馬達特徵・夾在馬達面與皮帶輪之間・不蓋住皮帶輪 z<.12）*/
-const gearbox = B(.12,.14,.05,M.dark); gearbox.position.set(-1.0,2.50,.155); scene.add(gearbox);
-const gbCap = CYL(.05,.02,M.dark); gbCap.position.set(-1.0,2.50,.182); scene.add(gbCap);
-addLabel(motorBody,'門控器（齒輪式門馬達・Door drive）', .18, 0, 0);
-addLabel(encoder,'編碼器（連續位置＋速度反饋）', -.09, 0, .03, true);
-const motorBracket = B(.2, .16, .05, M.frame); motorBracket.position.set(-1.0, 2.50, .04); scene.add(motorBracket);
+/* ---- 中央集中式驅動單元（依通力官方圖：馬達＋門控板＋變壓器＋測試鈕＋接頭 全集中門楣正中央・在皮帶上方避開門夾行程）---- */
+const CY=2.64;   // 驅動單元高度（皮帶上股 y2.56 之上）
+/* 齒輪式門馬達（門控板左側）＋編碼器 */
+const motorG = new THREE.Group(); motorG.position.set(-.30, CY-.03, .05); scene.add(motorG);  // 前移避開皮帶(z.10)
+const motorBody = CYL(.078, .095, M.motor); motorBody.position.z=.13; motorG.add(motorBody);
+for(let i=0;i<18;i++){ const a=i/18*Math.PI*2; const fin=B(.018,.006,.075,M.motor);
+  fin.position.set(Math.cos(a)*.085, Math.sin(a)*.085, .13); fin.rotation.z=a; motorG.add(fin); }
+const faceCap=CYL(.036,.018,M.dark); faceCap.position.z=.078; motorG.add(faceCap);
+const namePlt=B(.04,.02,.002,M.alu); namePlt.position.set(0,-.055,.178); motorG.add(namePlt);
+const encoder = CYL(.032,.04, M.dark); encoder.position.z=.20; motorG.add(encoder);
+const encCap  = CYL(.014,.01, M.alu);  encCap.position.z=.222; motorG.add(encCap);
+/* 減速齒輪箱（馬達下方→中央皮帶傳動） */
+const gearbox = B(.11,.15,.08,M.dark); gearbox.position.set(-.20, CY-.12, .19); scene.add(gearbox);  // 前移避開皮帶
+const gbShaft = CYL(.012,.10,M.steel); gbShaft.position.set(-.13, CY-.16, .17); scene.add(gbShaft);
+addLabel(motorBody,'門控器（齒輪式門馬達・Door drive）', .15, 0, 0);
+addLabel(encoder,'編碼器（連續位置＋速度反饋）', -.07, 0, .03, true);
+const motorBracket = B(.16,.13,.04,M.frame); motorBracket.position.set(-.30, CY-.03, -.10); scene.add(motorBracket);
 
 /* ---- 齒型皮帶輪（齒＋擋邊法蘭）---- */
 function toothedPulley(){
@@ -429,38 +425,36 @@ const dp = toothedPulley(); dp.g.position.set(-1.0,2.50,.10); scene.add(dp.g);
 const ip = toothedPulley(); ip.g.position.set( 1.0,2.50,.10); scene.add(ip.g);
 const drivePul = dp.g, idlePul = ip.g;
 
-/* ---- DOR 門機控制板（上蓋螺絲＋散熱鰭＋出線管＋狀態 LED）---- */
-const dorBox = B(.34,.24,.05,M.dark); dorBox.position.set(.62,2.52,.175); scene.add(dorBox);
-const dorPcb = B(.30,.20,.012,M.pcb); dorPcb.position.set(.62,2.52,.205); scene.add(dorPcb);
+/* ---- 門控板（中央主體・PCB 面＋上蓋螺絲＋狀態燈）---- */
+const dorBox = B(.40,.20,.05,M.dark); dorBox.position.set(0, CY, .19); scene.add(dorBox);
+const dorPcb = B(.36,.16,.012,M.pcb); dorPcb.position.set(0, CY, .219); scene.add(dorPcb);
 const dorLED = new THREE.Mesh(new THREE.SphereGeometry(.007,12,12),
   new THREE.MeshStandardMaterial({color:0x123018, emissive:0x16c95e, emissiveIntensity:1.2}));
-dorLED.position.set(.74,2.60,.213); scene.add(dorLED);
-for(const [bx,by] of [[-.155,.105],[.155,.105],[-.155,-.105],[.155,-.105]]){
-  const b=HEX(.006,.008); b.position.set(.62+bx,2.52+by,.202); scene.add(b);
+dorLED.position.set(.13, CY+.06, .227); scene.add(dorLED);
+for(const [bx,by] of [[-.18,.08],[.18,.08],[-.18,-.08],[.18,-.08]]){
+  const b=HEX(.006,.008); b.position.set(bx, CY+by, .216); scene.add(b);
 }
-for(let i=0;i<5;i++){ const fin=B(.012,.18,.028,M.steel); fin.position.set(.50+i*.06,2.52,.14); scene.add(fin); }
-const gl1=CYL(.011,.03,M.cable); gl1.rotation.x=Math.PI/2; gl1.position.set(.54,2.39,.175); scene.add(gl1);
-const gl2=CYL(.011,.03,M.cable); gl2.rotation.x=Math.PI/2; gl2.position.set(.70,2.39,.175); scene.add(gl2);
-/* 開門和關門測試按鈕（門控板上兩顆・維保手動測試） */
-const tbtnO=new THREE.Mesh(new THREE.CylinderGeometry(.011,.013,.012,16), M.sw); tbtnO.rotation.x=Math.PI/2; tbtnO.position.set(.555,2.47,.222); scene.add(tbtnO);
-const tbtnC=new THREE.Mesh(new THREE.CylinderGeometry(.011,.013,.012,16), M.estop); tbtnC.rotation.x=Math.PI/2; tbtnC.position.set(.585,2.47,.222); scene.add(tbtnC);
-addLabel(tbtnO,'開門和關門測試按鈕', -.04, -.05, .02, true);
-/* 變壓器（操作器右端・避開右門皮帶固定座行程 max x≈.89） */
-const xfmr=B(.13,.16,.13,M.dark); xfmr.position.set(1.16,2.50,.14); scene.add(xfmr);
-for(let i=0;i<5;i++){ const lam=B(.135,.012,.13,M.steel); lam.position.set(1.16,2.44+i*.03,.14); scene.add(lam); }
-addLabel(xfmr,'變壓器 Transformer', .14, 0, .03, true);
+const gl1=CYL(.011,.03,M.cable); gl1.rotation.x=Math.PI/2; gl1.position.set(-.05, CY-.11, .19); scene.add(gl1);
+const gl2=CYL(.011,.03,M.cable); gl2.rotation.x=Math.PI/2; gl2.position.set(.05, CY-.11, .19); scene.add(gl2);
+/* 開門和關門測試按鈕（門控板面上兩顆・維保手動測試） */
+const tbtnO=new THREE.Mesh(new THREE.CylinderGeometry(.012,.014,.013,16), M.sw); tbtnO.rotation.x=Math.PI/2; tbtnO.position.set(-.06, CY-.03, .228); scene.add(tbtnO);
+const tbtnC=new THREE.Mesh(new THREE.CylinderGeometry(.012,.014,.013,16), M.estop); tbtnC.rotation.x=Math.PI/2; tbtnC.position.set(-.02, CY-.03, .228); scene.add(tbtnC);
+addLabel(tbtnO,'開門和關門測試按鈕', -.05, -.06, .02, true);
+/* 變壓器（門控板右側・帶疊片） */
+const xfmr=B(.12,.16,.09,M.dark); xfmr.position.set(.30, CY-.02, .18); scene.add(xfmr);  // 前移避開皮帶
+for(let i=0;i<5;i++){ const lam=B(.125,.012,.09,M.steel); lam.position.set(.30, CY-.08+i*.028, .18); scene.add(lam); }
+addLabel(xfmr,'變壓器 Transformer', .13, .05, .03, true);
 /* 電源供應快速接頭（門控板下緣・插接頭） */
-const qcBody=B(.05,.03,.03,M.pcb); qcBody.position.set(.45,2.43,.19); scene.add(qcBody);
-for(const px of [-.012,0,.012]){ const pin=CYL(.004,.02,M.copper); pin.position.set(.45+px,2.43,.215); scene.add(pin); }
-addLabel(qcBody,'電源供應快速接頭', -.10, -.05, .02, true);
-addLabel(dorBox,'門控板（Door control board）', .17, 0, .03, true);
+const qcBody=B(.05,.03,.03,M.pcb); qcBody.position.set(.12, CY-.11, .21); scene.add(qcBody);
+for(const px of [-.012,0,.012]){ const pin=CYL(.004,.02,M.copper); pin.position.set(.12+px, CY-.11, .235); scene.add(pin); }
+addLabel(qcBody,'電源供應快速接頭', -.05, .08, .02, true);
+addLabel(dorBox,'門控板（Door control board）', .14, 0, .03, true);
 
-/* ---- 馬達 → DOR 板 動力出線管 ---- */
+/* ---- 馬達 → 門控板 短出線管（單元內）---- */
 {
-  const pts=[new THREE.Vector3(-1.0,2.615,.26), new THREE.Vector3(-.75,2.685,.21),
-             new THREE.Vector3(-.2,2.705,.19),  new THREE.Vector3(.4,2.665,.19),
-             new THREE.Vector3(.54,2.41,.18)];
-  const tube=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),48,.0075,10),M.cable);
+  const pts=[new THREE.Vector3(-.30,CY+.05,.10), new THREE.Vector3(-.20,CY+.10,.15),
+             new THREE.Vector3(-.08,CY+.09,.18),  new THREE.Vector3(0,CY+.06,.19)];
+  const tube=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),32,.007,8),M.cable);
   tube.castShadow=true; scene.add(tube);
 }
 
