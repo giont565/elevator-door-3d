@@ -350,6 +350,7 @@ const M = {
   hook   : new THREE.MeshStandardMaterial({color:0xd64545, metalness:.6,  roughness:.4}),
   copper : new THREE.MeshStandardMaterial({color:0xd98a3a, metalness:.9,  roughness:.3}),
   sw     : new THREE.MeshStandardMaterial({color:0x2f8f5b, metalness:.4,  roughness:.6}),
+  estop  : new THREE.MeshStandardMaterial({color:0xc4332e, metalness:.3,  roughness:.5}),
   pcb    : new THREE.MeshStandardMaterial({color:0x1d6b4a, metalness:.3,  roughness:.6}),
   alu    : new THREE.MeshStandardMaterial({color:0x8e99a4, metalness:.8,  roughness:.35}),
   sill   : new THREE.MeshStandardMaterial({color:0x6b7682, metalness:.7,  roughness:.45, side:THREE.DoubleSide}),
@@ -1060,7 +1061,7 @@ window.__auditList=[
  {n:'索輪L',o:cordPulL,d:'fix'},{n:'索輪R',o:cordPulR,d:'fix'},{n:'吊錘輪',o:cwPulley,d:'fix'},{n:'門吊錘',o:cwWeight,d:'fix'},
  {n:'鎖座銷',o:keeper,d:'fix'},{n:'閉鎖接點',o:contactBase,d:'fix'},{n:'車廂護板',o:carApron,d:'fix'},{n:'乘場護板',o:lndApron,d:'fix'},{n:'EMO',o:emoBtn,d:'fix'}
 ];
-function __shown(o){ for(let p=o;p;p=p.parent){ if(p.visible===false) return false; } return true; }
+function __shown(o){ if(!o) return false; for(let p=o;p;p=p.parent){ if(p.visible===false) return false; } return true; }
 window.__audit=(thr=0.005)=>{
   const boxes=window.__auditList.filter(p=>__shown(p.o)).map(p=>({p,b:new THREE.Box3().setFromObject(p.o)}));
   const out=[];
