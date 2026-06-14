@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>通力電梯門機構 3D 實機版 — AMD 門機判定鏈</title>
+<title>通力電梯門機構 3D 實機版 — 官方零件圖對照（齒輪式門機）</title>
 <style>
   :root{
     --bg:#0d1118; --panel:#151c26; --card:#1d2735; --line:#33425a;
@@ -92,7 +92,7 @@
 <body>
 <div id="app">
   <header>
-    <h1>🛗 通力電梯門機構 <span>3D 實機版（AMD 門機）</span></h1>
+    <h1>🛗 通力電梯門機構 <span>3D 實機版（官方零件圖・齒輪式門機）</span></h1>
     <div class="ctrl">
       <button id="btnPlay" class="primary">⏸ 暫停</button>
       <button id="btnPrev">⏮ 上一步</button>
@@ -101,7 +101,7 @@
       <span style="width:8px"></span>
       <button id="camAll" class="on">全景</button>
       <button id="camMachine">門機特寫</button>
-      <button id="camLock">門刀／門鎖特寫</button>
+      <button id="camLock">開門刀／外門鎖特寫</button>
       <button id="camSide">側面剖視</button>
       <span style="width:8px"></span>
       <button id="btnXray" class="on">X-ray 透視</button>
@@ -121,7 +121,7 @@
         <div class="sig" id="sigSDE"><i></i>光電 X15/X16</div>
         <div class="sig" id="sigOLT"><i></i>開門極限 (10)</div>
         <div class="sig" id="sigCLT"><i></i>關門極限 (9)</div>
-        <div class="sig" id="sigVane"><i></i>門刀夾持中</div>
+        <div class="sig" id="sigVane"><i></i>開門刀夾持中</div>
         <div class="sig" id="sigGS"><i></i>轎門觸點</div>
         <div class="sig" id="sigDS"><i></i>廳門鎖</div>
       </div>
@@ -129,25 +129,26 @@
       <div id="loopFlash"></div>
       <div id="bom">
         <button class="close" id="bomClose">✕ 關閉</button>
-        <h3>📋 通力（KONE）門系統真實零件對照表</h3>
+        <h3>📋 通力（KONE）門系統零件對照表（依官方零件圖中英用詞）</h3>
         <table>
-          <tr><th>零件／訊號</th><th>代號</th><th>功能（白話）</th></tr>
-          <tr><td>AMD 門機馬達</td><td>AMD 2.0</td><td>三相交流永磁同步馬達（調試文件原文），直驅「線性齒帶驅動機構」——通力門機的正式名稱就叫 AMD</td></tr>
-          <tr><td>門機控制板</td><td>—</td><td>驅動馬達＋開關門判定；馬達動力線從出線管接入</td></tr>
-          <tr><td>速度曲線 DIP 開關</td><td>SP1–SP4</td><td>板上 DIP 開關選 4 段速度曲線；門機有「自學習」功能，先學一次行程才知道全開全關在哪</td></tr>
-          <tr><td>線性齒帶（同步帶）</td><td>—</td><td>齒在內側咬合皮帶輪；上下兩股各夾一扇門，永遠等速對開對關</td></tr>
-          <tr><td>編碼器</td><td>—</td><td>「連續位置及速度反饋」（原文），減速點與到位判定都靠它</td></tr>
-          <tr><td>吊門板＋滑輪</td><td>—</td><td>鈑金板（帶減重孔）掛門板；PU 胎面滑輪沿門導軌滾動；下方偏心調整的防跳輪防脫軌</td></tr>
-          <tr><td>門刀</td><td>—</td><td>調試文件稱「全機械門刀」：兩片刀片夾住廳門開鎖滾輪，把廳門「咬」著一起開關</td></tr>
-          <tr><td>開鎖滾輪</td><td>—</td><td>廳門側被門刀夾的兩顆軸承滾輪；被夾住時頂開廳門鎖鉤＝解鎖</td></tr>
-          <tr><td>廳門鎖鉤＋接點</td><td>—</td><td>鉤形鑄件咬住鎖座滾輪銷；勾到底接點才導通</td></tr>
-          <tr><td>轎門觸點</td><td>—</td><td>轎門全閉、撞塊壓上才閉合</td></tr>
-          <tr><td>光電傳感器</td><td>X15/2、X16/2</td><td>門口紅外線光電（光幕）；遮斷→立即重開門</td></tr>
-          <tr><td>安全觸板</td><td>X17、X18</td><td>機械式防夾觸板，與光電並行的第二道防夾</td></tr>
-          <tr><td>開門極限</td><td>(10)</td><td>開門到位判定——到達全開位置前 10mm 就觸發</td></tr>
-          <tr><td>關門極限</td><td>(9)</td><td>關門到位判定——到達全關位置前 10mm 就觸發</td></tr>
-          <tr><td>廳門自閉重錘</td><td>—</td><td>鋼索＋重錘：停電、門刀沒夾時廳門也會自動關閉＋上鎖</td></tr>
-          <tr><td>地坎＋門滑塊（導靴）</td><td>—</td><td>鋁擠型地坎帶溝槽；門板下端尼龍滑塊在溝槽內滑行，防止門片下擺</td></tr>
+          <tr><th>零件名稱（中／英）</th><th>代號／別名</th><th>功能（白話）</th></tr>
+          <tr><td>門控器 Door drive</td><td>齒輪式門馬達</td><td>通力對門機總成的稱呼；本圖機型用<b>齒輪式門馬達</b>（馬達＋減速齒輪箱）驅動鋸齒皮帶</td></tr>
+          <tr><td>門控板</td><td>Door control board</td><td>門機的大腦：驅動馬達＋開關門判定；板上有狀態燈與設定</td></tr>
+          <tr><td>開門和關門測試按鈕</td><td>—</td><td>門控板上的兩顆按鈕，維保時手動測試開門/關門</td></tr>
+          <tr><td>電源供應快速接頭</td><td>—</td><td>門機電源的快速插接頭，維修換件免逐條接線</td></tr>
+          <tr><td>變壓器 Transformer</td><td>—</td><td>把電源轉成門控板所需電壓</td></tr>
+          <tr><td>皮帶（具有鋸齒狀）</td><td>同步帶</td><td>鋸齒（齒型）皮帶；上下兩股各拉一扇車廂門，永遠等速對開對關</td></tr>
+          <tr><td>編碼器</td><td>—</td><td>回報門的連續位置與速度，減速點與到位判定靠它</td></tr>
+          <tr><td>門吊板 Panel fixings</td><td>—</td><td>掛門板的鈑金板＋滑輪沿門軌滾動；下方防跳輪防脫軌</td></tr>
+          <tr><td>門軌 Car door railing</td><td>外門軌 Landing door railing</td><td>車廂門/外門吊板滑輪行走的軌道</td></tr>
+          <tr><td>開門刀 Coupler</td><td>—</td><td>通力把門刀叫「開門刀（Coupler）」：車廂門上的刀，夾住外門的開鎖滾輪，把外門咬著一起開關</td></tr>
+          <tr><td>開鎖滾輪</td><td>—</td><td>外門側被開門刀夾的滾輪；被夾住＝頂開外門鎖＝解鎖</td></tr>
+          <tr><td>外門鎖＋接點</td><td>—</td><td>鉤形鎖咬住鎖座銷鎖住外門；勾到底接點才導通</td></tr>
+          <tr><td>車廂門觸點</td><td>—</td><td>車廂門全閉、撞塊壓上才閉合的電氣接點</td></tr>
+          <tr><td>門安全裝置 Door safety device</td><td>—</td><td>防夾：電子光幕（遮光即反向開門）＋機械安全邊（碰到才反向）</td></tr>
+          <tr><td>同步鋼索</td><td>Sync cord</td><td>連動兩扇外門等速開關；兼具停電時把外門拉回關閉的自閉作用</td></tr>
+          <tr><td>門框 Frame or front</td><td>—</td><td>外門的門套/門楣框架</td></tr>
+          <tr><td>門檻和護板／門板和護趾板</td><td>Sill and apron / toe guard</td><td>門檻（地坎）＋下方護板/護趾板；門腳（導靴）在門檻溝槽內滑行</td></tr>
         </table>
       </div>
     </div>
@@ -220,7 +221,7 @@ const sig = t => ({
 const STEPS = [
 {t0:0, t1:2.15, no:'S0', short:'關門中', title:'S0 關門中',
  trig:'收到關門命令（端子 17），AMD 馬達開始轉。',
- mech:'馬達直驅線性齒帶 → 上下兩股各拉一扇門（永遠等速對開對關）→ 滑輪沿導軌滾動 → <b>全機械門刀</b>夾著廳門的<b>開鎖滾輪</b>，把廳門一起帶著關。',
+ mech:'齒輪式門馬達驅動鋸齒皮帶 → 上下兩股各拉一扇門（永遠等速對開對關）→ 滑輪沿門軌滾動 → <b>開門刀（Coupler）</b>夾著外門的<b>開鎖滾輪</b>，把外門一起帶著關。',
  next:'光電被擋 → S1 重開門；沒擋 → 直接到 S7。',
  focus:['beams','motor','belt']},
 {t0:2.15, t1:3.0, no:'S1', short:'光電遮斷', title:'S1 光電 X15/X16 遮斷',
@@ -230,7 +231,7 @@ const STEPS = [
  focus:['beams','curtain']},
 {t0:3.0, t1:5.0, no:'S2', short:'重開門', title:'S2 重開門',
  trig:'馬達反轉（全開位置是門機<b>自學習</b>記下來的）。',
- mech:'兩扇門對開；門刀仍夾著開鎖滾輪、廳門跟著開；<b>鎖鉤維持被頂開</b>；自閉重錘被拉高（儲存關門的力量）。',
+ mech:'兩扇門對開；開門刀仍夾著開鎖滾輪、外門跟著開；<b>外門鎖維持被頂開</b>；門吊錘被拉高（儲存關門的力量）。',
  next:'門走到全開位置 → S3。',
  focus:['motor','belt','vane']},
 {t0:5.0, t1:5.8, no:'S3', short:'開門極限(10)', title:'S3 開門到位 — 開門極限 (10)',
@@ -249,17 +250,17 @@ const STEPS = [
  next:'起步段走完 → S6。',
  focus:['motor']},
 {t0:9.6, t1:12.4, no:'S6', short:'關門行程', title:'S6 關門行程（SP 速度曲線）',
- trig:'編碼器位置決定減速點；速度曲線用門機板上的 <b>DIP 開關 SP1–SP4</b> 選。',
- mech:'加速 → 等速 → 提前減速 → 低速爬行（看右下角速度錶 ▲）；門刀帶著廳門一起關。',
+ trig:'編碼器位置決定減速點；速度曲線由<b>門控板</b>設定。',
+ mech:'加速 → 等速 → 提前減速 → 低速爬行（看右下角速度錶 ▲）；開門刀帶著外門一起關。',
  next:'進入低速爬行 → 等關門極限。',
  focus:['belt','motor']},
-{t0:12.4, t1:13.6, no:'S7', short:'關門極限(9)', title:'S7 關門到位 — 關門極限 (9) ＋門刀釋放',
+{t0:12.4, t1:13.6, no:'S7', short:'關門極限(9)', title:'S7 關門到位 — 關門極限 (9) ＋開門刀釋放',
  trig:'<b>關門極限 (9)</b> 作動（同樣是到位前 10mm 觸發）。',
- mech:'<b>門刀兩片刀片向內收攏 → 放開開鎖滾輪</b> → 轎門與廳門脫鉤。建議切「門刀／門鎖特寫」鏡頭看。',
+ mech:'<b>開門刀收回 → 放開開鎖滾輪</b> → 車廂門與外門脫鉤。建議切「開門刀／外門鎖特寫」鏡頭看。',
  next:'鎖鉤失去支撐 → S8。',
  focus:['vane','closeLim']},
 {t0:13.6, t1:14.6, no:'S8', short:'門鎖勾合', title:'S8 門鎖勾合（廳門鎖＋轎門觸點）',
- trig:'門刀放開滾輪。',
+ trig:'開門刀放開滾輪。',
  mech:'<b>鎖鉤</b>靠彈簧＋自重落下、鉤喙咬住鎖座滾輪銷；鉤尾接點橋同時碰上兩片彈片 → <b>廳門鎖接點導通</b>（綠燈亮）。同時轎門全閉、撞塊壓上<b>轎門觸點</b>。',
  next:'鉤到底＋接點導通 → S9。',
  focus:['hook','contacts','gsSw']},
@@ -325,6 +326,7 @@ const M = {
   hook   : new THREE.MeshStandardMaterial({color:0xd64545, metalness:.6,  roughness:.4}),
   copper : new THREE.MeshStandardMaterial({color:0xd98a3a, metalness:.9,  roughness:.3}),
   sw     : new THREE.MeshStandardMaterial({color:0x2f8f5b, metalness:.4,  roughness:.6}),
+  estop  : new THREE.MeshStandardMaterial({color:0xc4332e, metalness:.3,  roughness:.5}),
   pcb    : new THREE.MeshStandardMaterial({color:0x1d6b4a, metalness:.3,  roughness:.6}),
   alu    : new THREE.MeshStandardMaterial({color:0x8e99a4, metalness:.8,  roughness:.35}),
   sill   : new THREE.MeshStandardMaterial({color:0x6b7682, metalness:.7,  roughness:.45, side:THREE.DoubleSide}),
@@ -374,9 +376,9 @@ carSill.rotation.y=Math.PI/2; carSill.position.set(-1.15, 0, .15); scene.add(car
 const lndSill = extrude(sillProfile(), 2.3, M.sill);
 lndSill.rotation.y=Math.PI/2; lndSill.position.set(-1.15, 0, -.135); scene.add(lndSill);
 const sillLbl1=new THREE.Object3D(); sillLbl1.position.set(1.05,.05,.085); scene.add(sillLbl1);
-addLabel(sillLbl1,'轎門地坎（鋁擠型・含滑塊溝槽）');
+addLabel(sillLbl1,'車廂門檻＋護板（Sill and apron・含門腳溝槽）');
 const sillLbl2=new THREE.Object3D(); sillLbl2.position.set(-1.05,.05,-.2); scene.add(sillLbl2);
-addLabel(sillLbl2,'廳門地坎');
+addLabel(sillLbl2,'外門檻＋護趾板（Sill and toe guard）');
 
 /* ---- 門機機座板＋導軌 ---- */
 const PANEL_W=.5, TRAVEL=.45;
@@ -386,7 +388,7 @@ const railMesh = extrude([[0,0],[.03,0],[.03,.032],[.015,.045],[0,.032]], 2.34, 
 railMesh.rotation.y=Math.PI/2; railMesh.position.set(-1.17, 2.2775, .115); scene.add(railMesh);
 for(const bx of [-.9,-.45,.45,.9]){ const b=HEX(.007,.008); b.position.set(bx,2.296,.119); scene.add(b); }
 const railLbl=new THREE.Object3D(); railLbl.position.set(1.0,2.345,.10); scene.add(railLbl);
-addLabel(railLbl,'門導軌（斜頂斷面）');
+addLabel(railLbl,'門軌 Car door railing');
 
 /* ---- PM 永磁碟型馬達（直驅・放射散熱鰭）＋編碼器＋出線管 ---- */
 const motorG = new THREE.Group(); motorG.position.set(-1.0, 2.50, 0); scene.add(motorG);
@@ -403,9 +405,12 @@ for(let i=0;i<4;i++){ const a=i/4*Math.PI*2+.4;
 const namePlt=B(.05,.026,.002,M.alu); namePlt.position.set(0,-.078,.2685); motorG.add(namePlt);
 const encoder = CYL(.045,.05, M.dark); encoder.position.z=.295; motorG.add(encoder);
 const encCap  = CYL(.02,.012, M.alu);  encCap.position.z=.323; motorG.add(encCap);
-addLabel(motorBody,'AMD 門機馬達（三相交流永磁同步・直驅線性齒帶）', .18, 0, 0);
+/* 減速齒輪箱（齒輪式門馬達特徵・馬達→齒輪箱→皮帶輪） */
+const gearbox = B(.13,.15,.13,M.dark); gearbox.position.set(-1.0,2.50,.10); scene.add(gearbox);
+for(let i=0;i<4;i++){ const rib=B(.10,.012,.13,M.dark); rib.position.set(-1.0,2.44+i*.04,.10); scene.add(rib); }
+addLabel(motorBody,'門控器（齒輪式門馬達・Door drive）', .18, 0, 0);
 addLabel(encoder,'編碼器（連續位置＋速度反饋）', -.09, 0, .03, true);
-const motorBracket = B(.2, .16, .05, M.frame); motorBracket.position.set(-1.0, 2.50, .10); scene.add(motorBracket);
+const motorBracket = B(.2, .16, .05, M.frame); motorBracket.position.set(-1.0, 2.50, .04); scene.add(motorBracket);
 
 /* ---- 齒型皮帶輪（齒＋擋邊法蘭）---- */
 function toothedPulley(){
@@ -436,11 +441,19 @@ for(const [bx,by] of [[-.155,.105],[.155,.105],[-.155,-.105],[.155,-.105]]){
 for(let i=0;i<5;i++){ const fin=B(.012,.18,.028,M.steel); fin.position.set(.50+i*.06,2.52,.14); scene.add(fin); }
 const gl1=CYL(.011,.03,M.cable); gl1.rotation.x=Math.PI/2; gl1.position.set(.54,2.39,.175); scene.add(gl1);
 const gl2=CYL(.011,.03,M.cable); gl2.rotation.x=Math.PI/2; gl2.position.set(.70,2.39,.175); scene.add(gl2);
-/* DIP 開關 SP1–SP4（速度曲線選擇） */
-const dipBase=B(.052,.022,.01,M.dark); dipBase.position.set(.55,2.46,.214); scene.add(dipBase);
-for(let i=0;i<4;i++){ const sw=B(.007,.012,.008,M.pu); sw.position.set(.532+i*.012,2.462,.221); scene.add(sw); }
-addLabel(dipBase,'DIP 開關 SP1–SP4（選速度曲線）', -.05, 0, .02, true);
-addLabel(dorBox,'AMD 門機控制板（狀態燈閃碼自診斷）', .17, 0, .03, true);
+/* 開門和關門測試按鈕（門控板上兩顆・維保手動測試） */
+const tbtnO=new THREE.Mesh(new THREE.CylinderGeometry(.011,.013,.012,16), M.sw); tbtnO.rotation.x=Math.PI/2; tbtnO.position.set(.555,2.47,.222); scene.add(tbtnO);
+const tbtnC=new THREE.Mesh(new THREE.CylinderGeometry(.011,.013,.012,16), M.estop); tbtnC.rotation.x=Math.PI/2; tbtnC.position.set(.585,2.47,.222); scene.add(tbtnC);
+addLabel(tbtnO,'開門和關門測試按鈕', -.04, -.05, .02, true);
+/* 變壓器（操作器右端・避開右門皮帶固定座行程 max x≈.89） */
+const xfmr=B(.13,.16,.13,M.dark); xfmr.position.set(1.16,2.50,.14); scene.add(xfmr);
+for(let i=0;i<5;i++){ const lam=B(.135,.012,.13,M.steel); lam.position.set(1.16,2.44+i*.03,.14); scene.add(lam); }
+addLabel(xfmr,'變壓器 Transformer', .14, 0, .03, true);
+/* 電源供應快速接頭（門控板下緣・插接頭） */
+const qcBody=B(.05,.03,.03,M.pcb); qcBody.position.set(.45,2.43,.19); scene.add(qcBody);
+for(const px of [-.012,0,.012]){ const pin=CYL(.004,.02,M.copper); pin.position.set(.45+px,2.43,.215); scene.add(pin); }
+addLabel(qcBody,'電源供應快速接頭', -.10, -.05, .02, true);
+addLabel(dorBox,'門控板（Door control board）', .17, 0, .03, true);
 
 /* ---- 馬達 → DOR 板 動力出線管 ---- */
 {
@@ -454,7 +467,7 @@ addLabel(dorBox,'AMD 門機控制板（狀態燈閃碼自診斷）', .17, 0, .03
 /* ---- 同步齒型帶（齒在內側）---- */
 const beltUp = B(2.0,.012,.034, M.belt); beltUp.position.set(0,2.56,.10); scene.add(beltUp);
 const beltDn = B(2.0,.012,.034, M.belt); beltDn.position.set(0,2.44,.10); scene.add(beltDn);
-addLabel(beltUp,'線性齒帶（齒在內側・上下股各拉一扇門）', .06, .1, 0);
+addLabel(beltUp,'皮帶（具有鋸齒狀・上下股各拉一扇門）', .06, .1, 0);
 const PITCH=.05, NT=40;
 const teethUp = new THREE.Group(), teethDn = new THREE.Group();
 for(let i=0;i<NT;i++){
@@ -479,11 +492,11 @@ const swOpen  = limitSwitch(-.95,'開門極限 (10)・到位前10mm有效');
 const swClose = limitSwitch(-.04,'關門極限 (9)・到位前10mm有效');
 
 /* ---- GS 轎門鎖開關（彈片接點＋斜面撞塊）---- */
-const gsG = new THREE.Group(); gsG.position.set(.10, 2.355, .105); scene.add(gsG);
+const gsG = new THREE.Group(); gsG.position.set(0.0, 2.40, .125); scene.add(gsG);  // 雙門接合中心、避開吊門板滾輪(±.12)
 const gsBody = B(.055,.05,.035,M.sw); gsG.add(gsBody);
 const gsPin1 = B(.006,.03,.003,M.copper); gsPin1.position.set(-.012,-.038,.004); gsPin1.rotation.x=.18; gsG.add(gsPin1);
 const gsPin2 = B(.006,.03,.003,M.copper); gsPin2.position.set( .012,-.038,.004); gsPin2.rotation.x=.18; gsG.add(gsPin2);
-addLabel(gsBody,'轎門觸點（轎門全閉才導通）', .07, .05, 0, true);
+addLabel(gsBody,'車廂門觸點（車廂門全閉才導通）', .07, .05, 0, true);
 /* 斜面撞塊（裝在右吊門板，全閉時滑入 GS 下方橋接彈片） */
 const gsCam = extrude([[0,0],[.06,0],[.06,.014],[.012,.022],[0,.022]], .05, M.copper);
 gsCam.rotation.y=Math.PI/2; // 斜面朝行進方向
@@ -533,12 +546,12 @@ function hanger(side){
   return {g, rollers, plate, panel, strip, clamp, post};
 }
 const hL = hanger(-1), hR = hanger(1);
-gsCam.position.set(-.185, 2.312, .091); hR.g.add(gsCam);  // 全閉時滑到 GS 下方（world x≈+0.095）
-addLabel(hL.plate,'吊門板（鈑金・減重孔）＋PU 滑輪', .2, -.1, 0);
-addLabel(hL.panel,'轎門板（左・背面補強肋）', -.35, -.12, .05);
-addLabel(hR.panel,'轎門板（右）', -.35, .12, .05);
-addLabel(hL.strip,'光電 X15/2・X16/2（光幕）＋安全觸板 X17/X18', -.55, 0, .03, true);
-addLabel(hL.clamp,'皮帶夾（齒型壓板）', .05, -.06, 0);
+gsCam.position.set(-.238, 2.39, .112); hR.g.add(gsCam);  // 隨右門合到中心、滑入觸點下方
+addLabel(hL.plate,'門吊板 Panel fixings（＋PU 滑輪）', .2, -.1, 0);
+addLabel(hL.panel,'車廂門板（左）', -.35, -.12, .05);
+addLabel(hR.panel,'車廂門板（右）', -.35, .12, .05);
+const curtainLbl = addLabel(hL.strip,'門安全裝置 Door safety device（光幕＋安全邊）', -.55, 0, .03, true);
+addLabel(hL.clamp,'皮帶固定座', .05, -.06, 0);
 
 /* SDE 光束 */
 const NBEAM=10;
@@ -577,7 +590,7 @@ const linkR = vaneArm(); linkR.position.set( .02,.16,-.02); linkR.rotation.z=-.3
   const spring=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),120,.0018,6),M.steel);
   vaneG.add(spring);
 }
-addLabel(bladeLMesh,'全機械門刀（導入斜角刀片＋平行連桿＋拉簧）', -.26, 0, 0);
+addLabel(bladeLMesh,'開門刀 Coupler（夾外門開鎖滾輪・帶外門開關）', -.26, 0, 0);
 
 /* ---- 廳門總成 ---- */
 const lndHeader = B(2.5,.34,.03,M.dark); lndHeader.position.set(0,2.30,-.315); scene.add(lndHeader);
@@ -598,7 +611,7 @@ function lndHanger(side){
   return {g,plate,panel,rollers};
 }
 const lL = lndHanger(-1), lR = lndHanger(1);
-addLabel(lL.panel,'廳門板（被門刀帶動）', -.5, -.1, -.02);
+addLabel(lL.panel,'外門板 Landing door panel（被開門刀帶動）', -.5, -.1, -.02);
 
 /* ---- 開鎖滾輪臂（軸承滾輪×2）---- */
 const armG = new THREE.Group(); armG.position.set(0, 2.10, -.24); lL.g.add(armG);
@@ -614,7 +627,7 @@ const cR1=lockRoller(); cR1.position.set(-.06,-.10,.135); armG.add(cR1);
 const cR2=lockRoller(); cR2.position.set( .06,-.10,.135); armG.add(cR2);
 const stand1=B(.011,.011,.27,M.steel); stand1.position.set(-.06,-.10,.0); armG.add(stand1);
 const stand2=B(.011,.011,.27,M.steel); stand2.position.set( .06,-.10,.0); armG.add(stand2);
-addLabel(cR1,'開鎖滾輪×2（被門刀夾住＝解鎖）', -.1, -.05, .05);
+addLabel(cR1,'開鎖滾輪×2（被開門刀夾住＝解鎖）', -.1, -.05, .05);
 
 /* ---- 廳門鎖鉤（真實鉤形鑄件）＋鎖座滾輪銷＋DS 彈片接點 ---- */
 const hookG = new THREE.Group(); hookG.position.set(-.02, 2.345, -.285); lL.g.add(hookG);
@@ -628,12 +641,12 @@ const hookBoss = CYL(.024,.022,M.hook); hookG.add(hookBoss);
 const hookPin  = HEX(.009,.012,M.dark); hookPin.position.z=.014; hookG.add(hookPin);
 const bridge = B(.07,.012,.02,M.copper); bridge.position.set(-.065,.027,0); hookG.add(bridge);
 const sprAnchor = CYL(.005,.01,M.steel); sprAnchor.position.set(.06,.026,0); hookG.add(sprAnchor);
-addLabel(hookBody,'廳門鎖鉤（鉤喙咬鎖座滾輪銷・彈簧＋自重勾合）', .12, .1, 0);
+addLabel(hookBody,'外門鎖（鉤咬鎖座銷・彈簧＋自重勾合）', .12, .1, 0);
 /* 鎖座：托架＋滾輪銷（鉤喙咬這顆） */
 const kBkt = B(.036,.06,.012,M.steel); kBkt.position.set(-.075,2.328,-.306); scene.add(kBkt);
 const keeper = CYL(.011,.034,M.steel); keeper.position.set(-.075,2.30,-.285); scene.add(keeper);
 const kRoll  = CYL(.0165,.02,M.copper); kRoll.position.set(-.075,2.30,-.285); scene.add(kRoll);
-addLabel(keeper,'鎖座滾輪銷（固定於門楣）', -.07, .05, 0);
+addLabel(keeper,'鎖座銷（固定於門框）', -.07, .05, 0);
 /* DS 接點座（電木座＋兩片彈片） */
 const contactBase = B(.1,.03,.03,M.dark); contactBase.position.set(-.335,2.42,-.285); scene.add(contactBase);
 const cPin1 = B(.007,.034,.003,M.copper); cPin1.position.set(-.355,2.398,-.283); cPin1.rotation.x=.15; cPin1.rotation.z=.08; scene.add(cPin1);
@@ -641,7 +654,7 @@ const cPin2 = B(.007,.034,.003,M.copper); cPin2.position.set(-.315,2.398,-.283);
 const lockLED = new THREE.Mesh(new THREE.SphereGeometry(.012,16,16),
   new THREE.MeshStandardMaterial({color:0x333a42, emissive:0x000000}));
 lockLED.position.set(-.335,2.452,-.275); scene.add(lockLED);
-addLabel(contactBase,'廳門鎖接點（彈片）', .07, -.12, 0, true);
+addLabel(contactBase,'外門鎖接點（彈片）', .07, -.12, 0, true);
 
 /* ---- 廳門自閉重錘（斷電也會自動關門）---- */
 const cwPulley = CYL(.022,.014,M.steel); cwPulley.position.set(.62,2.16,-.30); scene.add(cwPulley);
@@ -651,7 +664,31 @@ const ropeGeo=new THREE.BufferGeometry();
 ropeGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3*3),3));
 const rope=new THREE.Line(ropeGeo, new THREE.LineBasicMaterial({color:0x999999}));
 scene.add(rope);
-addLabel(cwWeight,'廳門自閉重錘（停電也能拉回關門）', -.1, 0, 0);
+addLabel(cwWeight,'門吊錘（停電時靠同步鋼索把外門拉回關閉）', -.1, 0, 0);
+
+/* ---- 同步鋼索（連動兩扇外門等速・門楣下方黑色滑輪＋綠色鋼索）---- */
+function syncSheave(x){
+  const g=new THREE.Group(); g.position.set(x,2.04,-.30); scene.add(g);
+  const tyre=CYL(.044,.02,M.belt); g.add(tyre);
+  const hub=CYL(.013,.028,M.steel); g.add(hub);
+  return g;
+}
+const syncPulL=syncSheave(-1.10), syncPulR=syncSheave(1.10);
+{
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(new Float32Array([
+    -1.10,2.066,-.30,  1.10,2.066,-.30,  -1.10,2.014,-.30,  1.10,2.014,-.30]),3));
+  scene.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({color:0x37d67a})));
+}
+const syncClampL=B(.04,.016,.014,M.dark); syncClampL.position.set(.18,2.066,-.30); lL.g.add(syncClampL);
+const syncClampR=B(.04,.016,.014,M.dark); syncClampR.position.set(-.18,2.014,-.30); lR.g.add(syncClampR);
+addLabel(syncPulR,'同步鋼索 Sync cord（連動兩扇外門等速）', .07, -.4, 0);
+
+/* ---- 車廂護板／外門護趾板（門檻下方・固定）---- */
+const carApron = B(2.2,.4,.016, M.steel); carApron.position.set(0,-.20,.145); scene.add(carApron);
+const lndApron = B(2.2,.4,.016, M.steel); lndApron.position.set(0,-.20,-.135); scene.add(lndApron);
+addLabel(carApron,'車廂護板（Sill and apron）', -.05, 1.0, 0);
+addLabel(lndApron,'外門護趾板（Sill and toe guard）', -.10, -1.0, 0);
 
 /* ---- 貨物推車 ---- */
 const cart = new THREE.Group(); scene.add(cart);
@@ -660,7 +697,7 @@ const ctop =B(.26,.06,.26,M.box); ctop.position.y=.54; cart.add(ctop);
 for(const [wx,wz] of [[-.11,-.11],[.11,-.11],[-.11,.11],[.11,.11]]){
   const w=CYL(.035,.02,M.dark); w.rotation.y=Math.PI/2; w.position.set(wx,.035,wz); cart.add(w);
 }
-addLabel(cbody,'貨物（遮斷光電 X15/X16）', .45, 0, 0);
+addLabel(cbody,'貨物（遮斷門安全裝置）', .45, 0, 0);
 
 /* ---- Highlight ---- */
 const FOCUS = {
@@ -724,8 +761,8 @@ function renderDetail(s){
     <div class="field trig"><div class="k">觸發判定（什麼訊號讓它動）</div><div class="v">${s.trig}</div></div>
     <div class="field mech"><div class="k">機構動作（哪個零件怎麼動）</div><div class="v">${s.mech}</div></div>
     <div class="field next"><div class="k">進入下一步的條件</div><div class="v">${s.next}</div></div>
-    <div class="note">機型：通力 AMD 門機（三相交流永磁同步馬達＋線性齒帶＋全機械門刀）。零件型態照實機特徵建模、
-    尺寸為教學比例；門板 X-ray 半透明為透視用。按「📋 真實零件表」看零件對照。</div>`;
+    <div class="note">零件用詞依通力官方零件圖（中英對照）：門控器/門控板、開門刀 Coupler、同步鋼索、門安全裝置、護趾板等。
+    本圖機型為齒輪式門馬達＋鋸齒皮帶；尺寸為教學比例、門板 X-ray 半透明為透視用。按「📋 真實零件表」看零件對照。</div>`;
 }
 
 /* 速度曲線小圖 */
@@ -864,7 +901,7 @@ function update(){
   ui.sigs.olt.className = 'sig '+(S.olt?'on':'');
   ui.sigs.clt.className = 'sig '+(S.clt?'on':'');
   ui.sigs.vane.className= 'sig '+(S.vane?'warn':'on');
-  ui.sigs.vane.innerHTML= `<i></i>${S.vane?'門刀夾持中（轎廳門連動）':'門刀已釋放'}`;
+  ui.sigs.vane.innerHTML= `<i></i>${S.vane?'開門刀夾持中（車外門連動）':'開門刀已釋放'}`;
   ui.sigs.gs.className  = 'sig '+(S.gs?'on':'');
   ui.sigs.ds.className  = 'sig '+(S.ds?'on':'');
 
@@ -909,6 +946,39 @@ window.__pause=()=>{playing=false;ui.play.textContent='▶ 播放';};
 window.__state=()=>({T,d:dOf(T),step:stepOf(T),sig:sig(T)});
 window.__setCam=(p,t)=>{camera.position.set(...p);controls.target.set(...t);};
 window.__world=o=>{const v=new THREE.Vector3();({hook:hookBody,keeper,bridge,pin1:cPin1,blade:bladeLMesh,roller:cR1,gscam:gsCam,gssw:gsBody}[o]).getWorldPosition(v);return v.toArray();};
+
+/* ---- 碰撞稽核（逐零件世界 AABB・回報動對固定/異門穿透）---- */
+window.__auditList=[
+ {n:'開門刀',o:bladeLMesh,d:'cL'},{n:'皮帶座L',o:hL.clamp,d:'cL'},
+ {n:'皮帶座R',o:hR.clamp,d:'cR'},{n:'觸點撞塊',o:gsCam,d:'cR'},
+ {n:'外門鎖',o:hookBody,d:'hl'},{n:'鎖輪1',o:cR1,d:'hl'},{n:'鎖輪2',o:cR2,d:'hl'},{n:'索夾L',o:syncClampL,d:'hl'},{n:'外門板L',o:lL.panel,d:'hl'},
+ {n:'索夾R',o:syncClampR,d:'hr'},{n:'外門板R',o:lR.panel,d:'hr'},
+ {n:'車廂門觸點',o:gsBody,d:'fix'},{n:'位置OLT',o:swOpen.body,d:'fix'},{n:'位置CLT',o:swClose.body,d:'fix'},
+ {n:'門楣',o:lndHeader,d:'fix'},{n:'門控板',o:dorBox,d:'fix'},{n:'變壓器',o:xfmr,d:'fix'},{n:'齒輪箱',o:gearbox,d:'fix'},
+ {n:'皮帶上',o:beltUp,d:'fix'},{n:'皮帶下',o:beltDn,d:'fix'},{n:'同步輪L',o:syncPulL,d:'fix'},{n:'同步輪R',o:syncPulR,d:'fix'},
+ {n:'吊錘輪',o:cwPulley,d:'fix'},{n:'門吊錘',o:cwWeight,d:'fix'},{n:'鎖座銷',o:keeper,d:'fix'},{n:'鎖接點',o:contactBase,d:'fix'},
+ {n:'車廂護板',o:carApron,d:'fix'},{n:'護趾板',o:lndApron,d:'fix'},{n:'快速接頭',o:qcBody,d:'fix'},{n:'測試鈕',o:tbtnO,d:'fix'}
+];
+function __shown(o){ if(!o) return false; for(let p=o;p;p=p.parent){ if(p.visible===false) return false; } return true; }
+window.__audit=(thr=0.006)=>{
+  const boxes=window.__auditList.filter(p=>__shown(p.o)).map(p=>({p,b:new THREE.Box3().setFromObject(p.o)}));
+  const out=[];
+  for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++){
+    const A=boxes[i],C=boxes[j]; if(A.p.d===C.p.d) continue; if(A.p.d==='fix'&&C.p.d==='fix') continue;
+    const ox=Math.min(A.b.max.x,C.b.max.x)-Math.max(A.b.min.x,C.b.min.x);
+    const oy=Math.min(A.b.max.y,C.b.max.y)-Math.max(A.b.min.y,C.b.min.y);
+    const oz=Math.min(A.b.max.z,C.b.max.z)-Math.max(A.b.min.z,C.b.min.z);
+    if(ox>thr&&oy>thr&&oz>thr) out.push({a:A.p.n,b:C.p.n,pen:[+ox.toFixed(3),+oy.toFixed(3),+oz.toFixed(3)]});
+  }
+  return out;
+};
+window.__sweep=(thr=0.006)=>{
+  const agg={};
+  for(let t=0;t<=16.5;t+=0.25){ window.__setT(t);
+    for(const h of window.__audit(thr)){ const k=[h.a,h.b].sort().join(' × ');
+      const m=Math.max(...h.pen); if(!agg[k]||m>agg[k].m) agg[k]={m:+m.toFixed(3),t:+t.toFixed(2)}; } }
+  return Object.entries(agg).map(([k,v])=>({pair:k,maxPen:v.m,at_t:v.t})).sort((a,b)=>b.maxPen-a.maxPen);
+};
 </script>
 </body>
 </html>
