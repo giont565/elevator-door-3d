@@ -405,9 +405,9 @@ for(let i=0;i<4;i++){ const a=i/4*Math.PI*2+.4;
 const namePlt=B(.05,.026,.002,M.alu); namePlt.position.set(0,-.078,.2685); motorG.add(namePlt);
 const encoder = CYL(.045,.05, M.dark); encoder.position.z=.295; motorG.add(encoder);
 const encCap  = CYL(.02,.012, M.alu);  encCap.position.z=.323; motorG.add(encCap);
-/* 減速齒輪箱（齒輪式門馬達特徵・馬達→齒輪箱→皮帶輪） */
-const gearbox = B(.13,.15,.13,M.dark); gearbox.position.set(-1.0,2.50,.10); scene.add(gearbox);
-for(let i=0;i<4;i++){ const rib=B(.10,.012,.13,M.dark); rib.position.set(-1.0,2.44+i*.04,.10); scene.add(rib); }
+/* 減速齒輪箱（齒輪式門馬達特徵・夾在馬達面與皮帶輪之間・不蓋住皮帶輪 z<.12）*/
+const gearbox = B(.12,.14,.05,M.dark); gearbox.position.set(-1.0,2.50,.155); scene.add(gearbox);
+const gbCap = CYL(.05,.02,M.dark); gbCap.position.set(-1.0,2.50,.182); scene.add(gbCap);
 addLabel(motorBody,'門控器（齒輪式門馬達・Door drive）', .18, 0, 0);
 addLabel(encoder,'編碼器（連續位置＋速度反饋）', -.09, 0, .03, true);
 const motorBracket = B(.2, .16, .05, M.frame); motorBracket.position.set(-1.0, 2.50, .04); scene.add(motorBracket);
@@ -687,8 +687,8 @@ addLabel(syncPulR,'同步鋼索 Sync cord（連動兩扇外門等速）', .07, -
 /* ---- 車廂護板／外門護趾板（門檻下方・固定）---- */
 const carApron = B(2.2,.4,.016, M.steel); carApron.position.set(0,-.20,.145); scene.add(carApron);
 const lndApron = B(2.2,.4,.016, M.steel); lndApron.position.set(0,-.20,-.135); scene.add(lndApron);
-addLabel(carApron,'車廂護板（Sill and apron）', -.05, 1.0, 0);
-addLabel(lndApron,'外門護趾板（Sill and toe guard）', -.10, -1.0, 0);
+addLabel(carApron,'車廂護板（Sill and apron）', -.05, .5, 0);
+addLabel(lndApron,'外門護趾板（Sill and toe guard）', -.10, -.5, 0);
 
 /* ---- 貨物推車 ---- */
 const cart = new THREE.Group(); scene.add(cart);
@@ -957,7 +957,7 @@ window.__auditList=[
  {n:'門楣',o:lndHeader,d:'fix'},{n:'門控板',o:dorBox,d:'fix'},{n:'變壓器',o:xfmr,d:'fix'},{n:'齒輪箱',o:gearbox,d:'fix'},
  {n:'皮帶上',o:beltUp,d:'fix'},{n:'皮帶下',o:beltDn,d:'fix'},{n:'同步輪L',o:syncPulL,d:'fix'},{n:'同步輪R',o:syncPulR,d:'fix'},
  {n:'吊錘輪',o:cwPulley,d:'fix'},{n:'門吊錘',o:cwWeight,d:'fix'},{n:'鎖座銷',o:keeper,d:'fix'},{n:'鎖接點',o:contactBase,d:'fix'},
- {n:'車廂護板',o:carApron,d:'fix'},{n:'護趾板',o:lndApron,d:'fix'},{n:'快速接頭',o:qcBody,d:'fix'},{n:'測試鈕',o:tbtnO,d:'fix'}
+ {n:'車廂護板',o:carApron,d:'fix'},{n:'護趾板',o:lndApron,d:'fix'},{n:'快速接頭',o:qcBody,d:'fix'},{n:'測試鈕O',o:tbtnO,d:'fix'},{n:'測試鈕C',o:tbtnC,d:'fix'}
 ];
 function __shown(o){ if(!o) return false; for(let p=o;p;p=p.parent){ if(p.visible===false) return false; } return true; }
 window.__audit=(thr=0.006)=>{
