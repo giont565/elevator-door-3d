@@ -555,7 +555,7 @@ const beamMat=new THREE.LineBasicMaterial({color:0x37d67a, transparent:true, opa
 const beams=new THREE.LineSegments(beamGeo,beamMat); scene.add(beams);
 
 /* ---- 門刀（兩片導入斜角刀片＋平行連桿＋拉簧）---- */
-const vaneG = new THREE.Group(); vaneG.position.set(0, 2.0, .03); hL.g.add(vaneG);
+const vaneG = new THREE.Group(); vaneG.position.set(.25, 2.0, .03); hL.g.add(vaneG);  // 移到左門前緣→閉門時在雙門中央（開門刀置中・依官方圖）
 const vaneMount = extrude([[-.09,-.05],[.09,-.05],[.09,.05],[-.09,.05]], .014, M.dark, [[-.06,0,.008],[.06,0,.008]]);
 vaneMount.position.set(0,.18,-.014); vaneG.add(vaneMount);
 function vaneBlade(){
@@ -608,7 +608,7 @@ const lL = lndHanger(-1), lR = lndHanger(1);
 addLabel(lL.panel,'外門板 Landing door panel（被開門刀帶動）', -.5, -.1, -.02);
 
 /* ---- 開鎖滾輪臂（軸承滾輪×2）---- */
-const armG = new THREE.Group(); armG.position.set(0, 2.10, -.24); lL.g.add(armG);
+const armG = new THREE.Group(); armG.position.set(.25, 2.10, -.24); lL.g.add(armG);  // 隨開門刀置中
 const armBar = B(.028,.22,.012,M.steel); armBar.position.set(0,-.05,0); armG.add(armBar);
 function lockRoller(){
   const g=new THREE.Group();
@@ -624,7 +624,7 @@ const stand2=B(.011,.011,.27,M.steel); stand2.position.set( .06,-.10,.0); armG.a
 addLabel(cR1,'開鎖滾輪×2（被開門刀夾住＝解鎖）', -.1, -.05, .05);
 
 /* ---- 廳門鎖鉤（真實鉤形鑄件）＋鎖座滾輪銷＋DS 彈片接點 ---- */
-const hookG = new THREE.Group(); hookG.position.set(-.02, 2.345, -.285); lL.g.add(hookG);
+const hookG = new THREE.Group(); hookG.position.set(.23, 2.345, -.285); lL.g.add(hookG);  // 隨開門刀置中(+.25)
 /* 鉤體輪廓：樞軸圓頭 → 長臂 → 端部鉤喙（咬滾輪銷）→ 尾端接點橋座 */
 const hookBody = extrude(
   [[-.085,.020],[ .16,.020],[.225,.012],[.247,-.012],[.247,-.045],[.236,-.066],[.216,-.066],
@@ -637,17 +637,17 @@ const bridge = B(.07,.012,.02,M.copper); bridge.position.set(-.065,.027,0); hook
 const sprAnchor = CYL(.005,.01,M.steel); sprAnchor.position.set(.06,.026,0); hookG.add(sprAnchor);
 addLabel(hookBody,'外門鎖（鉤咬鎖座銷・彈簧＋自重勾合）', .12, .1, 0);
 /* 鎖座：托架＋滾輪銷（鉤喙咬這顆） */
-const kBkt = B(.036,.06,.012,M.steel); kBkt.position.set(-.075,2.328,-.306); scene.add(kBkt);
-const keeper = CYL(.011,.034,M.steel); keeper.position.set(-.075,2.30,-.285); scene.add(keeper);
-const kRoll  = CYL(.0165,.02,M.copper); kRoll.position.set(-.075,2.30,-.285); scene.add(kRoll);
+const kBkt = B(.036,.06,.012,M.steel); kBkt.position.set(.175,2.328,-.306); scene.add(kBkt);
+const keeper = CYL(.011,.034,M.steel); keeper.position.set(.175,2.30,-.285); scene.add(keeper);
+const kRoll  = CYL(.0165,.02,M.copper); kRoll.position.set(.175,2.30,-.285); scene.add(kRoll);
 addLabel(keeper,'鎖座銷（固定於門框）', -.07, .05, 0);
 /* DS 接點座（電木座＋兩片彈片） */
-const contactBase = B(.1,.03,.03,M.dark); contactBase.position.set(-.335,2.42,-.285); scene.add(contactBase);
-const cPin1 = B(.007,.034,.003,M.copper); cPin1.position.set(-.355,2.398,-.283); cPin1.rotation.x=.15; cPin1.rotation.z=.08; scene.add(cPin1);
-const cPin2 = B(.007,.034,.003,M.copper); cPin2.position.set(-.315,2.398,-.283); cPin2.rotation.x=.15; cPin2.rotation.z=-.08; scene.add(cPin2);
+const contactBase = B(.1,.03,.03,M.dark); contactBase.position.set(-.085,2.42,-.285); scene.add(contactBase);
+const cPin1 = B(.007,.034,.003,M.copper); cPin1.position.set(-.105,2.398,-.283); cPin1.rotation.x=.15; cPin1.rotation.z=.08; scene.add(cPin1);
+const cPin2 = B(.007,.034,.003,M.copper); cPin2.position.set(-.065,2.398,-.283); cPin2.rotation.x=.15; cPin2.rotation.z=-.08; scene.add(cPin2);
 const lockLED = new THREE.Mesh(new THREE.SphereGeometry(.012,16,16),
   new THREE.MeshStandardMaterial({color:0x333a42, emissive:0x000000}));
-lockLED.position.set(-.335,2.452,-.275); scene.add(lockLED);
+lockLED.position.set(-.085,2.452,-.275); scene.add(lockLED);
 addLabel(contactBase,'外門鎖接點（彈片）', .07, -.12, 0, true);
 
 /* ---- 廳門自閉重錘（斷電也會自動關門）---- */
@@ -812,7 +812,7 @@ document.getElementById('bomClose').onclick=()=>{ document.getElementById('bom')
 const CAMS={
   camAll    :{p:[0.4,1.9,4.4],  t:[0,1.5,0]},
   camMachine:{p:[0.2,2.62,2.6], t:[0,2.44,0]},
-  camLock   :{p:[-1.1,2.6,0.95], t:[-0.2,2.28,-.25]},
+  camLock   :{p:[-0.55,2.55,0.95], t:[0.05,2.28,-.18]},
   camSide   :{p:[2.5,2.3,1.55], t:[0,1.85,-0.1]},
 };
 for(const id in CAMS){
