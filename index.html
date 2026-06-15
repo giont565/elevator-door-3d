@@ -667,7 +667,7 @@ addLabel(lL.panel,'廳門板（被門刀帶動）', -.5, -.1, -.02);
 
 /* ---- 開鎖滾輪臂 ---- */
 const armG = new THREE.Group(); armG.position.set(0, 2.10, -.24); lL.g.add(armG);
-const armBar = B(.028,.22,.012,M.steel); armBar.position.set(0,-.05,0); armG.add(armBar);
+const armBar = B(.026,.24,.012,M.steel); armBar.position.set(0,-.09,0); armG.add(armBar);  // 垂直支臂（撐上下兩滾輪）
 function lockRoller(){
   const g=new THREE.Group();
   const tire=CYL(.026,.024,M.copper); g.add(tire);
@@ -675,11 +675,12 @@ function lockRoller(){
   const nut=HEX(.007,.007); nut.position.z=.018; g.add(nut);
   return g;
 }
-const cR1=lockRoller(); cR1.position.set(-.06,-.10,.135); armG.add(cR1);
-const cR2=lockRoller(); cR2.position.set( .06,-.10,.135); armG.add(cR2);
-const stand1=B(.011,.011,.27,M.steel); stand1.position.set(-.06,-.10,.0); armG.add(stand1);
-const stand2=B(.011,.011,.27,M.steel); stand2.position.set( .06,-.10,.0); armG.add(stand2);
-addLabel(cR1,'開鎖滾輪×2（被門刀夾住＝解鎖）', -.1, -.05, .05);
+/* 開鎖滾輪×2：垂直堆疊（上下排・軸朝車側）・被門刀從左右夾住、開門時整組水平平移但保持垂直 */
+const cR1=lockRoller(); cR1.position.set(0,-.04,.195); armG.add(cR1);   // 上滾輪
+const cR2=lockRoller(); cR2.position.set(0,-.14,.195); armG.add(cR2);   // 下滾輪
+const stand1=B(.012,.012,.20,M.steel); stand1.position.set(0,-.04,.095); armG.add(stand1);  // 滾輪軸（朝車側伸）
+const stand2=B(.012,.012,.20,M.steel); stand2.position.set(0,-.14,.095); armG.add(stand2);
+addLabel(cR1,'開鎖滾輪×2（垂直堆疊・被門刀夾住＝解鎖）', -.05, 0, .06);
 
 /* ---- 廳門鎖鉤＋鎖座滾輪銷＋彈片接點 ---- */
 const hookG = new THREE.Group(); hookG.position.set(-.02, 2.345, -.285); lL.g.add(hookG);
@@ -952,10 +953,10 @@ function update(){
   for(const r of lL.rollers) r.rotation.z= (TRAVEL*d)/.042;
   for(const r of lR.rollers) r.rotation.z=-(TRAVEL*d)/.042;
 
-  bladeL.position.x=-(.024+.008*clamp)-.006;
-  bladeR.position.x= (.024+.008*clamp)+.006;
-  linkL.rotation.z= .3+.25*(1-clamp);
-  linkR.rotation.z=-.3-.25*(1-clamp);
+  bladeL.position.x=-(.028+.026*(1-clamp));   // 夾合=往中央夾住垂直滾輪堆；放開=往外開
+  bladeR.position.x= (.028+.026*(1-clamp));
+  linkL.rotation.z= .3*clamp;
+  linkR.rotation.z=-.3*clamp;
 
   hookG.rotation.z=.62*hOpen;
   const S=sig(t);
