@@ -762,17 +762,20 @@ const cordClampL=B(.04,.016,.014,M.dark); cordClampL.position.set(.18,2.068,-.30
 const cordClampR=B(.04,.016,.014,M.dark); cordClampR.position.set(-.18,2.012,-.30); lR.g.add(cordClampR);
 addLabel(cordPulR,'乘場門連動鋼索輪（一扇動、另一扇等速跟動）', .07, -.4, 0);
 
-/* ---- 廳門自閉重錘（斷電也會自動關門）---- */
-const cwPulley = CYL(.032,.018,M.belt); cwPulley.position.set(.62,2.16,-.30); scene.add(cwPulley);  // 門吊錘鋼索輪（黑色）
-const cwPulHub = CYL(.011,.024,M.steel); cwPulHub.position.set(.62,2.16,-.30); scene.add(cwPulHub);
-addLabel(cwPulley,'門吊錘鋼索輪', .06, .12, 0);
-const cwWeight = new THREE.Mesh(new THREE.CylinderGeometry(.021,.021,.13,16),M.dark);
-cwWeight.castShadow=true; cwWeight.position.set(.62,1.6,-.30); scene.add(cwWeight);
+/* ---- 廳門自閉重錘（斷電也會自動關門）・在乘場門右側門框導槽 ---- */
+const cwX=.97, cwZ=-.34;
+const cwPulley = CYL(.034,.018,M.belt); cwPulley.position.set(cwX,2.22,cwZ); scene.add(cwPulley);  // 門吊錘鋼索輪（黑色）
+const cwPulHub = CYL(.012,.024,M.steel); cwPulHub.position.set(cwX,2.22,cwZ); scene.add(cwPulHub);
+addLabel(cwPulley,'門吊錘鋼索輪', .07, .12, 0);
+/* 自重錘導槽（兩道立軌・讓錘體上下滑行不晃） */
+for(const rx of [-.038,.038]){ const rail=B(.006,1.62,.044,M.steel); rail.position.set(cwX+rx,1.30,cwZ); scene.add(rail); }
+const cwWeight = new THREE.Mesh(new THREE.CylinderGeometry(.032,.032,.34,16),M.dark);
+cwWeight.castShadow=true; cwWeight.position.set(cwX,.80,cwZ); scene.add(cwWeight);
 const ropeGeo=new THREE.BufferGeometry();
 ropeGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3*3),3));
 const rope=new THREE.Line(ropeGeo, new THREE.LineBasicMaterial({color:0x999999}));
 scene.add(rope);
-addLabel(cwWeight,'門吊錘（停電也能把廳門拉回關閉上鎖）', -.1, 0, 0);
+addLabel(cwWeight,'自重錘／門吊錘（停電也能把乘場門拉回關閉上鎖）', .14, 0, 0);
 
 /* ---- 貨物推車 ---- */
 const cart = new THREE.Group(); scene.add(cart);
@@ -983,12 +986,12 @@ function update(){
   swClose.lever.rotation.z= d<.03  ?  1.1*(1-seg(d,0,.03)) : 0;
 
   /* 廳門自閉重錘：門開 → 重錘被拉高（儲能） */
-  const wy = 1.42 + 0.42*d;
+  const wy = .80 + .42*d;
   cwWeight.position.y = wy;
   const rp = ropeGeo.attributes.position.array;
-  rp[0]=xl+0.2; rp[1]=2.27; rp[2]=-.30;
-  rp[3]=.62;   rp[4]=2.178; rp[5]=-.30;
-  rp[6]=.62;   rp[7]=wy+.065; rp[8]=-.30;
+  rp[0]=xr-.04; rp[1]=2.20; rp[2]=cwZ;
+  rp[3]=cwX;   rp[4]=2.18; rp[5]=cwZ;
+  rp[6]=cwX;   rp[7]=wy+.17; rp[8]=cwZ;
   ropeGeo.attributes.position.needsUpdate=true;
 
   const eMode = safetyMode==='edge';
