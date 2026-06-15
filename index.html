@@ -388,6 +388,12 @@ addLabel(sillLbl1,'車門地坎（含滑塊溝槽）');
 const sillLbl2=new THREE.Object3D(); sillLbl2.position.set(-1.05,.05,-.2); scene.add(sillLbl2);
 addLabel(sillLbl2,'廳門地坎');
 
+/* ---- 車廂護板／乘場護板（門檻下方金屬護板・固定）---- */
+const carApron = B(2.2,.4,.016, M.steel); carApron.position.set(0,-.20,.145); scene.add(carApron);
+const lndApron = B(2.2,.4,.016, M.steel); lndApron.position.set(0,-.20,-.135); scene.add(lndApron);
+addLabel(carApron,'車廂護板（門檻下方）', -.05, .5, 0);
+addLabel(lndApron,'乘場護板（門檻下方）', -.10, -.5, 0);
+
 /* ---- 門機機座（鍍鋅開架式・依現場照片）＋導軌 ---- */
 const PANEL_W=.5, TRAVEL=.45;
 const basePlate = B(2.5, .38, .02, M.plateX); basePlate.position.set(0, 2.49, .055); scene.add(basePlate);
