@@ -774,20 +774,6 @@ const rope=new THREE.Line(ropeGeo, new THREE.LineBasicMaterial({color:0x999999})
 scene.add(rope);
 addLabel(cwWeight,'車廂門自重錘（停電也能把門拉回關閉）', -.1, 0, 0);
 
-/* ---- 乘場門自重錘（外門・各層樓一套・人手拉的就是這個・在門框側導槽）---- */
-const lwX=-.98, lwZ=-.33;
-const lwPulley = CYL(.034,.018,M.belt); lwPulley.position.set(lwX,2.20,lwZ); scene.add(lwPulley);
-const lwPulHub = CYL(.012,.024,M.steel); lwPulHub.position.set(lwX,2.20,lwZ); scene.add(lwPulHub);
-addLabel(lwPulley,'乘場門吊錘鋼索輪', -.10, .12, 0);
-for(const rx of [-.038,.038]){ const lrail=B(.006,1.6,.044,M.steel); lrail.position.set(lwX+rx,1.30,lwZ); scene.add(lrail); }
-const lwWeight = new THREE.Mesh(new THREE.CylinderGeometry(.030,.030,.32,16),M.dark);
-lwWeight.castShadow=true; lwWeight.position.set(lwX,.80,lwZ); scene.add(lwWeight);
-const lwRopeGeo=new THREE.BufferGeometry();
-lwRopeGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3*3),3));
-const lwRope=new THREE.Line(lwRopeGeo, new THREE.LineBasicMaterial({color:0x999999}));
-scene.add(lwRope);
-addLabel(lwWeight,'乘場門自重錘（外門・停電也能把乘場門拉回關閉上鎖）', -.16, 0, 0);
-
 /* ---- 貨物推車 ---- */
 const cart = new THREE.Group(); scene.add(cart);
 const cbody=B(.3,.42,.3,M.box); cbody.position.y=.3; cart.add(cbody);
@@ -1004,15 +990,6 @@ function update(){
   rp[3]=.62;   rp[4]=2.178; rp[5]=-.30;
   rp[6]=.62;   rp[7]=wy+.065; rp[8]=-.30;
   ropeGeo.attributes.position.needsUpdate=true;
-  /* 乘場門自重錘：門開 → 重錘被拉高（儲能） */
-  const lwy = .80 + .42*d;
-  lwWeight.position.y = lwy;
-  const lrp = lwRopeGeo.attributes.position.array;
-  lrp[0]=xl+.04; lrp[1]=2.18; lrp[2]=lwZ;
-  lrp[3]=lwX;    lrp[4]=2.16; lrp[5]=lwZ;
-  lrp[6]=lwX;    lrp[7]=lwy+.16; lrp[8]=lwZ;
-  lwRopeGeo.attributes.position.needsUpdate=true;
-
   const eMode = safetyMode==='edge';
   const comp = (eMode && Math.abs(boxZ(t))<0.16) ? comp01(d) : 0;
   hL.mstrip.position.x = hL.mBaseX + comp*0.012;
