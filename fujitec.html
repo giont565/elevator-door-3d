@@ -135,10 +135,10 @@
   <main>
     <div id="viewport">
       <div id="stepChip"><div class="no">STEP</div><div class="ti">載入中…</div></div>
-      <div id="timerChip"><div class="v">3.0 s</div><div class="l">門站時間倒數（光幕再遮斷會歸零重數）</div></div>
+      <div id="timerChip"><div class="v">3.0 s</div><div class="l">門站時間倒數（MBS 光幕再遮斷會歸零重數）</div></div>
       <div id="banner">✓ 門已鎖閉 — 開關門循環完成</div>
       <div id="signals">
-        <div class="sig" id="sigSDE"><i></i>光幕</div>
+        <div class="sig" id="sigSDE"><i></i>MBS 光幕</div>
         <div class="sig" id="sigOLT"><i></i>開門到位</div>
         <div class="sig" id="sigCLT"><i></i>關門到位</div>
         <div class="sig" id="sigVane"><i></i>門刀夾持中</div>
@@ -161,7 +161,7 @@
           <tr><td>開鎖滾輪</td><td>—</td><td>廳門側被門刀夾的兩顆軸承滾輪；被夾住時頂開廳門鎖鉤＝解鎖</td></tr>
           <tr><td>廳門鎖鉤＋接點</td><td>—</td><td>鉤形鑄件（鉤喙咬住鎖座滾輪銷）；門刀放開後彈簧＋自重勾合；勾到底尾端接點橋才導通</td></tr>
           <tr><td>轎門鎖</td><td>—</td><td>轎門全閉、撞塊壓上接點才導通</td></tr>
-          <tr><td>光幕／安全觸板</td><td>—</td><td>門邊鋁擠型條內一排紅外線投受光點；遮斷→立即重開門</td></tr>
+          <tr><td>光幕／安全觸板</td><td>MBS</td><td>門邊鋁擠型條內一排紅外線投受光點；遮斷→立即重開門</td></tr>
           <tr><td>開門到位訊號</td><td>—</td><td>門全開的判定（維修手冊用語「門機開門到位信號動作」）</td></tr>
           <tr><td>關門到位訊號</td><td>—</td><td>門全關的判定，之後才輪到門鎖勾合</td></tr>
           <tr><td>廳門自閉重錘</td><td>—</td><td>鋼索＋重錘：停電、門刀沒夾時廳門也會自動關閉＋上鎖（防止有人掉進井道）</td></tr>
@@ -551,7 +551,7 @@ gsCam.position.set(-.185, 2.312, .091); hR.g.add(gsCam);  // 全閉時滑到 GS 
 addLabel(hL.plate,'吊門板（鈑金・減重孔）＋PU 滑輪', .2, -.1, 0);
 addLabel(hL.panel,'轎門板（左・背面補強肋）', -.35, -.12, .05);
 addLabel(hR.panel,'轎門板（右）', -.35, .12, .05);
-addLabel(hL.strip,'光幕（鋁擠型條・紅外線投受光點）', -.55, 0, .03, true);
+addLabel(hL.strip,'MBS 光幕（鋁擠型條・紅外線投受光點）', -.55, 0, .03, true);
 addLabel(hL.clamp,'皮帶夾（齒型壓板）', .05, -.06, 0);
 
 /* SDE 光束 */
@@ -874,7 +874,7 @@ function update(){
 
   /* HUD */
   ui.sigs.sde.className = 'sig '+(S.sde?'on':'bad');
-  ui.sigs.sde.innerHTML = `<i></i>光幕${S.sde?'導通':'遮斷！'}`;
+  ui.sigs.sde.innerHTML = `<i></i>MBS 光幕${S.sde?'導通':'遮斷！'}`;
   ui.sigs.olt.className = 'sig '+(S.olt?'on':'');
   ui.sigs.clt.className = 'sig '+(S.clt?'on':'');
   ui.sigs.vane.className= 'sig '+(S.vane?'warn':'on');
