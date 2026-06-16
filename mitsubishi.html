@@ -969,8 +969,8 @@ function update(){
   for(const r of lL.rollers) r.rotation.z= (TRAVEL*d)/.042;
   for(const r of lR.rollers) r.rotation.z=-(TRAVEL*d)/.042;
 
-  bladeL.position.x=-(.024+.008*clamp)-.006;
-  bladeR.position.x= (.024+.008*clamp)+.006;
+  bladeL.position.x=-(.024+.008*(1-clamp))-.006;
+  bladeR.position.x= (.024+.008*(1-clamp))+.006;
   linkL.rotation.z= .3+.25*(1-clamp);
   linkR.rotation.z=-.3-.25*(1-clamp);
 
