@@ -715,10 +715,14 @@ function lockRoller(){
   const nut=HEX(.007,.007); nut.position.z=.017; g.add(nut);
   return g;
 }
-const cR1=lockRoller(); cR1.position.set(.045,-.045,.15); hookG.add(cR1);
-const cR2=lockRoller(); cR2.position.set(.045,-.105,.15); hookG.add(cR2);
-const stand1=B(.011,.011,.145,M.steel); stand1.position.set(.045,-.045,.0725); hookG.add(stand1);
-const stand2=B(.011,.011,.145,M.steel); stand2.position.set(.045,-.105,.0725); hookG.add(stand2);
+/* 滾輪堆放在子群組・以堆疊中心為樞軸：抵銷開門時門臂的 +.30，使
+   羽棒夾住(門開)時兩滾輪呈垂直；羽棒放開(關門鎖閉)時隨門臂回正而傾斜 */
+const rollerStack = new THREE.Group();
+rollerStack.position.set(.045,-.075,0); rollerStack.rotation.z=-0.30; hookG.add(rollerStack);
+const cR1=lockRoller(); cR1.position.set(0, .030,.15); rollerStack.add(cR1);
+const cR2=lockRoller(); cR2.position.set(0,-.030,.15); rollerStack.add(cR2);
+const stand1=B(.011,.011,.145,M.steel); stand1.position.set(0, .030,.0725); rollerStack.add(stand1);
+const stand2=B(.011,.011,.145,M.steel); stand2.position.set(0,-.030,.0725); rollerStack.add(stand2);
 addLabel(cR1,'門閉鎖器滾輪×2（垂直排列・羽棒夾這裡＝解鎖）', -.08, 0, .05);
 /* 復位彈簧（拉臂回鎖閉位置） */
 {
