@@ -437,15 +437,16 @@ addLabel(railLbl,'門導軌（斜頂斷面）');
 /* ---- PM 永磁碟型馬達（直驅・放射散熱鰭）＋編碼器＋出線管 ---- */
 const motorG = new THREE.Group(); motorG.position.set(-1.0, 2.50, 0); scene.add(motorG);
 const motorBody = CYL(.112, .115, M.motor); motorBody.position.z=.21; motorG.add(motorBody);
+const motorRotor = new THREE.Group(); motorG.add(motorRotor);   // 碟型直驅轉子（散熱鰭＋面蓋＋面螺栓・隨皮帶輪同軸轉）
 for(let i=0;i<24;i++){ // 放射狀散熱鰭
   const a=i/24*Math.PI*2;
   const fin=B(.024,.006,.10,M.motor);
   fin.position.set(Math.cos(a)*.122, Math.sin(a)*.122, .21);
-  fin.rotation.z=a; motorG.add(fin);
+  fin.rotation.z=a; motorRotor.add(fin);
 }
-const faceCap=CYL(.05,.022,M.dark); faceCap.position.z=.144; motorG.add(faceCap);
+const faceCap=CYL(.05,.022,M.dark); faceCap.position.z=.144; motorRotor.add(faceCap);
 for(let i=0;i<4;i++){ const a=i/4*Math.PI*2+.4;
-  const bolt=HEX(.007,.01); bolt.position.set(Math.cos(a)*.085,Math.sin(a)*.085,.155); motorG.add(bolt); }
+  const bolt=HEX(.007,.01); bolt.position.set(Math.cos(a)*.085,Math.sin(a)*.085,.155); motorRotor.add(bolt); }
 const namePlt=B(.05,.026,.002,M.alu); namePlt.position.set(0,-.078,.2685); motorG.add(namePlt);
 const encoder = CYL(.045,.05, M.dark); encoder.position.z=.295; motorG.add(encoder);
 const encCap  = CYL(.02,.012, M.alu);  encCap.position.z=.323; motorG.add(encCap);
@@ -964,6 +965,7 @@ function update(){
   const wrap=((beltDisp%PITCH)+PITCH)%PITCH;
   teethUp.position.x= wrap; teethDn.position.x=-wrap;
   drivePul.rotation.z=idlePul.rotation.z=-beltDisp/.06;
+  motorRotor.rotation.z=-beltDisp/.06;   // 碟型直驅：馬達轉子隨皮帶輪同動
   for(const r of hL.rollers) r.rotation.z= (TRAVEL*d)/.048;
   for(const r of hR.rollers) r.rotation.z=-(TRAVEL*d)/.048;
   for(const r of lL.rollers) r.rotation.z= (TRAVEL*d)/.042;
