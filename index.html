@@ -23,6 +23,19 @@
   button:hover,a.btn:hover{border-color:var(--accent);color:var(--accent)}
   button.primary{background:var(--accent);color:#06222e;border-color:var(--accent);font-weight:700}
   button.on{background:#11445c;border-color:var(--accent);color:var(--accent)}
+  #layerWrap{position:relative;display:inline-block}
+  #layerPanel{position:absolute;top:calc(100% + 6px);left:0;z-index:60;display:none;
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px;
+    min-width:312px;box-shadow:0 10px 28px rgba(0,0,0,.5)}
+  #layerPanel.open{display:block}
+  .lyRow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:5px 6px;border-radius:6px}
+  .lyRow:hover{background:var(--card)}
+  .lyRow.head{border-bottom:1px solid var(--line);margin-bottom:5px;padding-bottom:8px}
+  .lyRow .nm{font-size:13px;color:var(--txt);white-space:nowrap}
+  .lyRow.head .nm{color:var(--dim);font-weight:700}
+  .lySeg{display:flex;gap:3px;flex:none}
+  .lySeg button{padding:3px 9px;font-size:12px;border-radius:6px;min-height:0}
+  .lySeg button.sel{background:#11445c;border-color:var(--accent);color:var(--accent)}
   main{flex:1;display:flex;min-height:0}
   #viewport{flex:1;position:relative;min-width:0}
   #viewport canvas{display:block;touch-action:none}
@@ -107,7 +120,7 @@
       <button id="camSide">側面剖視</button>
       <span style="width:8px"></span>
       <button id="btnXray" class="on">X-ray 透視</button>
-      <button id="btnLabel" class="on">零件標籤</button>
+      <span id="layerWrap"><button id="btnLayers">▦ 圖層</button><div id="layerPanel"></div></span>
       <button id="btnDrive">驅動：直驅（新式）</button>
       <button id="btnSafety">防夾：MBS 光幕（新式）</button>
       <a class="btn" href="mitsubishi.html">🔴 三菱</a>
@@ -360,8 +373,9 @@ const hallF = B(4.6, .04, 1.9, M.floorH); hallF.position.set(0,-.02,-1.30); scen
 const carF  = B(4.6, .04, 1.9, M.floorC); carF.position.set(0,-.02, 1.13); scene.add(carF);
 addLabel(hallF,'門廳側（樓層）', .06, -1.6, -.3);
 addLabel(carF, '車廂內', .06, -1.6, .4);
+const frameCols=[];
 for (const sx of [-1.32, 1.32]){
-  const col = B(.07, 2.75, .07, M.frame); col.position.set(sx, 1.375, .14); scene.add(col);
+  const col = B(.07, 2.75, .07, M.frame); col.position.set(sx, 1.375, .14); scene.add(col); frameCols.push(col);
 }
 const topBeam = B(2.71, .07, .07, M.frame); topBeam.position.set(0, 2.72, .14); scene.add(topBeam);
 /* 車頂（示意）＋黃色車頂護欄（依現場照片） */
@@ -725,15 +739,14 @@ const cordClampL=B(.04,.016,.014,M.dark); cordClampL.position.set(.18,2.158,-.30
 const cordClampR=B(.04,.016,.014,M.dark); cordClampR.position.set(-.18,2.102,-.30); lR.g.add(cordClampR);
 addLabel(cordPulR,'連動鋼索（一扇動、另一扇跟著動）', .07, -.4, 0);
 
-/* ---- 廳門自閉重錘 ---- */
-const cwPulley = CYL(.022,.014,M.steel); cwPulley.position.set(.62,2.16,-.30); scene.add(cwPulley);
-const cwWeight = new THREE.Mesh(new THREE.CylinderGeometry(.021,.021,.13,16),M.dark);
-cwWeight.castShadow=true; cwWeight.position.set(.62,1.6,-.30); scene.add(cwWeight);
-const ropeGeo=new THREE.BufferGeometry();
-ropeGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3*3),3));
-const rope=new THREE.Line(ropeGeo, new THREE.LineBasicMaterial({color:0x999999}));
-scene.add(rope);
-addLabel(cwWeight,'廳門自閉重錘（停電也能拉回關門）', -.1, 0, 0);
+/* ---- 廳門自閉重錘：裝在廳門(lR)上・外罩垂直方管保護（四版統一） ---- */
+const cwX=.20, cwZ=-.255, cwH=1.36, cwYC=1.02, cwW=.05, cwT=.006;
+const cwWL=B(cwT,cwH,cwW,M.steel); cwWL.position.set(cwX-cwW/2+cwT/2, cwYC, cwZ); lR.g.add(cwWL);   // 方管左壁
+const cwWR=B(cwT,cwH,cwW,M.steel); cwWR.position.set(cwX+cwW/2-cwT/2, cwYC, cwZ); lR.g.add(cwWR);   // 方管右壁
+const cwBack=B(cwW,cwH,cwT,M.steel); cwBack.position.set(cwX, cwYC, cwZ-cwW/2+cwT/2); lR.g.add(cwBack); // 後壁（前面開口看得到重錘）
+const cwCap=B(cwW+.01,.012,cwW+.01,M.dark); cwCap.position.set(cwX, cwYC+cwH/2, cwZ); lR.g.add(cwCap);   // 頂蓋
+const cwWeight=B(.032,.12,.032,M.dark); cwWeight.castShadow=true; cwWeight.position.set(cwX,.7,cwZ); lR.g.add(cwWeight);
+addLabel(cwWeight,'廳門自閉重錘（垂直方管內・裝在廳門上・停電拉回關門上鎖）', .3, .1, -.02);
 
 /* ---- 貨物推車 ---- */
 const cart = new THREE.Group(); scene.add(cart);
@@ -772,6 +785,38 @@ function setFocus(keys){
   }
 }
 
+/* ============ 圖層管理（像 AutoCAD 圖層：每組可切 標籤＋元件 / 只元件 / 隱藏）============ */
+const LAYERS = [
+  {key:'frame',  name:'機座・框架・導軌', mesh:[basePlate,flangeT,flangeB,railMesh,lndRailMesh,lndHeader,topBeam,railLbl,swOpen.g,swClose.g,...frameCols]},
+  {key:'drive',  name:'馬達・驅動',       gated:1, mesh:[motorG,motorBracket,retroG,redG,vvvfG,powerCable]},
+  {key:'belt',   name:'皮帶傳動',         mesh:[dp.g,ip.g,beltUp,beltDn,teethUp,teethDn,hL.clamp,hL.post,hR.clamp,hR.post]},
+  {key:'doors',  name:'門板・吊門・滑輪', mesh:[hL.panel,hL.plate,...hL.rollers,hR.panel,hR.plate,...hR.rollers,lL.panel,lL.plate,...lL.rollers,lR.panel,lR.plate,...lR.rollers]},
+  {key:'vane',   name:'門刀',             mesh:[vaneG]},
+  {key:'lock',   name:'門鎖機構',         mesh:[armG,hookG,gsG,gsCam,keeper,kRoll,kBkt,contactBase,cPin1,cPin2,lockLED,cordPulL,cordPulR,cordClampL,cordClampR,cwWeight,cwWL,cwWR,cwBack,cwCap]},
+  {key:'safety', name:'安全裝置（光幕／門邊）', gated:1, mesh:[hL.strip,hR.strip,hL.me,hR.me,beams,...hL.dots,...hR.dots]},
+  {key:'sill',   name:'地坎・護板',       mesh:[carSill,lndSill,carApron,lndApron,sillLbl1,sillLbl2]},
+  {key:'env',    name:'環境・示意',       mesh:[hallF,carF,carRoof,railG,cart]},
+];
+const LAYER_STATE={};
+LAYERS.forEach(L=>LAYER_STATE[L.key]='mesh');   // 預設：只顯示元件、標籤全關
+/* 把每個標籤對應到所屬圖層（沿父鏈往上找已註冊的零件）*/
+const OBJ2LAYER=new Map();
+LAYERS.forEach(L=>L.mesh.forEach(m=>m&&OBJ2LAYER.set(m,L)));
+labels.forEach(lb=>{ let p=lb.parent, L=null; while(p){ if(OBJ2LAYER.has(p)){L=OBJ2LAYER.get(p);break;} p=p.parent; } lb.userData.L=L; });
+function applyLayers(){
+  for(const L of LAYERS){
+    if(L.gated) continue;                       // 馬達／安全＝模式控管，交給各自 sync 函式
+    const off = LAYER_STATE[L.key]==='off';
+    for(const m of L.mesh) if(m) m.visible=!off;
+  }
+  for(const lb of labels){
+    const L=lb.userData.L;
+    if(!L || L.gated) continue;                 // gated 標籤交給 sync 函式
+    lb.visible = (LAYER_STATE[L.key]==='full');
+  }
+  applyDrive(); syncSafetyVis();
+}
+
 /* ============ UI ============ */
 const ui = {
   play  : document.getElementById('btnPlay'),
@@ -779,7 +824,6 @@ const ui = {
   next  : document.getElementById('btnNext'),
   speed : document.getElementById('btnSpeed'),
   xray  : document.getElementById('btnXray'),
-  label : document.getElementById('btnLabel'),
   drive : document.getElementById('btnDrive'),
   chipNo: document.querySelector('#stepChip .no'),
   chipTi: document.querySelector('#stepChip .ti'),
@@ -864,31 +908,27 @@ ui.xray.onclick=()=>{
   }
   ui.xray.classList.toggle('on',!solid);
 };
-let labelsOn=true;
 /* 三代門控切換：pm 新式直驅 → retro 改造型(感應馬達+VVVF+凸輪開關) → reduction 最舊型(減速輪+V帶) */
 let driveMode='pm';
 const DRIVE_LABEL={ pm:'門控：直驅（新式）', retro:'門控：感應馬達＋凸輪開關（改造型）', reduction:'門控：減速輪＋V帶（最舊型）' };
 function applyDrive(){
-  motorG.visible = motorBracket.visible = (driveMode==='pm');
-  retroG.visible = (driveMode==='retro');
-  redG.visible   = (driveMode==='reduction');
-  vvvfG.visible  = (driveMode!=='reduction');   // 最舊型沒有變頻器
-  powerCable.visible = (driveMode==='pm');   // PM 馬達專屬走線；retro 有自己的 retroCable
+  const off = LAYER_STATE['drive']==='off';   // 圖層隱藏＝整組馬達不顯示
+  motorG.visible = motorBracket.visible = (driveMode==='pm') && !off;
+  retroG.visible = (driveMode==='retro') && !off;
+  redG.visible   = (driveMode==='reduction') && !off;
+  vvvfG.visible  = (driveMode!=='reduction') && !off;   // 最舊型沒有變頻器
+  powerCable.visible = (driveMode==='pm') && !off;   // PM 馬達專屬走線；retro 有自己的 retroCable
   ui.drive.textContent = DRIVE_LABEL[driveMode];
   ui.drive.classList.toggle('on', driveMode!=='pm');
   syncDriveVis();
 }
 function syncDriveVis(){
-  mtrLbl.visible = encLbl.visible = labelsOn && motorG.visible;
-  rimLbl.visible = labelsOn && redG.visible;
-  ciMotLbl.visible = camLbl.visible = labelsOn && retroG.visible;
-  drvLbl.visible = labelsOn && vvvfG.visible;
+  const lab = LAYER_STATE['drive']==='full';   // 只有「標籤＋元件」才顯示馬達群標籤
+  mtrLbl.visible = encLbl.visible = lab && motorG.visible;
+  rimLbl.visible = lab && redG.visible;
+  ciMotLbl.visible = camLbl.visible = lab && retroG.visible;
+  drvLbl.visible = lab && vvvfG.visible;
 }
-ui.label.onclick=()=>{
-  labelsOn=!labelsOn; labels.forEach(l=>l.visible=labelsOn);
-  ui.label.classList.toggle('on',labelsOn);
-  syncDriveVis(); syncSafetyVis();
-};
 ui.drive.onclick=()=>{
   driveMode = driveMode==='pm' ? 'retro' : driveMode==='retro' ? 'reduction' : 'pm';
   applyDrive();
@@ -898,12 +938,13 @@ applyDrive();
 const btnSafety=document.getElementById('btnSafety');
 function syncSafetyVis(){
   const e = safetyMode==='edge';
+  const off = LAYER_STATE['safety']==='off', lab = LAYER_STATE['safety']==='full';
   for(const h of [hL,hR]){
-    h.strip.visible=!e; h.dots.forEach(dt=>dt.visible=!e);
-    h.me.visible=e;
+    h.strip.visible=!e && !off; h.dots.forEach(dt=>dt.visible=!e && !off);
+    h.me.visible=e && !off;
   }
-  curtainLbl.visible = labelsOn && !e;
-  edgeLbl.visible    = labelsOn && e;
+  curtainLbl.visible = lab && !e;
+  edgeLbl.visible    = lab && e;
 }
 btnSafety.onclick=()=>{
   safetyMode = safetyMode==='edge' ? 'curtain' : 'edge';
@@ -926,6 +967,41 @@ for(const id in CAMS){
     document.getElementById(id).classList.add('on');
   };
 }
+
+/* ---- 圖層下拉面板 ---- */
+const btnLayers=document.getElementById('btnLayers');
+const layerPanel=document.getElementById('layerPanel');
+const LY_STATES=[['full','標籤＋元件'],['mesh','只元件'],['off','隱藏']];
+const lyRows=[];
+function lyRow(name, getState, setState, head){
+  const row=document.createElement('div'); row.className='lyRow'+(head?' head':'');
+  const nm=document.createElement('div'); nm.className='nm'; nm.textContent=name; row.appendChild(nm);
+  const seg=document.createElement('div'); seg.className='lySeg'; const btns={};
+  for(const [st,lab] of LY_STATES){
+    const b=document.createElement('button'); b.textContent=lab;
+    b.onclick=()=>{ setState(st); refreshLayerPanel(); };
+    seg.appendChild(b); btns[st]=b;
+  }
+  row.appendChild(seg); row._btns=btns; row._get=getState; lyRows.push(row); return row;
+}
+layerPanel.appendChild(lyRow('全部', ()=>{
+  const v=new Set(LAYERS.map(L=>LAYER_STATE[L.key])); return v.size===1?[...v][0]:null;
+}, st=>{ LAYERS.forEach(L=>LAYER_STATE[L.key]=st); applyLayers(); }, true));
+for(const L of LAYERS){
+  layerPanel.appendChild(lyRow(L.name, ()=>LAYER_STATE[L.key], st=>{ LAYER_STATE[L.key]=st; applyLayers(); }));
+}
+function refreshLayerPanel(){
+  for(const row of lyRows){ const cur=row._get();
+    for(const st in row._btns) row._btns[st].classList.toggle('sel', st===cur); }
+}
+btnLayers.onclick=(e)=>{ e.stopPropagation();
+  const open=layerPanel.classList.toggle('open'); btnLayers.classList.toggle('on',open);
+  if(open) refreshLayerPanel(); };
+document.addEventListener('click',(e)=>{
+  if(!document.getElementById('layerWrap').contains(e.target)){
+    layerPanel.classList.remove('open'); btnLayers.classList.remove('on'); } });
+applyLayers();          // 套用預設（只顯示元件、標籤全關）
+refreshLayerPanel();
 
 function resize(){
   const w=vp.clientWidth,h=vp.clientHeight;
@@ -973,13 +1049,7 @@ function update(){
   swOpen.lever.rotation.z = d>.985 ? -1.1*seg(d,.985,1) : 0;
   swClose.lever.rotation.z= d<.03  ?  1.1*(1-seg(d,0,.03)) : 0;
 
-  const wy = 1.42 + 0.42*d;
-  cwWeight.position.y = wy;
-  const rp = ropeGeo.attributes.position.array;
-  rp[0]=xl+0.2; rp[1]=2.27; rp[2]=-.30;
-  rp[3]=.62;   rp[4]=2.178; rp[5]=-.30;
-  rp[6]=.62;   rp[7]=wy+.065; rp[8]=-.30;
-  ropeGeo.attributes.position.needsUpdate=true;
+  cwWeight.position.y = 0.55 + 0.9*d;   // 廳門自閉重錘：門開→拉高儲能（方管內上下）
 
   const eMode = safetyMode==='edge';
   /* 機械門邊：貨物在門口且門關到頂住 → 門邊條被壓回 */
@@ -989,7 +1059,7 @@ function update(){
 
   const blocked=curtainBlocked(t);
   const gapL=xl+PANEL_W/2-.015, gapR=xr-PANEL_W/2+.015;
-  const showBeams=(gapR-gapL)>.07 && !eMode;
+  const showBeams=(gapR-gapL)>.07 && !eMode && LAYER_STATE['safety']!=='off';
   beams.visible=showBeams;
   if(showBeams){
     const pos=beamGeo.attributes.position.array;
@@ -1060,6 +1130,25 @@ window.__state=()=>({T,d:dOf(T),step:stepOf(T),sig:sig(T)});
 window.__setCam=(p,t)=>{camera.position.set(...p);controls.target.set(...t);};
 window.__world=o=>{const v=new THREE.Vector3();({hook:hookBody,keeper,bridge,pin1:cPin1,blade:bladeLMesh,roller:cR1,gscam:gsCam,gssw:gsBody}[o]).getWorldPosition(v);return v.toArray();};
 window.__drive=()=>ui.drive.click();
+/* 零件側別稽核：名字(車門/廳門) vs 實際掛載(hL/hR=車門・lL/lR=廳門) + 世界Z */
+window.__sideAudit=()=>{
+  const v=new THREE.Vector3();
+  const carN=/車廂|車門|轎門|轎廂/, lndN=/乘場|廳門|外門/;
+  const grp=[[hL.g,'car'],[hR.g,'car'],[lL.g,'land'],[lR.g,'land']];
+  const rows=[];
+  for(const lb of labels){
+    if(!lb.parent) continue;
+    const txt=((lb.element&&lb.element.textContent)||'').trim();
+    const name = carN.test(txt)?'car' : lndN.test(txt)?'land' : '-';
+    let mount='fixed';
+    for(let p=lb.parent;p;p=p.parent){ const h=grp.find(g=>g[0]===p); if(h){mount=h[1];break;} }
+    lb.parent.getWorldPosition(v); const z=+v.z.toFixed(3);
+    let ok=null;
+    if(name!=='-') ok = (mount!=='fixed') ? (name===mount) : (name==='car'? z>-0.06 : z<0.06);
+    rows.push({part:txt.slice(0,24), name, mount, z, ok});
+  }
+  return {bad: rows.filter(r=>r.ok===false), all: rows};
+};
 window.__dbg=()=>({driveMode, pm:motorG.visible, retro:retroG.visible, reduction:redG.visible, vvvf:vvvfG.visible,
   L:{mtr:mtrLbl.visible, ciMot:ciMotLbl.visible, cam:camLbl.visible, rim:rimLbl.visible, drv:drvLbl.visible}});
 window.__safety=()=>btnSafety.click();
