@@ -209,9 +209,9 @@ function dOf(t){
   return 0;
 }
 function vaneClamp(t){
-  if (t < 12.90) return 1;
-  if (t < 13.50) return 1 - eio(seg(t,12.9,13.5));
-  return 0;
+  // 夾持跟著門開度：門開→夾緊(滾輪垂直)、門關→放開(滾輪傾斜回鎖閉位)
+  const d=dOf(t);
+  return Math.min(1, Math.max(0, (d-0.04)/0.18));
 }
 function hookOpen(t){
   if (t < 13.55) return 1;
@@ -276,7 +276,7 @@ const STEPS = [
  focus:['belt','motor']},
 {t0:12.4, t1:13.6, no:'S7', short:'關門極限(9)', title:'S7 關門到位 — 關門極限 (9) ＋開門刀釋放',
  trig:'<b>關門極限 (9)</b> 作動（同樣是到位前 10mm 觸發）。',
- mech:'<b>開門刀收回 → 放開開鎖滾輪</b> → 車廂門與外門脫鉤。建議切「開門刀／外門鎖特寫」鏡頭看。',
+ mech:'<b>開門刀兩片刀片向外張開 → 放開開鎖滾輪</b>（滾輪失去夾持、傾斜回鎖閉位）→ 車廂門與外門脫鉤。建議切「開門刀／外門鎖特寫」鏡頭看。',
  next:'鎖鉤失去支撐 → S8。',
  focus:['vane','closeLim']},
 {t0:13.6, t1:14.6, no:'S8', short:'門鎖勾合', title:'S8 門鎖勾合（廳門鎖＋轎門觸點）',
@@ -872,6 +872,7 @@ function update(){
   bladeR.position.x= (.028+.026*(1-clamp));
   linkL.rotation.z= .3*clamp;
   linkR.rotation.z=-.3*clamp;
+  armG.rotation.z= -0.40*(1-clamp);   // 放開→滾輪堆傾斜離開垂直(=鎖閉位)；夾住→回正垂直
 
   hookG.rotation.z=.62*hOpen;
   const S=sig(t);
