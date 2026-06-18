@@ -140,6 +140,7 @@
       <button id="btnXray" class="on">X-ray 透視</button>
       <span id="layerWrap"><button id="btnLayers">▦ 圖層</button><div id="layerPanel"></div></span>
       <button id="btnSafety">防夾：MBS 光幕（新式）</button>
+      <button id="btnKey">🔑 鑰匙緊急開鎖</button>
       <button id="btnBom">📋 真實零件表</button>
       <a class="btn" href="index.html">↩ 教學版</a>
       <a class="btn" href="fujitec.html">🟠 富士達</a>
@@ -715,9 +716,14 @@ addLabel(lR.antiDrops[0],'乘場門吊板防脫離裝置（卡門軌下緣・防
 addLabel(lL.panel,'外門板／乘場門（被活動羽棒帶動）', -.5, -.1, -.02);
 /* 外門開關鑰匙孔（乘場門上的緊急開鎖孔・隨左乘場門・在門楣下方乘場門板上） */
 const keyEsc = new THREE.Mesh(new THREE.CylinderGeometry(.02,.02,.008,20), M.steel);
-keyEsc.rotation.x=Math.PI/2; keyEsc.position.set(.16,1.92,-.197); lL.g.add(keyEsc);
-const keyHole = B(.004,.014,.014,M.dark); keyHole.position.set(.16,1.92,-.205); lL.g.add(keyHole);
-addLabel(keyEsc,'乘場門開關鑰匙孔（緊急開鎖）', -.30, 0, -.02, true);
+keyEsc.rotation.x=Math.PI/2; keyEsc.position.set(.075,1.90,-.197); lL.g.add(keyEsc);   // 對齊引上棒正下方
+const keyHole = B(.004,.014,.014,M.dark); keyHole.position.set(.075,1.90,-.205); lL.g.add(keyHole);
+addLabel(keyEsc,'乘場門開關鑰匙孔（緊急開鎖・對引上棒）', -.30, 0, -.02, true);
+/* 緊急開鎖鑰匙（平常隱藏・示範時插入轉動） */
+const keyTool=new THREE.Group(); keyTool.position.set(.075,1.90,-.16); keyTool.visible=false; lL.g.add(keyTool);
+{ const shaft=CYL(.005,.07,M.steel); shaft.rotation.x=Math.PI/2; keyTool.add(shaft);
+  const bow=new THREE.Mesh(new THREE.TorusGeometry(.018,.005,8,18),M.steel); bow.position.z=.04; keyTool.add(bow);
+  const bit=B(.005,.016,.004,M.steel); bit.position.set(0,-.009,-.024); keyTool.add(bit); }
 /* 引上棒：鑰匙孔上提時頂起閉鎖器解鎖（縱桿・連鑰匙孔到閉鎖器） */
 const liftRod = B(.012,.42,.012,M.steel); liftRod.position.set(.075,2.13,-.20); lL.g.add(liftRod);
 const liftRodTop = B(.03,.012,.014,M.steel); liftRodTop.position.set(.04,2.33,-.20); lL.g.add(liftRodTop);
@@ -1068,7 +1074,61 @@ function resize(){
 }
 addEventListener('resize',resize); resize();
 
+/* ============ 鑰匙緊急開鎖示範：鑰匙→引上棒→閉鎖器→外門可扒開 ============ */
+let keyDemo=-1, keyDemoOn=false;
+const KD_STEPS=[
+  [0.00,'① 把外門開關鑰匙插入乘場門鑰匙孔、轉動'],
+  [0.20,'② 鑰匙凸輪頂起「引上棒」'],
+  [0.45,'③ 引上棒頂起「閉鎖器」→ 掛鉤離開鎖座銷＝解鎖（門接點同時斷、DS 失電）'],
+  [0.70,'④ 鎖已解開 → 從乘場（外）側就能用手把外門扒開'],
+];
+const btnKey=document.getElementById('btnKey');
+function resetKeyDemoParts(){
+  keyTool.visible=false; keyTool.rotation.z=0;
+  liftRod.position.y=2.13; liftRodTop.position.y=2.33;
+  shortBar.position.x=-.255;
+}
+btnKey.onclick=()=>{
+  keyDemoOn=!keyDemoOn;
+  btnKey.classList.toggle('on',keyDemoOn);
+  btnKey.textContent = keyDemoOn ? '↩ 結束緊急開鎖示範' : '🔑 鑰匙緊急開鎖';
+  if(keyDemoOn){
+    playing=false; ui.play.textContent='▶ 播放';
+    camera.position.set(-0.9,2.15,0.95); controls.target.set(-0.12,2.05,-0.22);
+  }
+};
+function updateKeyDemo(kd){
+  const e1=eio(seg(kd,0,0.2)), e2=eio(seg(kd,0.18,0.45)),
+        e3=eio(seg(kd,0.42,0.70)), e4=eio(seg(kd,0.68,1.0));
+  /* 車廂門保持關（緊急時車不在）；乘場門最後被手扒開 */
+  const dLnd=0.5*e4;
+  hL.g.position.x=-(PANEL_W/2); hR.g.position.x=(PANEL_W/2);
+  lL.g.position.x=-(PANEL_W/2)-TRAVEL*dLnd; lR.g.position.x=(PANEL_W/2)+TRAVEL*dLnd;
+  /* ① 鑰匙插入轉動 */
+  keyTool.visible=true; keyTool.rotation.z=-1.6*e1;
+  /* ② 引上棒被鑰匙凸輪頂起 */
+  const up=0.06*e2; liftRod.position.y=2.13+up; liftRodTop.position.y=2.33+up;
+  /* ③ 引上棒頂起閉鎖器解鎖（掛鉤抬起・滾輪被頂回正） */
+  hookG.rotation.z=.50*e3;
+  lockRollerG.rotation.z=-0.30*(1-e3);
+  /* 短路棒離開門接點 → DS 斷電（LED 滅） */
+  shortBar.position.x=-.255 - .022*e3;
+  lockLED.material.emissive.setHex(0x000000); lockLED.material.emissiveIntensity=0;
+  /* 羽棒維持釋放（車不在） */
+  bladeL.position.x=-(.040+.026); bladeR.position.x=(.040+.026);
+  /* 乘場門重錘隨門開拉高 */
+  const lwy=0.5+0.95*dLnd; lcwWeight.position.y=lwy;
+  const lrp=lcwRopeGeo.attributes.position.array;
+  lrp[0]=lcwSX; lrp[1]=2.21; lrp[2]=lcwZ; lrp[3]=lcwSX; lrp[4]=lwy+.08; lrp[5]=lcwZ;
+  lcwRopeGeo.attributes.position.needsUpdate=true;
+  /* HUD 階段字 */
+  let phase=KD_STEPS[0][1]; for(const [thr,txt] of KD_STEPS) if(kd>=thr) phase=txt;
+  ui.chipNo.textContent='🔑 鑰匙緊急開鎖示範'; ui.chipTi.textContent=phase;
+  ui.timer.style.display='none'; ui.banner.classList.remove('show');
+}
+
 function update(){
+  if(keyDemo>=0){ updateKeyDemo(keyDemo); drawSpeed(0); return; }
   const t=T;
   const d=dOf(t), clamp=vaneClamp(t), hOpen=hookOpen(t);
   const xl=-(PANEL_W/2)-TRAVEL*d, xr=(PANEL_W/2)+TRAVEL*d;
@@ -1176,6 +1236,12 @@ function loop(){
   if(playing){
     T+=dt*SPEEDS[speedIdx];
     if(T>=T_TOTAL){ T=0; forceStep(); flashT=.5; }
+  }
+  if(keyDemoOn && keyDemo<0) keyDemo=0;
+  if(keyDemo>=0){
+    keyDemo += dt*0.3*(keyDemoOn?1:-1);
+    if(keyDemo>1) keyDemo=1;
+    if(keyDemo<0){ keyDemo=-1; resetKeyDemoParts(); forceStep(); }
   }
   if(flashT>0){ flashT-=dt; ui.flash.style.opacity=Math.min(.8,flashT*2); }
   update();
