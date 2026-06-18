@@ -701,15 +701,27 @@ function lndHanger(side){
   const panel=B(PANEL_W,2.06,.028,M.landing); panel.position.set(0,1.05,-.21); g.add(panel);
   const gibBkt=B(.07,.03,.012,M.steel); gibBkt.position.set(0,.058,-.21); g.add(gibBkt);
   const gib=B(.065,.035,.017,M.nylon); gib.position.set(0,.031,-.215); g.add(gib);
-  return {g,plate,panel,rollers};
+  /* 吊板防脫離裝置：勾在門軌下緣的擋片・防止吊板受撞脫軌（每扇兩個・對應兩滾輪） */
+  const antiDrops=[];
+  for(const rx of [-.13,.13]){
+    const ad=B(.028,.052,.018,M.steel); ad.position.set(rx,2.205,-.236); g.add(ad);
+    const lip=B(.028,.012,.03,M.steel); lip.position.set(rx,2.182,-.243); g.add(lip);   // 下緣勾片伸到軌下
+    antiDrops.push(ad,lip);
+  }
+  return {g,plate,panel,rollers,antiDrops};
 }
 const lL = lndHanger(-1), lR = lndHanger(1);
+addLabel(lR.antiDrops[0],'乘場門吊板防脫離裝置（卡門軌下緣・防脫軌）', .12, 0, .04);
 addLabel(lL.panel,'外門板／乘場門（被活動羽棒帶動）', -.5, -.1, -.02);
 /* 外門開關鑰匙孔（乘場門上的緊急開鎖孔・隨左乘場門・在門楣下方乘場門板上） */
 const keyEsc = new THREE.Mesh(new THREE.CylinderGeometry(.02,.02,.008,20), M.steel);
 keyEsc.rotation.x=Math.PI/2; keyEsc.position.set(.16,1.92,-.197); lL.g.add(keyEsc);
 const keyHole = B(.004,.014,.014,M.dark); keyHole.position.set(.16,1.92,-.205); lL.g.add(keyHole);
-addLabel(keyEsc,'外門開關鑰匙孔（緊急開鎖）', -.30, 0, -.02, true);
+addLabel(keyEsc,'乘場門開關鑰匙孔（緊急開鎖）', -.30, 0, -.02, true);
+/* 引上棒：鑰匙孔上提時頂起閉鎖器解鎖（縱桿・連鑰匙孔到閉鎖器） */
+const liftRod = B(.012,.42,.012,M.steel); liftRod.position.set(.075,2.13,-.20); lL.g.add(liftRod);
+const liftRodTop = B(.03,.012,.014,M.steel); liftRodTop.position.set(.04,2.33,-.20); lL.g.add(liftRodTop);
+addLabel(liftRod,'引上棒（鑰匙孔上提→頂起閉鎖器解鎖）', -.24, .06, .04);
 
 /* ---- 三菱型乘場門鎖總成（依改造文件實photo）----
    鍍鋅鈑金鉤臂＋「垂直排列」雙開鎖滾輪（門刀夾這兩顆）＋彈簧＋接點開關 */
@@ -737,7 +749,7 @@ const cR1=lockRoller(); cR1.position.set(0, .030, 0); lockRollerG.add(cR1);
 const cR2=lockRoller(); cR2.position.set(0,-.030, 0); lockRollerG.add(cR2);
 const stand1=B(.011,.011,.145,M.steel); stand1.position.set(0, .030,-.0775); lockRollerG.add(stand1);
 const stand2=B(.011,.011,.145,M.steel); stand2.position.set(0,-.030,-.0775); lockRollerG.add(stand2);
-addLabel(cR1,'門閉鎖器滾輪×2（垂直排列・羽棒夾這裡＝解鎖）', -.08, 0, .05);
+addLabel(cR1,'乘場門驅動輪×2（上下排・被活動羽瓣推成垂直＝解鎖、帶動乘場門）', -.08, 0, .05);
 /* 復位彈簧（拉臂回鎖閉位置） */
 {
   const pts=[]; const N=60;
@@ -758,7 +770,10 @@ const cPin1 = CYL(.006,.014,M.copper); cPin1.rotation.x=Math.PI/2; cPin1.positio
 const lockLED = new THREE.Mesh(new THREE.SphereGeometry(.012,16,16),
   new THREE.MeshStandardMaterial({color:0x333a42, emissive:0x000000}));
 lockLED.position.set(-.291,2.118,-.275); scene.add(lockLED);
-addLabel(contactBase,'門閉鎖器接點開關（DS・串入安全迴路）', -.06, -.10, 0, true);
+addLabel(contactBase,'乘場門門接點（DS・電器接點・串入安全迴路）', -.06, -.10, 0, true);
+/* 短路棒：閉鎖器臂尾銅棒・門全閉時與門接點接觸＝迴路導通 */
+const shortBar = B(.032,.007,.008,M.copper); shortBar.position.set(-.255,2.178,-.272); scene.add(shortBar);
+addLabel(shortBar,'乘場門閉鎖器短路棒（碰門接點＝迴路導通）', .05, .10, .04, true);
 
 /* ---- 乘場門連動鋼索（兩扇乘場門等速連動・依改造文件照片）---- */
 /* 乘場門連動鋼索輪：門楣兩端的黑色滑輪（依廠內照片・明顯黑色） */
@@ -793,14 +808,33 @@ const rope=new THREE.Line(ropeGeo, new THREE.LineBasicMaterial({color:0x999999})
 scene.add(rope);
 addLabel(cwWeight,'車廂門自重錘（停電也能把門拉回關閉）', -.1, 0, 0);
 
-/* ---- 乘場門自重錘（裝在乘場門上・外罩垂直方管保護・三菱零件表：車廂門/乘場門各一套）---- */
-const lcwX=.20, lcwZ=-.255, lcwH=1.36, lcwYC=1.02, lcwW=.05, lcwT=.006;
-const lcwWL=B(lcwT,lcwH,lcwW,M.steel); lcwWL.position.set(lcwX-lcwW/2+lcwT/2, lcwYC, lcwZ); lR.g.add(lcwWL);   // 方管左壁
-const lcwWR=B(lcwT,lcwH,lcwW,M.steel); lcwWR.position.set(lcwX+lcwW/2-lcwT/2, lcwYC, lcwZ); lR.g.add(lcwWR);   // 方管右壁
-const lcwBack=B(lcwW,lcwH,lcwT,M.steel); lcwBack.position.set(lcwX, lcwYC, lcwZ-lcwW/2+lcwT/2); lR.g.add(lcwBack); // 後壁（前面開口看得到重錘）
-const lcwCap=B(lcwW+.01,.012,lcwW+.01,M.dark); lcwCap.position.set(lcwX, lcwYC+lcwH/2, lcwZ); lR.g.add(lcwCap);     // 頂蓋
-const lcwWeight=B(.032,.12,.032,M.dark); lcwWeight.position.set(lcwX,.7,lcwZ); lR.g.add(lcwWeight);
-addLabel(lcwWeight,'乘場門自重錘（垂直方管內・停電也能把廳門拉回關閉上鎖）', .3, .1, -.02);
+/* ---- 乘場門重錘（依實照：左側・鋼索輪＋護弓＋鋼索吊重錘・斷電靠自重把乘場門拉回關閉）---- */
+const lcwX=-0.80, lcwZ=-0.30;
+/* 重錘鋼索輪（黑色滑輪） */
+const lcwPul=CYL(.040,.020,M.belt); lcwPul.position.set(lcwX,2.28,lcwZ); scene.add(lcwPul);
+const lcwPulHub=CYL(.012,.028,M.steel); lcwPulHub.position.set(lcwX,2.28,lcwZ); scene.add(lcwPulHub);
+addLabel(lcwPul,'乘場門重錘鋼索輪', .06, -.13, 0);
+/* 重錘鋼索護弓：垂直90度・包覆鋼索輪一側（左側）防止鋼索脫輪 */
+const lcwGuard=(()=>{
+  const g=new THREE.Group();
+  const pts=[]; for(let i=0;i<=16;i++){ const a=Math.PI*(0.75+0.5*i/16);   // 135°→225°：貼左側、垂直90°
+    pts.push(new THREE.Vector3(Math.cos(a)*.052, Math.sin(a)*.052, 0)); }
+  const arc=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),24,.005,8),M.steel); g.add(arc);
+  // 兩端往輪心收的固定腳
+  for(const a of [Math.PI*0.75, Math.PI*1.25]){
+    const leg=B(.018,.006,.01,M.steel); leg.position.set(Math.cos(a)*.04, Math.sin(a)*.04, 0); leg.rotation.z=a; g.add(leg); }
+  g.position.set(lcwX,2.28,lcwZ+.012); scene.add(g); return g;
+})();
+addLabel(lcwGuard,'乘場門重錘鋼索護弓（防鋼索脫輪）', .14, 0, .03);
+/* 重錘（方塊配重・隨門開度上下：門開拉高儲能、停電落下關門） */
+const lcwWeight=B(.05,.17,.05,M.dark); lcwWeight.castShadow=true; lcwWeight.position.set(lcwX,1.0,lcwZ); scene.add(lcwWeight);
+addLabel(lcwWeight,'乘場門重錘（自重透過鋼索把乘場門拉回關閉）', -.1, .12, 0);
+/* 重錘鋼索（左乘場門→鋼索輪→重錘） */
+const lcwRopeGeo=new THREE.BufferGeometry();
+lcwRopeGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3*3),3));
+const lcwRope=new THREE.Line(lcwRopeGeo, new THREE.LineBasicMaterial({color:0x999999}));
+scene.add(lcwRope);
+addLabel(lcwRope,'乘場門重錘鋼索', -.05, -.22, 0);
 
 /* ---- 貨物推車 ---- */
 const cart = new THREE.Group(); scene.add(cart);
@@ -844,9 +878,9 @@ const LAYERS = [
   {key:'frame',  name:'機座・框架・導軌', mesh:[basePlate,railMesh,lndRailMesh,lndHeader,topBeam,railLbl,swOpen.g,swClose.g,...frameCols]},
   {key:'drive',  name:'門機馬達・控制板', mesh:[motorG,motorBracket,dorBox]},
   {key:'belt',   name:'連動皮帶傳動',     mesh:[dp.g,ip.g,beltUp,beltDn,teethUp,teethDn,hL.clamp,hL.post,hR.clamp,hR.post]},
-  {key:'doors',  name:'門板・吊板・門護弓', mesh:[hL.panel,hL.plate,...hL.rollers,hL.bow,hL.bumper,hR.panel,hR.plate,...hR.rollers,hR.bow,hR.bumper,lL.panel,lL.plate,...lL.rollers,lR.panel,lR.plate,...lR.rollers]},
+  {key:'doors',  name:'門板・吊板・門護弓', mesh:[hL.panel,hL.plate,...hL.rollers,hL.bow,hL.bumper,hR.panel,hR.plate,...hR.rollers,hR.bow,hR.bumper,lL.panel,lL.plate,...lL.rollers,...lL.antiDrops,lR.panel,lR.plate,...lR.rollers,...lR.antiDrops]},
   {key:'vane',   name:'活動羽棒・扇形轉盤', mesh:[vaneG,sectorPlate]},
-  {key:'lock',   name:'門閉鎖器・鎖機構',  mesh:[lockRollerG,hookG,gsG,gsCam,keeper,kBkt,contactBase,cPin1,lockLED,cordPulL,cordPulR,cordClampL,cordClampR,cwPulley,cwPulHub,cwWeight,rope,keyEsc,lcwWL,lcwWR,lcwBack,lcwCap,lcwWeight]},
+  {key:'lock',   name:'門閉鎖器・鎖機構',  mesh:[lockRollerG,hookG,gsG,gsCam,keeper,kBkt,contactBase,cPin1,lockLED,shortBar,liftRod,liftRodTop,cordPulL,cordPulR,cordClampL,cordClampR,cwPulley,cwPulHub,cwWeight,rope,keyEsc,keyHole,lcwPul,lcwPulHub,lcwGuard,lcwWeight,lcwRope]},
   {key:'safety', name:'安全裝置（光幕／門邊）', gated:1, mesh:[hL.strip,hR.strip,hL.me,hR.me,beams,...hL.dots,...hR.dots]},
   {key:'sill',   name:'門檻・護板',       mesh:[carSill,lndSill,carApron,lndApron,sillLbl1,sillLbl2]},
   {key:'env',    name:'環境・示意・EMO',  mesh:[hallF,carF,cart,emoBtn]},
@@ -1074,7 +1108,13 @@ function update(){
   /* 車廂門自重錘：門開 → 重錘被拉高（儲能）；位於車廂門側 z+.13 */
   const wy = 1.42 + 0.42*d;
   cwWeight.position.y = wy;
-  lcwWeight.position.y = 0.55 + 0.9*d;   // 乘場門重錘：門開→拉高儲能（方管內上下）
+  const lwy = 0.55 + 0.95*d;   // 乘場門重錘：門開→拉高儲能、停電落下關門
+  lcwWeight.position.y = lwy;
+  const lrp = lcwRopeGeo.attributes.position.array;
+  lrp[0]=xl+0.18; lrp[1]=2.27; lrp[2]=-.30;     // 接左乘場門
+  lrp[3]=lcwX;    lrp[4]=2.27; lrp[5]=-.30;     // 繞過重錘鋼索輪
+  lrp[6]=lcwX;    lrp[7]=lwy+.09; lrp[8]=-.30;  // 下吊重錘
+  lcwRopeGeo.attributes.position.needsUpdate=true;
   const rp = ropeGeo.attributes.position.array;
   rp[0]=xl+0.2; rp[1]=2.27; rp[2]=.13;
   rp[3]=.62;   rp[4]=2.178; rp[5]=.13;
