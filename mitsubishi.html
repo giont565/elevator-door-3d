@@ -808,33 +808,28 @@ const rope=new THREE.Line(ropeGeo, new THREE.LineBasicMaterial({color:0x999999})
 scene.add(rope);
 addLabel(cwWeight,'車廂門自重錘（停電也能把門拉回關閉）', -.1, 0, 0);
 
-/* ---- 乘場門重錘（依實照：左側・鋼索輪＋護弓＋鋼索吊重錘・斷電靠自重把乘場門拉回關閉）---- */
-const lcwX=-0.80, lcwZ=-0.30;
-/* 重錘鋼索輪（黑色滑輪） */
-const lcwPul=CYL(.040,.020,M.belt); lcwPul.position.set(lcwX,2.28,lcwZ); scene.add(lcwPul);
-const lcwPulHub=CYL(.012,.028,M.steel); lcwPulHub.position.set(lcwX,2.28,lcwZ); scene.add(lcwPulHub);
-addLabel(lcwPul,'乘場門重錘鋼索輪', .06, -.13, 0);
-/* 重錘鋼索護弓：垂直90度・包覆鋼索輪一側（左側）防止鋼索脫輪 */
+/* ---- 乘場門重錘（依實照：整組裝在左乘場門吊板 lL 上・鋼索輪＋直角護弓＋鋼索吊重錘）---- */
+const lcwSX=-0.19, lcwSY=2.23, lcwZ=-0.255;   // 鋼索輪：左吊板左端（lL.g 局部座標・隨門一起動）
+const lcwPul=CYL(.038,.020,M.belt); lcwPul.position.set(lcwSX,lcwSY,lcwZ); lL.g.add(lcwPul);
+const lcwPulHub=CYL(.012,.028,M.steel); lcwPulHub.position.set(lcwSX,lcwSY,lcwZ); lL.g.add(lcwPulHub);
+addLabel(lcwPul,'乘場門重錘鋼索輪', .05, -.12, 0);
+/* 直角護弓：兩支桿成直角・框住鋼索輪左上角・擋鋼索移動太快彈出脫輪 */
 const lcwGuard=(()=>{
   const g=new THREE.Group();
-  const pts=[]; for(let i=0;i<=16;i++){ const a=Math.PI*(0.75+0.5*i/16);   // 135°→225°：貼左側、垂直90°
-    pts.push(new THREE.Vector3(Math.cos(a)*.052, Math.sin(a)*.052, 0)); }
-  const arc=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),24,.005,8),M.steel); g.add(arc);
-  // 兩端往輪心收的固定腳
-  for(const a of [Math.PI*0.75, Math.PI*1.25]){
-    const leg=B(.018,.006,.01,M.steel); leg.position.set(Math.cos(a)*.04, Math.sin(a)*.04, 0); leg.rotation.z=a; g.add(leg); }
-  g.position.set(lcwX,2.28,lcwZ+.012); scene.add(g); return g;
+  const top =B(.075,.008,.012,M.steel); top.position.set(lcwSX-.018, lcwSY+.046, lcwZ);   // 頂橫桿
+  const left=B(.008,.076,.012,M.steel); left.position.set(lcwSX-.052, lcwSY+.008, lcwZ);   // 左豎桿（與頂桿成直角）
+  g.add(top,left); lL.g.add(g); return g;
 })();
-addLabel(lcwGuard,'乘場門重錘鋼索護弓（防鋼索脫輪）', .14, 0, .03);
+addLabel(lcwGuard,'乘場門重錘鋼索護弓（直角框鋼索輪左上角・防鋼索彈出脫輪）', .14, .03, .03);
 /* 重錘（方塊配重・隨門開度上下：門開拉高儲能、停電落下關門） */
-const lcwWeight=B(.05,.17,.05,M.dark); lcwWeight.castShadow=true; lcwWeight.position.set(lcwX,1.0,lcwZ); scene.add(lcwWeight);
+const lcwWeight=B(.05,.16,.05,M.dark); lcwWeight.castShadow=true; lcwWeight.position.set(lcwSX,1.0,lcwZ); lL.g.add(lcwWeight);
 addLabel(lcwWeight,'乘場門重錘（自重透過鋼索把乘場門拉回關閉）', -.1, .12, 0);
-/* 重錘鋼索（左乘場門→鋼索輪→重錘） */
+/* 重錘鋼索：鋼索輪→吊重錘（整條隨吊板動） */
 const lcwRopeGeo=new THREE.BufferGeometry();
-lcwRopeGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3*3),3));
+lcwRopeGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(2*3),3));
 const lcwRope=new THREE.Line(lcwRopeGeo, new THREE.LineBasicMaterial({color:0x999999}));
-scene.add(lcwRope);
-addLabel(lcwRope,'乘場門重錘鋼索', -.05, -.22, 0);
+lL.g.add(lcwRope);
+addLabel(lcwRope,'乘場門重錘鋼索', -.05, -.2, 0);
 
 /* ---- 貨物推車 ---- */
 const cart = new THREE.Group(); scene.add(cart);
@@ -1108,12 +1103,11 @@ function update(){
   /* 車廂門自重錘：門開 → 重錘被拉高（儲能）；位於車廂門側 z+.13 */
   const wy = 1.42 + 0.42*d;
   cwWeight.position.y = wy;
-  const lwy = 0.55 + 0.95*d;   // 乘場門重錘：門開→拉高儲能、停電落下關門
+  const lwy = 0.5 + 0.95*d;   // 乘場門重錘：門開→拉高儲能、停電落下關門（lL 吊板局部座標）
   lcwWeight.position.y = lwy;
   const lrp = lcwRopeGeo.attributes.position.array;
-  lrp[0]=xl+0.18; lrp[1]=2.27; lrp[2]=-.30;     // 接左乘場門
-  lrp[3]=lcwX;    lrp[4]=2.27; lrp[5]=-.30;     // 繞過重錘鋼索輪
-  lrp[6]=lcwX;    lrp[7]=lwy+.09; lrp[8]=-.30;  // 下吊重錘
+  lrp[0]=lcwSX; lrp[1]=2.21;    lrp[2]=lcwZ;   // 鋼索輪
+  lrp[3]=lcwSX; lrp[4]=lwy+.08; lrp[5]=lcwZ;   // 下吊重錘
   lcwRopeGeo.attributes.position.needsUpdate=true;
   const rp = ropeGeo.attributes.position.array;
   rp[0]=xl+0.2; rp[1]=2.27; rp[2]=.13;
