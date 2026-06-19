@@ -287,7 +287,7 @@ const STEPS = [
  focus:['beams','curtain']},
 {t0:3.0, t1:5.0, no:'S2', short:'重開門', title:'S2 重開門',
  trig:'馬達反轉。',
- mech:'兩扇門對開；活動羽棒仍夾著門閉鎖器滾輪、乘場門跟著開；<b>閉鎖器鉤維持被頂開</b>；門吊錘被拉高（儲存關門的力量）。',
+ mech:'兩扇門對開；活動羽棒仍夾著門閉鎖器滾輪、乘場門跟著開；<b>閉鎖器鉤維持被頂開</b>；乘場門吊錘被拉高（儲存關門的力量）。',
  next:'門走到全開位置 → S3。',
  focus:['motor','belt','vane']},
 {t0:5.0, t1:5.8, no:'S3', short:'開門到位', title:'S3 開門到位（OLT）',
@@ -802,17 +802,7 @@ const cordClampL=B(.04,.016,.014,M.dark); cordClampL.position.set(.18,2.44,-.28)
 const cordClampR=B(.04,.016,.014,M.dark); cordClampR.position.set(-.18,2.40,-.28); lR.g.add(cordClampR);
 addLabel(cordPulR,'乘場門連動鋼索輪（一扇動、另一扇等速跟動）', .07, -.4, 0);
 
-/* ---- 車廂門自重錘（原本就有・斷電也會自動關門）---- */
-const cwPulley = CYL(.032,.018,M.belt); cwPulley.position.set(.62,2.16,.13); scene.add(cwPulley);  // 門吊錘鋼索輪（黑色・在車廂門側）
-const cwPulHub = CYL(.011,.024,M.steel); cwPulHub.position.set(.62,2.16,.13); scene.add(cwPulHub);
-addLabel(cwPulley,'車廂門吊錘鋼索輪', .06, .12, 0);
-const cwWeight = new THREE.Mesh(new THREE.CylinderGeometry(.021,.021,.13,16),M.dark);
-cwWeight.castShadow=true; cwWeight.position.set(.62,1.6,.13); scene.add(cwWeight);
-const ropeGeo=new THREE.BufferGeometry();
-ropeGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3*3),3));
-const rope=new THREE.Line(ropeGeo, new THREE.LineBasicMaterial({color:0x999999}));
-scene.add(rope);
-addLabel(cwWeight,'車廂門自重錘（停電也能把門拉回關閉）', -.1, 0, 0);
+/* ---- 車廂門沒有自重錘（更正：車廂門由馬達驅動・不需自閉重錘；只有乘場門有）---- */
 
 /* ---- 乘場門重錘（依實照：整組裝在左乘場門吊板 lL 上・鋼索輪＋直角護弓＋鋼索吊重錘）---- */
 const lcwSX=-0.19, lcwSY=2.23, lcwZ=-0.255;   // 鋼索輪：左吊板左端（lL.g 局部座標・隨門一起動）
@@ -881,7 +871,7 @@ const LAYERS = [
   {key:'belt',   name:'連動皮帶傳動',     mesh:[dp.g,ip.g,beltUp,beltDn,teethUp,teethDn,hL.clamp,hL.post,hR.clamp,hR.post]},
   {key:'doors',  name:'門板・吊板・門護弓', mesh:[hL.panel,hL.plate,...hL.rollers,hL.bow,hL.bumper,hR.panel,hR.plate,...hR.rollers,hR.bow,hR.bumper,lL.panel,lL.plate,...lL.rollers,...lL.antiDrops,lR.panel,lR.plate,...lR.rollers,...lR.antiDrops]},
   {key:'vane',   name:'活動羽棒・扇形轉盤', mesh:[vaneG,sectorPlate]},
-  {key:'lock',   name:'門閉鎖器・鎖機構',  mesh:[lockRollerG,hookG,gsG,gsCam,keeper,kBkt,contactBase,cPin1,lockLED,shortBar,liftRod,liftRodTop,cordPulL,cordPulR,cordClampL,cordClampR,cwPulley,cwPulHub,cwWeight,rope,keyEsc,keyHole,lcwPul,lcwPulHub,lcwGuard,lcwWeight,lcwRope]},
+  {key:'lock',   name:'門閉鎖器・鎖機構',  mesh:[lockRollerG,hookG,gsG,gsCam,keeper,kBkt,contactBase,cPin1,lockLED,shortBar,liftRod,liftRodTop,cordPulL,cordPulR,cordClampL,cordClampR,keyEsc,keyHole,lcwPul,lcwPulHub,lcwGuard,lcwWeight,lcwRope]},
   {key:'safety', name:'安全裝置（光幕／門邊）', gated:1, mesh:[hL.strip,hR.strip,hL.me,hR.me,beams,...hL.dots,...hR.dots]},
   {key:'sill',   name:'門檻・護板',       mesh:[carSill,lndSill,carApron,lndApron,sillLbl1,sillLbl2]},
   {key:'env',    name:'環境・示意・EMO',  mesh:[hallF,carF,cart,emoBtn]},
@@ -1160,20 +1150,13 @@ function update(){
   swOpen.lever.rotation.z = d>.985 ? -1.1*seg(d,.985,1) : 0;
   swClose.lever.rotation.z= d<.03  ?  1.1*(1-seg(d,0,.03)) : 0;
 
-  /* 車廂門自重錘：門開 → 重錘被拉高（儲能）；位於車廂門側 z+.13 */
-  const wy = 1.42 + 0.42*d;
-  cwWeight.position.y = wy;
-  const lwy = 0.5 + 0.95*d;   // 乘場門重錘：門開→拉高儲能、停電落下關門（lL 吊板局部座標）
+  /* 乘場門重錘：門開→拉高儲能、停電落下關門（lL 吊板局部座標）。車廂門無重錘 */
+  const lwy = 0.5 + 0.95*d;
   lcwWeight.position.y = lwy;
   const lrp = lcwRopeGeo.attributes.position.array;
   lrp[0]=lcwSX; lrp[1]=2.21;    lrp[2]=lcwZ;   // 鋼索輪
   lrp[3]=lcwSX; lrp[4]=lwy+.08; lrp[5]=lcwZ;   // 下吊重錘
   lcwRopeGeo.attributes.position.needsUpdate=true;
-  const rp = ropeGeo.attributes.position.array;
-  rp[0]=xl+0.2; rp[1]=2.27; rp[2]=.13;
-  rp[3]=.62;   rp[4]=2.178; rp[5]=.13;
-  rp[6]=.62;   rp[7]=wy+.065; rp[8]=.13;
-  ropeGeo.attributes.position.needsUpdate=true;
   const eMode = safetyMode==='edge';
   const comp = (eMode && Math.abs(boxZ(t))<0.16) ? comp01(d) : 0;
   hL.mstrip.position.x = hL.mBaseX + comp*0.012;
@@ -1288,7 +1271,7 @@ window.__auditList=[
  {n:'索夾R',o:cordClampR,d:'hr'},{n:'外門板R',o:lR.panel,d:'hr'},
  {n:'車廂門SW',o:gsBody,d:'fix'},{n:'位置OLT',o:swOpen.body,d:'fix'},{n:'位置CLT',o:swClose.body,d:'fix'},
  {n:'門楣',o:lndHeader,d:'fix'},{n:'VVVF箱',o:dorBox,d:'fix'},{n:'皮帶上',o:beltUp,d:'fix'},{n:'皮帶下',o:beltDn,d:'fix'},
- {n:'索輪L',o:cordPulL,d:'fix'},{n:'索輪R',o:cordPulR,d:'fix'},{n:'吊錘輪',o:cwPulley,d:'fix'},{n:'門吊錘',o:cwWeight,d:'fix'},
+ {n:'索輪L',o:cordPulL,d:'fix'},{n:'索輪R',o:cordPulR,d:'fix'},
  {n:'鎖座銷',o:keeper,d:'fix'},{n:'閉鎖接點',o:contactBase,d:'fix'},{n:'車廂護板',o:carApron,d:'fix'},{n:'乘場護板',o:lndApron,d:'fix'},{n:'EMO',o:emoBtn,d:'fix'}
 ];
 function __shown(o){ if(!o) return false; for(let p=o;p;p=p.parent){ if(p.visible===false) return false; } return true; }
