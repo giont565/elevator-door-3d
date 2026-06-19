@@ -411,8 +411,8 @@ const sillLbl2=new THREE.Object3D(); sillLbl2.position.set(-1.05,.05,-.2); scene
 addLabel(sillLbl2,'廳門地坎');
 
 /* ---- 車廂護板／乘場護板（門檻下方金屬護板・固定）---- */
-const carApron = B(2.2,.4,.016, M.steel); carApron.position.set(0,-.20,.145); scene.add(carApron);
-const lndApron = B(2.2,.4,.016, M.steel); lndApron.position.set(0,-.20,-.135); scene.add(lndApron);
+const carApron = B(2.2,.4,.016, M.hangerX); carApron.position.set(0,-.20,.145); scene.add(carApron);   // M.hangerX：銀色且掛 X-ray 透視
+const lndApron = B(2.2,.4,.016, M.hangerX); lndApron.position.set(0,-.20,-.135); scene.add(lndApron);
 addLabel(carApron,'車廂護板（門檻下方）', -.05, .5, 0);
 addLabel(lndApron,'乘場護板（門檻下方）', -.10, -.5, 0);
 

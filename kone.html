@@ -714,8 +714,8 @@ const syncClampR=B(.04,.016,.014,M.dark); syncClampR.position.set(-.18,2.014,-.3
 addLabel(syncPulR,'同步鋼索 Sync cord（連動兩扇外門等速）', .07, -.4, 0);
 
 /* ---- 車廂護板／外門護趾板（門檻下方・固定）---- */
-const carApron = B(2.2,.4,.016, M.steel); carApron.position.set(0,-.20,.145); scene.add(carApron);
-const lndApron = B(2.2,.4,.016, M.steel); lndApron.position.set(0,-.20,-.135); scene.add(lndApron);
+const carApron = B(2.2,.4,.016, M.hangerX); carApron.position.set(0,-.20,.145); scene.add(carApron);   // M.hangerX：銀色且掛 X-ray 透視
+const lndApron = B(2.2,.4,.016, M.hangerX); lndApron.position.set(0,-.20,-.135); scene.add(lndApron);
 addLabel(carApron,'車廂護板（Sill and apron）', -.05, .5, 0);
 addLabel(lndApron,'外門護趾板（Sill and toe guard）', -.10, -.5, 0);
 

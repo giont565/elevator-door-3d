@@ -625,8 +625,8 @@ addLabel(hL.bumper,'阻擋橡皮（對接邊緩衝）', -.85, 0, .04);
 const bowLbl = addLabel(hL.bow,'安全門邊支臂＋門護弓', -.70, 0, .05);
 
 /* ---- 車廂護板／乘場護板（門檻下方金屬護板・固定）---- */
-const carApron = B(2.2,.42,.016, M.steel); carApron.position.set(0,-.21,.145); scene.add(carApron);
-const lndApron = B(2.2,.42,.016, M.steel); lndApron.position.set(0,-.21,-.135); scene.add(lndApron);
+const carApron = B(2.2,.42,.016, M.hangerX); carApron.position.set(0,-.21,.145); scene.add(carApron);   // M.hangerX：銀色且掛 X-ray 透視
+const lndApron = B(2.2,.42,.016, M.hangerX); lndApron.position.set(0,-.21,-.135); scene.add(lndApron);
 addLabel(carApron,'車廂護板（門檻下方）', -.05, 1.0, 0);
 addLabel(lndApron,'乘場護板（門檻下方）', -.12, -1.0, 0);
 
