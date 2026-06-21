@@ -693,11 +693,14 @@ const lndRailMesh = extrude([[0,0],[.026,0],[.026,.028],[.013,.04],[0,.028]], 2.
 lndRailMesh.rotation.y=Math.PI/2; lndRailMesh.position.set(-1.17, 2.19, -.257); scene.add(lndRailMesh);
 function lndHanger(side){
   const g=new THREE.Group(); scene.add(g);
-  const plate=extrude([[-.22,-.12],[.22,-.12],[.22,.08],[.18,.12],[-.18,.12],[-.22,.08]], .011, M.hangerX, [[0,-.02,.03]]);
-  plate.position.set(0,2.20,-.2455); g.add(plate);
+  const plate=extrude([[-.22,-.18],[.22,-.18],[.22,.08],[.18,.12],[-.18,.12],[-.22,.08]], .011, M.hangerX, [[0,-.02,.03]]);
+  plate.position.set(0,2.20,-.19); g.add(plate);   // 貼平門板井道面(z 與門板齊、無前後)、下延與門板上緣重疊好鎖螺絲
+  /* 四顆固定螺絲：把門吊板鎖在門板上（依實照一排螺絲） */
+  for(const bx of [-.15,-.05,.05,.15]){ const s=HEX(.009,.013); s.rotation.x=Math.PI/2; s.position.set(bx,2.05,-.178); g.add(s); }
   const rollers=[];
   for(const rx of [-.12,.12]){
     const w=puWheel(.042,.024); w.position.set(rx,2.272,-.27); g.add(w); rollers.push(w);
+    const boss=B(.02,.02,.09,M.steel); boss.position.set(rx,2.272,-.232); g.add(boss);   // 滾輪軸座：門吊板頂端往後伸去掛門軌的滾輪
   }
   const panel=B(PANEL_W,2.06,.028,M.landing); panel.position.set(0,1.05,-.21); g.add(panel);
   const gibBkt=B(.07,.03,.012,M.steel); gibBkt.position.set(0,.058,-.21); g.add(gibBkt);
@@ -809,8 +812,8 @@ const lcwSX=-0.19, lcwSY=2.23, lcwZ=-0.155;   // 鋼索輪：左吊板左端（l
 const lcwPul=CYL(.038,.020,M.belt); lcwPul.position.set(lcwSX,lcwSY,lcwZ); lL.g.add(lcwPul);
 const lcwPulHub=CYL(.012,.028,M.steel); lcwPulHub.position.set(lcwSX,lcwSY,lcwZ); lL.g.add(lcwPulHub);
 addLabel(lcwPul,'乘場門重錘鋼索輪', .05, -.12, 0);
-/* 安裝托架：把鋼索輪/方管整組固定在門吊板上（從門吊板 z-0.2455 伸到內側 z-0.155、在門板上緣之上不穿門板）→ 不浮空 */
-const lcwBkt=B(.026,.018,.105,M.steel); lcwBkt.position.set(lcwSX,lcwSY,-0.20); lL.g.add(lcwBkt);
+/* 安裝托架：把鋼索輪/方管整組固定在門吊板上（門吊板現貼平門板 z-0.19 → 接到內側鋼索輪 z-0.155）→ 不浮空 */
+const lcwBkt=B(.026,.018,.05,M.steel); lcwBkt.position.set(lcwSX,lcwSY,-0.173); lL.g.add(lcwBkt);
 /* 直角護弓：兩支桿成直角・框住鋼索輪左上角・擋鋼索移動太快彈出脫輪 */
 const lcwGuard=(()=>{
   const g=new THREE.Group();
