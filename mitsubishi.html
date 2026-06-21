@@ -809,6 +809,8 @@ const lcwSX=-0.19, lcwSY=2.23, lcwZ=-0.155;   // 鋼索輪：左吊板左端（l
 const lcwPul=CYL(.038,.020,M.belt); lcwPul.position.set(lcwSX,lcwSY,lcwZ); lL.g.add(lcwPul);
 const lcwPulHub=CYL(.012,.028,M.steel); lcwPulHub.position.set(lcwSX,lcwSY,lcwZ); lL.g.add(lcwPulHub);
 addLabel(lcwPul,'乘場門重錘鋼索輪', .05, -.12, 0);
+/* 安裝托架：把鋼索輪/方管整組固定在門吊板上（從門吊板 z-0.2455 伸到內側 z-0.155、在門板上緣之上不穿門板）→ 不浮空 */
+const lcwBkt=B(.026,.018,.105,M.steel); lcwBkt.position.set(lcwSX,lcwSY,-0.20); lL.g.add(lcwBkt);
 /* 直角護弓：兩支桿成直角・框住鋼索輪左上角・擋鋼索移動太快彈出脫輪 */
 const lcwGuard=(()=>{
   const g=new THREE.Group();
@@ -878,7 +880,7 @@ const LAYERS = [
   {key:'belt',   name:'連動皮帶傳動',     mesh:[dp.g,ip.g,beltUp,beltDn,teethUp,teethDn,hL.clamp,hL.post,hR.clamp,hR.post]},
   {key:'doors',  name:'門板・吊板・門護弓', mesh:[hL.panel,hL.plate,...hL.rollers,hL.bow,hL.bumper,hR.panel,hR.plate,...hR.rollers,hR.bow,hR.bumper,lL.panel,lL.plate,...lL.rollers,...lL.antiDrops,lR.panel,lR.plate,...lR.rollers,...lR.antiDrops]},
   {key:'vane',   name:'活動羽棒・扇形轉盤', mesh:[vaneG,sectorPlate]},
-  {key:'lock',   name:'門閉鎖器・鎖機構',  mesh:[lockRollerG,hookG,gsG,gsCam,keeper,kBkt,contactBase,cPin1,lockLED,shortBar,liftRod,liftRodTop,cordPulL,cordPulR,cordClampL,cordClampR,keyEsc,keyHole,lcwPul,lcwPulHub,lcwGuard,lcwWeight,lcwTubeL,lcwTubeR,lcwTubeB,lcwTubeF,lcwRope]},
+  {key:'lock',   name:'門閉鎖器・鎖機構',  mesh:[lockRollerG,hookG,gsG,gsCam,keeper,kBkt,contactBase,cPin1,lockLED,shortBar,liftRod,liftRodTop,cordPulL,cordPulR,cordClampL,cordClampR,keyEsc,keyHole,lcwPul,lcwPulHub,lcwBkt,lcwGuard,lcwWeight,lcwTubeL,lcwTubeR,lcwTubeB,lcwTubeF,lcwRope]},
   {key:'safety', name:'安全裝置（光幕／門邊）', gated:1, mesh:[hL.strip,hR.strip,hL.me,hR.me,beams,...hL.dots,...hR.dots]},
   {key:'sill',   name:'門檻・護板',       mesh:[carSill,lndSill,carApron,lndApron,sillLbl1,sillLbl2]},
   {key:'env',    name:'環境・示意・EMO',  mesh:[hallF,carF,cart,emoBtn]},
