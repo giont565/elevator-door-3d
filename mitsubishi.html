@@ -654,14 +654,14 @@ const vaneG = new THREE.Group(); vaneG.position.set(.25, 2.20, .03); hL.g.add(va
 const vaneMount = extrude([[-.09,-.05],[.09,-.05],[.09,.05],[-.09,.05]], .014, M.dark, [[-.06,0,.008],[.06,0,.008]]);
 vaneMount.position.set(0,.18,-.014); vaneG.add(vaneMount);
 function vaneBlade(){
-  // 刀片輪廓：上下端導入斜角（六角長條），厚 12mm；旋轉後輪廓寬度落在 Z（±.08）
-  const b=extrude([[-.07,-.35],[-.03,-.40],[.03,-.40],[.07,-.35],[.07,.13],[.03,.18],[-.03,.18],[-.07,.13]], .012, M.vane);  // 直立長刀片：往下延伸到 world y≈1.80、底端導入斜角(依結構圖 Fig4-1)
-  b.rotation.y=Math.PI/2;   // 厚度轉向 X、輪廓落在 YZ 面
-  const g=new THREE.Group(); b.position.set(-.006,0,0); g.add(b);
+  // 刀片輪廓：上下端導入斜角；旋轉後 Z 深 6cm（±.030）、X 厚 8mm、高 58cm
+  const b=extrude([[-.030,-.35],[-.012,-.40],[.012,-.40],[.030,-.35],[.030,.13],[.012,.18],[-.012,.18],[-.030,.13]], .008, M.vane);
+  b.rotation.y=Math.PI/2;
+  const g=new THREE.Group(); b.position.set(-.004,0,0); g.add(b);
   return g;
 }
-const bladeL = vaneBlade(); bladeL.position.set(-.03,0,-.075); vaneG.add(bladeL);
-const bladeR = vaneBlade(); bladeR.position.set( .03,0,-.075); vaneG.add(bladeR);
+const bladeL = vaneBlade(); bladeL.position.set(-.03,0,-.085); vaneG.add(bladeL);
+const bladeR = vaneBlade(); bladeR.position.set( .03,0,-.085); vaneG.add(bladeR);
 const bladeLMesh = bladeL.children[0], bladeRMesh = bladeR.children[0];
 function vaneArm(){
   const g=new THREE.Group();
