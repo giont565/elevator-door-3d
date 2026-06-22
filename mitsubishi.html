@@ -694,27 +694,27 @@ addLabel(bladeRMesh,'活動羽瓣（固定・夾合基準）', .26, 0, 0);
 /* ---- 乘場門總成 ---- */
 const lndHeader = B(2.5,.34,.03,M.headerX); lndHeader.position.set(0,2.30,-.315); scene.add(lndHeader);
 addLabel(lndHeader,'乘場門門楣（每層樓一套）', .21, .9, 0);
-const lndRailMesh = extrude([[0,0],[.026,0],[.026,.028],[.013,.04],[0,.028]], 2.34, M.railX);
+const lndRailMesh = extrude([[0,0],[.03,0],[.03,.032],[.015,.045],[0,.032]], 2.34, M.railX);   // 斷面與車廂門軌一致
 lndRailMesh.rotation.y=Math.PI/2; lndRailMesh.position.set(-1.17, 2.2775, -.22); scene.add(lndRailMesh);   // 高度對齊車廂門軌(2.2775)、前移貼近門板平面
 function lndHanger(side){
   const g=new THREE.Group(); scene.add(g);
   const plate=extrude([[-.22,-.18],[.22,-.18],[.22,.08],[.18,.12],[-.18,.12],[-.22,.08]], .011, M.hangerX, [[0,-.02,.03]]);
-  plate.position.set(0,2.20,-.19); g.add(plate);   // 貼平門板井道面(z 與門板齊、無前後)、下延與門板上緣重疊好鎖螺絲
+  plate.position.set(0,2.24,-.19); g.add(plate);   // 高度對齊車廂門吊板(2.24)
   /* 四顆固定螺絲：把門吊板鎖在門板上（依實照一排螺絲） */
-  for(const bx of [-.15,-.05,.05,.15]){ const s=HEX(.009,.013); s.rotation.x=Math.PI/2; s.position.set(bx,2.05,-.178); g.add(s); }
+  for(const bx of [-.15,-.05,.05,.15]){ const s=HEX(.009,.013); s.rotation.x=Math.PI/2; s.position.set(bx,2.075,-.178); g.add(s); }
   const rollers=[];
   for(const rx of [-.12,.12]){
-    const w=puWheel(.042,.024); w.position.set(rx,2.272,-.22); g.add(w); rollers.push(w);
-    const boss=B(.02,.02,.035,M.steel); boss.position.set(rx,2.272,-.205); g.add(boss);   // 滾輪軸座：短・吊板頂端接滾輪(滾輪 riding 門軌、緊湊不留大縫)
+    const w=puWheel(.042,.024); w.position.set(rx,2.3705,-.22); g.add(w); rollers.push(w);   // 高度對齊車廂門滾輪(2.3705)
+    const boss=B(.02,.02,.035,M.steel); boss.position.set(rx,2.348,-.205); g.add(boss);   // 滾輪軸座
   }
-  const panel=B(PANEL_W,2.06,.028,M.landing); panel.position.set(0,1.05,-.21); g.add(panel);
+  const panel=B(PANEL_W,2.08,.028,M.landing); panel.position.set(0,1.06,-.21); g.add(panel);   // 門板高度對齊車廂門(2.08高・頂2.10)
   const gibBkt=B(.07,.03,.012,M.steel); gibBkt.position.set(0,.058,-.21); g.add(gibBkt);
   const gib=B(.065,.035,.017,M.nylon); gib.position.set(0,.031,-.215); g.add(gib);
   /* 吊板防脫離裝置：勾在門軌下緣的擋片・防止吊板受撞脫軌（每扇兩個・對應兩滾輪） */
   const antiDrops=[];
   for(const rx of [-.13,.13]){
-    const ad=B(.028,.052,.018,M.steel); ad.position.set(rx,2.205,-.205); g.add(ad);
-    const lip=B(.028,.012,.03,M.steel); lip.position.set(rx,2.182,-.215); g.add(lip);   // 下緣勾片伸到軌下
+    const ad=B(.028,.052,.018,M.steel); ad.position.set(rx,2.2925,-.205); g.add(ad);   // 隨門軌抬高(+.0875)
+    const lip=B(.028,.012,.03,M.steel); lip.position.set(rx,2.2695,-.215); g.add(lip);   // 下緣勾片伸到軌下
     antiDrops.push(ad,lip);
   }
   return {g,plate,panel,rollers,antiDrops};
