@@ -378,8 +378,10 @@ const M = {
   nylon  : new THREE.MeshStandardMaterial({color:0xb9bdc2, metalness:.0,  roughness:.7}),
   panel  : new THREE.MeshPhysicalMaterial({color:0xc9c0b9, metalness:.85, roughness:.3, transparent:true, opacity:.34}),
   landing: new THREE.MeshPhysicalMaterial({color:0x9a9089, metalness:.85, roughness:.35, transparent:true, opacity:.30}),
-  plateX : new THREE.MeshStandardMaterial({color:0x5a5048, metalness:.55, roughness:.5, transparent:true, opacity:.30}),
-  hangerX: new THREE.MeshStandardMaterial({color:0xb5aca3, metalness:.7, roughness:.38, transparent:true, opacity:.38, side:THREE.DoubleSide}),
+  plateX : new THREE.MeshStandardMaterial({color:0x5a5048, metalness:.18, roughness:.66, transparent:true, opacity:.12}),
+  headerX: new THREE.MeshStandardMaterial({color:0x4d5a68, metalness:.2, roughness:.66, transparent:true, opacity:.14, side:THREE.DoubleSide}),
+  railX  : new THREE.MeshStandardMaterial({color:0xa8b5c2, metalness:.28, roughness:.58, transparent:true, opacity:.16, side:THREE.DoubleSide}),
+  hangerX: new THREE.MeshStandardMaterial({color:0xb5aca3, metalness:.28, roughness:.58, transparent:true, opacity:.2, side:THREE.DoubleSide}),
   vane   : new THREE.MeshStandardMaterial({color:0xffb02e, metalness:.6,  roughness:.4}),
   hook   : new THREE.MeshStandardMaterial({color:0xd64545, metalness:.6,  roughness:.4}),
   copper : new THREE.MeshStandardMaterial({color:0xd98a3a, metalness:.9,  roughness:.3}),
@@ -387,7 +389,7 @@ const M = {
   estop  : new THREE.MeshStandardMaterial({color:0xc4332e, metalness:.3,  roughness:.5}),
   pcb    : new THREE.MeshStandardMaterial({color:0x1d6b4a, metalness:.3,  roughness:.6}),
   alu    : new THREE.MeshStandardMaterial({color:0x8e99a4, metalness:.8,  roughness:.35}),
-  sill   : new THREE.MeshStandardMaterial({color:0x6b7682, metalness:.7,  roughness:.45, side:THREE.DoubleSide}),
+  sill   : new THREE.MeshStandardMaterial({color:0x6b7682, metalness:.28, roughness:.6, transparent:true, opacity:.16, side:THREE.DoubleSide}),
   floorH : new THREE.MeshStandardMaterial({color:0x2b2522, roughness:.95}),
   floorC : new THREE.MeshStandardMaterial({color:0x352e29, roughness:.9}),
   box    : new THREE.MeshStandardMaterial({color:0xcf7a30, roughness:.8}),
@@ -443,7 +445,7 @@ addLabel(sillLbl2,'乘場門門檻（地坎）');
 const PANEL_W=.5, TRAVEL=.45;
 const basePlate = B(2.5, .38, .03, M.plateX); basePlate.position.set(0, 2.49, .06); scene.add(basePlate);
 /* 門導軌：斜頂斷面（滑輪騎在斜頂自動對中） */
-const railMesh = extrude([[0,0],[.03,0],[.03,.032],[.015,.045],[0,.032]], 2.34, M.steel);
+const railMesh = extrude([[0,0],[.03,0],[.03,.032],[.015,.045],[0,.032]], 2.34, M.railX);
 railMesh.rotation.y=Math.PI/2; railMesh.position.set(-1.17, 2.2775, .115); scene.add(railMesh);
 for(const bx of [-.9,-.45,.45,.9]){ const b=HEX(.007,.008); b.position.set(bx,2.296,.119); scene.add(b); }
 const railLbl=new THREE.Object3D(); railLbl.position.set(1.0,2.345,.10); scene.add(railLbl);
@@ -557,20 +559,22 @@ function puWheel(rOut, width){
 }
 function hanger(side){
   const g = new THREE.Group(); scene.add(g);
-  // 鈑金吊門板：上角斜切＋兩個減重孔
+  // 鈑金吊門板：上角斜切＋兩個減重孔；往下延伸罩住門板頂（比照乘場門吊板・消除吊板浮在門板上方的縫）
   const plate = extrude(
-    [[-.23,-.15],[.23,-.15],[.23,.10],[.185,.15],[-.185,.15],[-.23,.10]],
-    .012, M.hangerX, [[-.07,-.04,.036],[.07,-.04,.036]]);
+    [[-.23,-.21],[.23,-.21],[.23,.10],[.185,.15],[-.185,.15],[-.23,.10]],
+    .012, M.hangerX, [[-.07,.02,.036],[.07,.02,.036]]);
   plate.position.set(0,2.24,.082); g.add(plate);
   const rollers=[];
   for(const rx of [-.13,.13]){
     const w=puWheel(.048,.026); w.position.set(rx,2.3705,.10); g.add(w); rollers.push(w);
-    const boss=CYL(.011,.02,M.steel); boss.position.set(rx,2.3705,.085); g.add(boss);
+    const boss=B(.024,.022,.05,M.steel); boss.position.set(rx,2.348,.092); g.add(boss);   // 滾輪軸座：短方座、把滾輪(z.10)穩穩連回吊板(z.082)、比照乘場門
   }
   for(const rx of [-.175,.175]){ // 防跳輪（偏心調整）
     const w=puWheel(.018,.022); w.position.set(rx,2.2595,.10); g.add(w); rollers.push(w);
     const ecc=HEX(.008,.01); ecc.position.set(rx,2.2515,.085); g.add(ecc); // 偏心螺栓
   }
+  /* 四顆固定螺絲：把門吊板鎖在門板上（比照乘場門吊板・依實照一排螺絲） */
+  for(const bx of [-.15,-.05,.05,.15]){ const s=HEX(.009,.013); s.rotation.x=Math.PI/2; s.position.set(bx,2.075,.069); g.add(s); }
   // 皮帶夾（齒型壓板＋兩支螺栓）
   const clampY = side<0 ? 2.44 : 2.56;
   const post = B(.036, clampY-2.39+.03, .018, M.dark); post.position.set(side*.15,(2.39+clampY+.03)/2-.015,.112); g.add(post);
@@ -684,12 +688,13 @@ sectorPlate.position.set(.02,.225,-.052); vaneG.add(sectorPlate);   // 實心扇
 const sectorHub = CYL(.013,.034,M.dark); sectorHub.position.set(.02,.225,-.045); vaneG.add(sectorHub);
 const sectorHole = CYL(.006,.038,M.dark); sectorHole.position.set(-.04,.195,-.045); vaneG.add(sectorHole);
 addLabel(sectorPlate,'扇形轉盤／羽棒支臂（推動活動羽棒伸出/收回）', .10, -.05, 0);
-addLabel(bladeLMesh,'車廂門活動羽棒（被扇形轉盤推動・夾乘場門滾輪）', -.26, 0, 0);
+addLabel(bladeRMesh,'車廂門活動羽瓣（可動・扇形轉盤推動・夾乘場門驅動輪）', .26, 0, 0);
+addLabel(bladeLMesh,'活動羽瓣（固定・夾合基準）', -.26, 0, 0);
 
 /* ---- 乘場門總成 ---- */
-const lndHeader = B(2.5,.34,.03,M.dark); lndHeader.position.set(0,2.30,-.315); scene.add(lndHeader);
+const lndHeader = B(2.5,.34,.03,M.headerX); lndHeader.position.set(0,2.30,-.315); scene.add(lndHeader);
 addLabel(lndHeader,'乘場門門楣（每層樓一套）', .21, .9, 0);
-const lndRailMesh = extrude([[0,0],[.026,0],[.026,.028],[.013,.04],[0,.028]], 2.34, M.steel);
+const lndRailMesh = extrude([[0,0],[.026,0],[.026,.028],[.013,.04],[0,.028]], 2.34, M.railX);
 lndRailMesh.rotation.y=Math.PI/2; lndRailMesh.position.set(-1.17, 2.19, -.22); scene.add(lndRailMesh);   // 前移貼近門板平面、與滾輪緊湊不留大縫
 function lndHanger(side){
   const g=new THREE.Group(); scene.add(g);
@@ -722,7 +727,7 @@ const keyEsc = new THREE.Mesh(new THREE.CylinderGeometry(.02,.02,.008,20), M.ste
 keyEsc.rotation.x=Math.PI/2; keyEsc.position.set(.075,1.90,-.197); lL.g.add(keyEsc);   // 對齊引上棒正下方
 const keyHole = B(.004,.014,.014,M.dark); keyHole.position.set(.075,1.90,-.205); lL.g.add(keyHole);
 addLabel(keyEsc,'乘場門開關鑰匙孔（緊急開鎖・對引上棒）', -.30, 0, -.02, true);
-/* 緊急開鎖鑰匙（平常隱藏・示範時插入轉動） */
+/* 緊急開鎖鑰匙（平常隱藏・示範時插入後往上頂引上棒・不轉動） */
 const keyTool=new THREE.Group(); keyTool.position.set(.075,1.90,-.16); keyTool.visible=false; lL.g.add(keyTool);
 { const shaft=CYL(.005,.07,M.steel); shaft.rotation.x=Math.PI/2; keyTool.add(shaft);
   const bow=new THREE.Mesh(new THREE.TorusGeometry(.018,.005,8,18),M.steel); bow.position.z=.04; keyTool.add(bow);
@@ -823,10 +828,10 @@ const lcwGuard=(()=>{
 })();
 addLabel(lcwGuard,'乘場門重錘鋼索護弓（直角框鋼索輪左上角・防鋼索彈出脫輪）', .14, .03, .03);
 /* 重錘（方塊配重・隨門開度上下：門開拉高儲能、停電落下關門） */
-const lcwWeight=B(.05,.16,.05,M.dark); lcwWeight.castShadow=true; lcwWeight.position.set(lcwSX,1.0,lcwZ); lL.g.add(lcwWeight);
+const lcwWeight=B(.034,.11,.034,M.dark); lcwWeight.castShadow=true; lcwWeight.position.set(lcwSX,1.0,lcwZ); lL.g.add(lcwWeight);
 addLabel(lcwWeight,'乘場門重錘（自重透過鋼索把乘場門拉回關閉）', -.1, .12, 0);
 /* 金屬方管：套住重錘、導引上下、防重錘跑出（中空四壁・開頂讓鋼索進、M.hangerX 銀色且 X-ray 可透視看到管內重錘） */
-const lcwTW=.066, lcwTt=.006, lcwTYC=1.0, lcwTH=1.3;
+const lcwTW=.046, lcwTt=.005, lcwTYC=1.0, lcwTH=1.05;
 const lcwTubeL=B(lcwTt,lcwTH,lcwTW,M.hangerX); lcwTubeL.position.set(lcwSX-lcwTW/2+lcwTt/2, lcwTYC, lcwZ); lL.g.add(lcwTubeL);
 const lcwTubeR=B(lcwTt,lcwTH,lcwTW,M.hangerX); lcwTubeR.position.set(lcwSX+lcwTW/2-lcwTt/2, lcwTYC, lcwZ); lL.g.add(lcwTubeR);
 const lcwTubeB=B(lcwTW,lcwTH,lcwTt,M.hangerX); lcwTubeB.position.set(lcwSX, lcwTYC, lcwZ-lcwTW/2+lcwTt/2); lL.g.add(lcwTubeB);
@@ -893,18 +898,39 @@ LAYERS.forEach(L=>LAYER_STATE[L.key]='mesh');   // 預設：只顯示元件、�
 const OBJ2LAYER=new Map();
 LAYERS.forEach(L=>L.mesh.forEach(m=>m&&OBJ2LAYER.set(m,L)));
 labels.forEach(lb=>{ let p=lb.parent, L=null; while(p){ if(OBJ2LAYER.has(p)){L=OBJ2LAYER.get(p);break;} p=p.parent; } lb.userData.L=L; });
+/* ---- 門別隔離：只看車廂門 / 只看乘場門 ---- */
+let ISO=null;   // null=全部、'car'=只看車廂門、'land'=只看乘場門
+// 車廂門組 = hL/hR 門組（含吊板/羽棒/皮帶座/門腳/安全門邊）+ 場景級操作器（馬達/皮帶/控制板/機座板/車廂門軌/車廂地坎護板/GS開關/OLT/CLT）
+const CAR_TOPS=[motorG,motorBracket,dorBox,beltUp,beltDn,teethUp,teethDn,dp.g,ip.g,basePlate,railMesh,carSill,carApron,gsG,swOpen.g,swClose.g];
+// 乘場門組 = lL/lR 門組（含吊板/重錘/連動鋼索/引上棒/鑰匙孔）+ 場景級鎖機構（鎖座/接點/短路棒/連動索輪）+ 門楣/乘場門軌/乘場地坎護板
+const LAND_TOPS=[lndSill,lndApron,lndHeader,lndRailMesh,kBkt,keeper,contactBase,cPin1,lockLED,shortBar,cordPulL,cordPulR];
+function doorOf(o){
+  for(let p=o;p;p=p.parent){ if(p===hL.g||p===hR.g) return 'car'; if(p===lL.g||p===lR.g) return 'land'; }
+  if(CAR_TOPS.includes(o)) return 'car';
+  if(LAND_TOPS.includes(o)) return 'land';
+  return null;
+}
 function applyLayers(){
   for(const L of LAYERS){
     if(L.gated) continue;                       // 安全裝置＝防夾模式控管，交給 syncSafetyVis
     const off = LAYER_STATE[L.key]==='off';
-    for(const m of L.mesh) if(m) m.visible=!off;
+    for(const m of L.mesh){ if(!m) continue;
+      const d=doorOf(m), isoHide=(ISO==='car'&&d==='land')||(ISO==='land'&&d==='car');
+      m.visible = !off && !isoHide;
+    }
   }
+  // 門組整體可見性（未列入圖層的子件靠父組連動隱藏/還原）
+  hL.g.visible=hR.g.visible=(ISO!=='land');
+  lL.g.visible=lR.g.visible=(ISO!=='car');
   for(const lb of labels){
     const L=lb.userData.L;
     if(!L || L.gated) continue;
     lb.visible = (LAYER_STATE[L.key]==='full');
   }
   syncSafetyVis();
+  // 隔離時：掛在被隱藏零件上的標籤也一併關掉（CSS2D 不會隨父組自動隱藏）
+  for(const lb of labels){ if(!lb.visible) continue;
+    for(let p=lb.parent;p;p=p.parent){ if(p.visible===false){ lb.visible=false; break; } } }
 }
 
 /* ============ UI ============ */
@@ -990,7 +1016,7 @@ ui.prev.onclick=()=>{ const i=stepOf(T);
   T=STEPS[target].t0+0.01; forceStep(); };
 ui.next.onclick=()=>{ const i=stepOf(T); T=STEPS[Math.min(STEPS.length-1,i+1)].t0+0.01; forceStep(); };
 ui.speed.onclick=()=>{ speedIdx=(speedIdx+1)%SPEEDS.length; ui.speed.textContent=`速度 ${SPEEDS[speedIdx]}×`; };
-const XRAY_MATS=[[M.panel,.34],[M.landing,.30],[M.plateX,.30],[M.hangerX,.38]];
+const XRAY_MATS=[[M.panel,.34],[M.landing,.30],[M.plateX,.12],[M.hangerX,.20],[M.headerX,.14],[M.railX,.16],[M.sill,.16]];
 ui.xray.onclick=()=>{
   const solid = M.panel.opacity<.9;
   for(const [m,op] of XRAY_MATS){
@@ -1039,11 +1065,11 @@ const btnLayers=document.getElementById('btnLayers');
 const layerPanel=document.getElementById('layerPanel');
 const LY_STATES=[['full','標籤＋元件'],['mesh','只元件'],['off','隱藏']];
 const lyRows=[];
-function lyRow(name, getState, setState, head){
+function lyRow(name, getState, setState, head, states){
   const row=document.createElement('div'); row.className='lyRow'+(head?' head':'');
   const nm=document.createElement('div'); nm.className='nm'; nm.textContent=name; row.appendChild(nm);
   const seg=document.createElement('div'); seg.className='lySeg'; const btns={};
-  for(const [st,lab] of LY_STATES){
+  for(const [st,lab] of (states||LY_STATES)){
     const b=document.createElement('button'); b.textContent=lab;
     b.onclick=()=>{ setState(st); refreshLayerPanel(); };
     seg.appendChild(b); btns[st]=b;
@@ -1053,6 +1079,10 @@ function lyRow(name, getState, setState, head){
 layerPanel.appendChild(lyRow('全部', ()=>{
   const v=new Set(LAYERS.map(L=>LAYER_STATE[L.key])); return v.size===1?[...v][0]:null;
 }, st=>{ LAYERS.forEach(L=>LAYER_STATE[L.key]=st); applyLayers(); }, true));
+// 門別隔離：全部 / 只看車廂門 / 只看乘場門
+layerPanel.appendChild(lyRow('🔍 單獨檢視', ()=>ISO||'all',
+  st=>{ ISO=(st==='all')?null:st; applyLayers(); }, true,
+  [['all','全部'],['car','車廂門'],['land','乘場門']]));
 for(const L of LAYERS){
   layerPanel.appendChild(lyRow(L.name, ()=>LAYER_STATE[L.key], st=>{ LAYER_STATE[L.key]=st; applyLayers(); }));
 }
@@ -1079,14 +1109,14 @@ addEventListener('resize',resize); resize();
 /* ============ 鑰匙緊急開鎖示範：鑰匙→引上棒→閉鎖器→外門可扒開 ============ */
 let keyDemo=-1, keyDemoOn=false;
 const KD_STEPS=[
-  [0.00,'① 把外門開關鑰匙插入乘場門鑰匙孔、轉動'],
-  [0.20,'② 鑰匙凸輪頂起「引上棒」'],
-  [0.45,'③ 引上棒頂起「閉鎖器」→ 掛鉤離開鎖座銷＝解鎖（門接點同時斷、DS 失電）'],
+  [0.00,'① 把外門開關鑰匙插入乘場門鑰匙孔（只插入・不轉動）'],
+  [0.20,'② 鑰匙往上頂起「引上棒」（向上抬一點點即可）'],
+  [0.45,'③ 引上棒抬起「閉鎖器」→ 掛鉤離開鎖座銷＝解鎖（門接點同時斷、DS 失電）'],
   [0.70,'④ 鎖已解開 → 從乘場（外）側就能用手把外門扒開'],
 ];
 const btnKey=document.getElementById('btnKey');
 function resetKeyDemoParts(){
-  keyTool.visible=false; keyTool.rotation.z=0;
+  keyTool.visible=false; keyTool.rotation.z=0; keyTool.position.y=1.90;
   liftRod.position.y=2.13; liftRodTop.position.y=2.33;
   shortBar.position.x=-.255;
 }
@@ -1106,18 +1136,19 @@ function updateKeyDemo(kd){
   const dLnd=0.5*e4;
   hL.g.position.x=-(PANEL_W/2); hR.g.position.x=(PANEL_W/2);
   lL.g.position.x=-(PANEL_W/2)-TRAVEL*dLnd; lR.g.position.x=(PANEL_W/2)+TRAVEL*dLnd;
-  /* ① 鑰匙插入轉動 */
-  keyTool.visible=true; keyTool.rotation.z=-1.6*e1;
-  /* ② 引上棒被鑰匙凸輪頂起 */
-  const up=0.06*e2; liftRod.position.y=2.13+up; liftRodTop.position.y=2.33+up;
-  /* ③ 引上棒頂起閉鎖器解鎖（掛鉤抬起・滾輪被頂回正） */
-  hookG.rotation.z=.50*e3;
+  /* ① 鑰匙插入鑰匙孔（只插入、不轉動） */
+  keyTool.visible=true; keyTool.rotation.z=0;
+  /* ② 鑰匙頂著引上棒往上抬一點點（小行程・不是轉開、不是抬很多） */
+  const up=0.018*e2; liftRod.position.y=2.13+up; liftRodTop.position.y=2.33+up;
+  keyTool.position.y=1.90+up;        // 鑰匙頂著引上棒一起略升
+  /* ③ 引上棒抬起閉鎖器解鎖（掛鉤小幅抬起・滾輪被頂回正） */
+  hookG.rotation.z=.22*e3;
   lockRollerG.rotation.z=-0.30*(1-e3);
   /* 短路棒離開門接點 → DS 斷電（LED 滅） */
   shortBar.position.x=-.255 - .022*e3;
   lockLED.material.emissive.setHex(0x000000); lockLED.material.emissiveIntensity=0;
   /* 羽棒維持釋放（車不在） */
-  bladeL.position.x=-(.040+.026); bladeR.position.x=(.040+.026);
+  bladeL.position.x=-.040; bladeR.position.x=(.040+.095);   // 釋放：固定羽瓣定位、可動羽瓣大幅外擺
   /* 乘場門重錘隨門開拉高 */
   const lwy=0.5+0.95*dLnd; lcwWeight.position.y=lwy;
   const lrp=lcwRopeGeo.attributes.position.array;
@@ -1148,10 +1179,11 @@ function update(){
   for(const r of lL.rollers) r.rotation.z= (TRAVEL*d)/.042;
   for(const r of lR.rollers) r.rotation.z=-(TRAVEL*d)/.042;
 
-  bladeL.position.x=-(.040+.026*(1-clamp));   // 夾合=貼在垂直滾輪堆兩側(不穿插)；放開=往外開
-  bladeR.position.x= (.040+.026*(1-clamp));
-  linkL.rotation.z= .3*clamp;
-  linkR.rotation.z=-.3*clamp;
+  // 一動一固定（依實照 IMG_9636）：左羽瓣固定當夾合基準、右羽瓣擺動過去夾合/讓位
+  bladeL.position.x=-.040;                      // 固定羽瓣：定位不動
+  bladeR.position.x= (.040+.095*(1-clamp));     // 可動羽瓣：夾合貼驅動輪 / 放開往外大幅擺出讓位（擺幅加大、易辨識一動一固定）
+  linkL.rotation.z= .3;                         // 固定羽瓣連桿定位
+  linkR.rotation.z=-.3*clamp;                   // 可動羽瓣連桿隨夾合
 
   hookG.rotation.z=.30*hOpen;
   lockRollerG.rotation.z=-0.30*(1-clamp);   // 鎖輪原地旋轉：羽棒夾住(門開)垂直、放開(關門)傾斜
@@ -1252,8 +1284,7 @@ window.__setT=v=>{T=v;forceStep();update();};
 window.__pause=()=>{playing=false;ui.play.textContent='▶ 播放';};
 window.__state=()=>({T,d:dOf(T),step:stepOf(T),sig:sig(T)});
 window.__setCam=(p,t)=>{camera.position.set(...p);controls.target.set(...t);};
-window.__world=o=>{const v=new THREE.Vector3();({hook:hookBody,keeper,bridge,pin1:cPin1,blade:bladeLMesh,roller:cR1,gscam:gsCam,gssw:gsBody}[o]).getWorldPosition(v);return v.toArray();};
-/* 零件側別稽核：名字(車門/廳門) vs 實際掛載(hL/hR=車門・lL/lR=廳門) + 世界Z */
+window.__world=o=>{const v=new THREE.Vector3();({hook:hookBody,keeper,bridge,pin1:cPin1,blade:bladeLMesh,roller:cR1,gscam:gsCam,gssw:gsBody}[o]).getWorldPosition(v);return v.toArray();};/* 零件側別稽核：名字(車門/廳門) vs 實際掛載(hL/hR=車門・lL/lR=廳門) + 世界Z */
 window.__sideAudit=()=>{
   const v=new THREE.Vector3();
   const carN=/車廂|車門|轎門|轎廂/, lndN=/乘場|廳門|外門/;
