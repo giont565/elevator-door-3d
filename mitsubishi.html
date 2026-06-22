@@ -695,7 +695,7 @@ addLabel(bladeRMesh,'活動羽瓣（固定・夾合基準）', .26, 0, 0);
 const lndHeader = B(2.5,.34,.03,M.headerX); lndHeader.position.set(0,2.30,-.315); scene.add(lndHeader);
 addLabel(lndHeader,'乘場門門楣（每層樓一套）', .21, .9, 0);
 const lndRailMesh = extrude([[0,0],[.026,0],[.026,.028],[.013,.04],[0,.028]], 2.34, M.railX);
-lndRailMesh.rotation.y=Math.PI/2; lndRailMesh.position.set(-1.17, 2.19, -.22); scene.add(lndRailMesh);   // 前移貼近門板平面、與滾輪緊湊不留大縫
+lndRailMesh.rotation.y=Math.PI/2; lndRailMesh.position.set(-1.17, 2.2775, -.22); scene.add(lndRailMesh);   // 高度對齊車廂門軌(2.2775)、前移貼近門板平面
 function lndHanger(side){
   const g=new THREE.Group(); scene.add(g);
   const plate=extrude([[-.22,-.18],[.22,-.18],[.22,.08],[.18,.12],[-.18,.12],[-.22,.08]], .011, M.hangerX, [[0,-.02,.03]]);
