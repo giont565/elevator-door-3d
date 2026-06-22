@@ -688,8 +688,8 @@ sectorPlate.position.set(.02,.225,-.052); vaneG.add(sectorPlate);   // 實心扇
 const sectorHub = CYL(.013,.034,M.dark); sectorHub.position.set(.02,.225,-.045); vaneG.add(sectorHub);
 const sectorHole = CYL(.006,.038,M.dark); sectorHole.position.set(-.04,.195,-.045); vaneG.add(sectorHole);
 addLabel(sectorPlate,'扇形轉盤／羽棒支臂（推動活動羽棒伸出/收回）', .10, -.05, 0);
-addLabel(bladeRMesh,'車廂門活動羽瓣（可動・扇形轉盤推動・夾乘場門驅動輪）', .26, 0, 0);
-addLabel(bladeLMesh,'活動羽瓣（固定・夾合基準）', -.26, 0, 0);
+addLabel(bladeLMesh,'車廂門活動羽瓣（可動・扇形轉盤推動・夾乘場門驅動輪）', -.26, 0, 0);
+addLabel(bladeRMesh,'活動羽瓣（固定・夾合基準）', .26, 0, 0);
 
 /* ---- 乘場門總成 ---- */
 const lndHeader = B(2.5,.34,.03,M.headerX); lndHeader.position.set(0,2.30,-.315); scene.add(lndHeader);
@@ -1148,7 +1148,7 @@ function updateKeyDemo(kd){
   shortBar.position.x=-.005 - .022*e3;
   lockLED.material.emissive.setHex(0x000000); lockLED.material.emissiveIntensity=0;
   /* 羽棒維持釋放（車不在） */
-  bladeL.position.x=-.040; bladeR.position.x=(.040+.095);   // 釋放：固定羽瓣定位、可動羽瓣大幅外擺
+  bladeL.position.x=-(.040+.095); bladeR.position.x=.040;   // 釋放：可動羽瓣(左)大幅外擺、固定羽瓣(右)定位
   /* 乘場門重錘隨門開拉高 */
   const lwy=0.5+0.95*dLnd; lcwWeight.position.y=lwy;
   const lrp=lcwRopeGeo.attributes.position.array;
@@ -1179,11 +1179,11 @@ function update(){
   for(const r of lL.rollers) r.rotation.z= (TRAVEL*d)/.042;
   for(const r of lR.rollers) r.rotation.z=-(TRAVEL*d)/.042;
 
-  // 一動一固定（依實照 IMG_9636）：左羽瓣固定當夾合基準、右羽瓣擺動過去夾合/讓位
-  bladeL.position.x=-.040;                      // 固定羽瓣：定位不動
-  bladeR.position.x= (.040+.095*(1-clamp));     // 可動羽瓣：夾合貼驅動輪 / 放開往外大幅擺出讓位（擺幅加大、易辨識一動一固定）
-  linkL.rotation.z= .3;                         // 固定羽瓣連桿定位
-  linkR.rotation.z=-.3*clamp;                   // 可動羽瓣連桿隨夾合
+  // 一動一固定（依 user 校正：可動在左、固定在右）：車門往左開、固定刀在後緣(右)承載拖曳力、可動刀(左)擺動讓位
+  bladeL.position.x=-(.040+.095*(1-clamp));     // 可動羽瓣：夾合貼驅動輪 / 放開往左外擺讓位
+  bladeR.position.x= .040;                      // 固定羽瓣：定位不動、當夾合基準（開行後緣側）
+  linkL.rotation.z= .3*clamp;                   // 可動羽瓣連桿隨夾合
+  linkR.rotation.z=-.3;                         // 固定羽瓣連桿定位
 
   hookG.rotation.z=.30*hOpen;
   lockRollerG.rotation.z=-0.30*(1-clamp);   // 鎖輪原地旋轉：羽棒夾住(門開)垂直、放開(關門)傾斜
