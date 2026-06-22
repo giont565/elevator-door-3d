@@ -339,6 +339,8 @@ const camera = new THREE.PerspectiveCamera(46, 1, 0.05, 50);
 camera.position.set(0.4, 1.9, 4.4);
 
 const renderer = new THREE.WebGLRenderer({antialias:true});
+window.renderer = renderer;
+window.__forceSize = (w,h) => { renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); };
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
