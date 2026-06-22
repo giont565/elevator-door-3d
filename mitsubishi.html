@@ -648,12 +648,12 @@ const beamMat=new THREE.LineBasicMaterial({color:0x37d67a, transparent:true, opa
 const beams=new THREE.LineSegments(beamGeo,beamMat); scene.add(beams);
 
 /* ---- 門刀（兩片導入斜角刀片＋平行連桿＋拉簧）---- */
-const vaneG = new THREE.Group(); vaneG.position.set(0, 2.20, .03); hL.g.add(vaneG);  // 門刀位置較高（夾門楣高度的垂直雙滾輪・依改造文件實照）
+const vaneG = new THREE.Group(); vaneG.position.set(.25, 2.20, .03); hL.g.add(vaneG);  // 活動羽瓣在「兩門接合正中央」(hL.g 局部 +.25 → 關門時 world x≈0，依官方結構圖 Fig4-1)・整組互鎖隨之置中
 const vaneMount = extrude([[-.09,-.05],[.09,-.05],[.09,.05],[-.09,.05]], .014, M.dark, [[-.06,0,.008],[.06,0,.008]]);
 vaneMount.position.set(0,.18,-.014); vaneG.add(vaneMount);
 function vaneBlade(){
   // 刀片輪廓：上下端導入斜角（六角長條），厚 12mm；旋轉後輪廓寬度落在 Z（±.08）
-  const b=extrude([[-.08,-.13],[-.03,-.18],[.03,-.18],[.08,-.13],[.08,.13],[.03,.18],[-.03,.18],[-.08,.13]], .012, M.vane);
+  const b=extrude([[-.07,-.35],[-.03,-.40],[.03,-.40],[.07,-.35],[.07,.13],[.03,.18],[-.03,.18],[-.07,.13]], .012, M.vane);  // 直立長刀片：往下延伸到 world y≈1.80、底端導入斜角(依結構圖 Fig4-1)
   b.rotation.y=Math.PI/2;   // 厚度轉向 X、輪廓落在 YZ 面
   const g=new THREE.Group(); b.position.set(-.006,0,0); g.add(b);
   return g;
@@ -724,22 +724,22 @@ addLabel(lR.antiDrops[0],'乘場門吊板防脫離裝置（卡門軌下緣・防
 addLabel(lL.panel,'外門板／乘場門（被活動羽棒帶動）', -.5, -.1, -.02);
 /* 外門開關鑰匙孔（乘場門上的緊急開鎖孔・隨左乘場門・在門楣下方乘場門板上） */
 const keyEsc = new THREE.Mesh(new THREE.CylinderGeometry(.02,.02,.008,20), M.steel);
-keyEsc.rotation.x=Math.PI/2; keyEsc.position.set(.075,1.90,-.197); lL.g.add(keyEsc);   // 對齊引上棒正下方
-const keyHole = B(.004,.014,.014,M.dark); keyHole.position.set(.075,1.90,-.205); lL.g.add(keyHole);
+keyEsc.rotation.x=Math.PI/2; keyEsc.position.set(.325,1.90,-.197); lL.g.add(keyEsc);   // 對齊引上棒正下方（互鎖整組置中 +.25）
+const keyHole = B(.004,.014,.014,M.dark); keyHole.position.set(.325,1.90,-.205); lL.g.add(keyHole);
 addLabel(keyEsc,'乘場門開關鑰匙孔（緊急開鎖・對引上棒）', -.30, 0, -.02, true);
 /* 緊急開鎖鑰匙（平常隱藏・示範時插入後往上頂引上棒・不轉動） */
-const keyTool=new THREE.Group(); keyTool.position.set(.075,1.90,-.16); keyTool.visible=false; lL.g.add(keyTool);
+const keyTool=new THREE.Group(); keyTool.position.set(.325,1.90,-.16); keyTool.visible=false; lL.g.add(keyTool);
 { const shaft=CYL(.005,.07,M.steel); shaft.rotation.x=Math.PI/2; keyTool.add(shaft);
   const bow=new THREE.Mesh(new THREE.TorusGeometry(.018,.005,8,18),M.steel); bow.position.z=.04; keyTool.add(bow);
   const bit=B(.005,.016,.004,M.steel); bit.position.set(0,-.009,-.024); keyTool.add(bit); }
 /* 引上棒：鑰匙孔上提時頂起閉鎖器解鎖（縱桿・連鑰匙孔到閉鎖器） */
-const liftRod = B(.012,.42,.012,M.steel); liftRod.position.set(.075,2.13,-.20); lL.g.add(liftRod);
-const liftRodTop = B(.03,.012,.014,M.steel); liftRodTop.position.set(.04,2.33,-.20); lL.g.add(liftRodTop);
+const liftRod = B(.012,.42,.012,M.steel); liftRod.position.set(.325,2.13,-.20); lL.g.add(liftRod);
+const liftRodTop = B(.03,.012,.014,M.steel); liftRodTop.position.set(.29,2.33,-.20); lL.g.add(liftRodTop);
 addLabel(liftRod,'引上棒（鑰匙孔上提→頂起閉鎖器解鎖）', -.24, .06, .04);
 
 /* ---- 三菱型乘場門鎖總成（依改造文件實photo）----
    鍍鋅鈑金鉤臂＋「垂直排列」雙開鎖滾輪（門刀夾這兩顆）＋彈簧＋接點開關 */
-const hookG = new THREE.Group(); hookG.position.set(-.045, 2.34, -.255); lL.g.add(hookG);
+const hookG = new THREE.Group(); hookG.position.set(.205, 2.34, -.255); lL.g.add(hookG);
 /* 鉤臂：縱向鍍鋅板，上端右伸鉤指（鉤口朝下咬鎖座銷），下端壓接點開關 */
 const hookBody = extrude(
   [[-.025,.09],[.105,.09],[.105,.052],[.078,.052],[.078,.030],[.030,.028],
@@ -758,7 +758,7 @@ function lockRoller(){
 /* 鎖輪掛在乘場門(lL.g)、以堆疊中心原地旋轉：位置固定不位移(羽棒對位不偏)，
    羽棒夾住(門開)時兩滾輪垂直、放開(關門鎖閉)時傾斜。旋轉在動畫迴圈設定。 */
 const lockRollerG = new THREE.Group();
-lockRollerG.position.set(0, 2.265, -.105); lL.g.add(lockRollerG);
+lockRollerG.position.set(.25, 2.265, -.105); lL.g.add(lockRollerG);
 const cR1=lockRoller(); cR1.position.set(0, .030, 0); lockRollerG.add(cR1);
 const cR2=lockRoller(); cR2.position.set(0,-.030, 0); lockRollerG.add(cR2);
 const stand1=B(.011,.011,.145,M.steel); stand1.position.set(0, .030,-.0775); lockRollerG.add(stand1);
@@ -775,18 +775,18 @@ addLabel(cR1,'乘場門驅動輪×2（上下排・被活動羽瓣推成垂直＝
 const bridge = B(.034,.012,.022,M.copper); bridge.position.set(.004,-.146,-.03); hookG.add(bridge);
 addLabel(hookBody,'門閉鎖器（彈簧鉤・羽棒放開即落下鎖住乘場門）', .14, .04, 0);
 /* 鎖座銷（固定於門楣，鉤口咬這支） */
-const kBkt = B(.026,.04,.014,M.steel); kBkt.position.set(-.2035,2.42,-.296); scene.add(kBkt);
-const keeper = CYL(.010,.044,M.steel); keeper.position.set(-.2035,2.392,-.282); scene.add(keeper);
+const kBkt = B(.026,.04,.014,M.steel); kBkt.position.set(.0465,2.42,-.296); scene.add(kBkt);
+const keeper = CYL(.010,.044,M.steel); keeper.position.set(.0465,2.392,-.282); scene.add(keeper);
 addLabel(keeper,'鎖座銷（固定於門楣）', .05, .05, 0);
 /* DS 接點開關（黑色開關盒＋按鈕，臂尾壓塊壓上＝導通） */
-const contactBase = B(.05,.036,.03,M.belt); contactBase.position.set(-.291,2.156,-.285); scene.add(contactBase);
-const cPin1 = CYL(.006,.014,M.copper); cPin1.rotation.x=Math.PI/2; cPin1.position.set(-.291,2.181,-.285); scene.add(cPin1);
+const contactBase = B(.05,.036,.03,M.belt); contactBase.position.set(-.041,2.156,-.285); scene.add(contactBase);
+const cPin1 = CYL(.006,.014,M.copper); cPin1.rotation.x=Math.PI/2; cPin1.position.set(-.041,2.181,-.285); scene.add(cPin1);
 const lockLED = new THREE.Mesh(new THREE.SphereGeometry(.012,16,16),
   new THREE.MeshStandardMaterial({color:0x333a42, emissive:0x000000}));
-lockLED.position.set(-.291,2.118,-.275); scene.add(lockLED);
+lockLED.position.set(-.041,2.118,-.275); scene.add(lockLED);
 addLabel(contactBase,'乘場門門接點（DS・電器接點・串入安全迴路）', -.06, -.10, 0, true);
 /* 短路棒：閉鎖器臂尾銅棒・門全閉時與門接點接觸＝迴路導通 */
-const shortBar = B(.032,.007,.008,M.copper); shortBar.position.set(-.255,2.178,-.272); scene.add(shortBar);
+const shortBar = B(.032,.007,.008,M.copper); shortBar.position.set(-.005,2.178,-.272); scene.add(shortBar);
 addLabel(shortBar,'乘場門閉鎖器短路棒（碰門接點＝迴路導通）', .05, .10, .04, true);
 
 /* ---- 乘場門連動鋼索（兩扇乘場門等速連動・依改造文件照片）---- */
@@ -1118,7 +1118,7 @@ const btnKey=document.getElementById('btnKey');
 function resetKeyDemoParts(){
   keyTool.visible=false; keyTool.rotation.z=0; keyTool.position.y=1.90;
   liftRod.position.y=2.13; liftRodTop.position.y=2.33;
-  shortBar.position.x=-.255;
+  shortBar.position.x=-.005;
 }
 btnKey.onclick=()=>{
   keyDemoOn=!keyDemoOn;
@@ -1145,7 +1145,7 @@ function updateKeyDemo(kd){
   hookG.rotation.z=.22*e3;
   lockRollerG.rotation.z=-0.30*(1-e3);
   /* 短路棒離開門接點 → DS 斷電（LED 滅） */
-  shortBar.position.x=-.255 - .022*e3;
+  shortBar.position.x=-.005 - .022*e3;
   lockLED.material.emissive.setHex(0x000000); lockLED.material.emissiveIntensity=0;
   /* 羽棒維持釋放（車不在） */
   bladeL.position.x=-.040; bladeR.position.x=(.040+.095);   // 釋放：固定羽瓣定位、可動羽瓣大幅外擺
