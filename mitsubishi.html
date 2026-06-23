@@ -654,14 +654,14 @@ const vaneG = new THREE.Group(); vaneG.position.set(.25, 2.20, .03); hL.g.add(va
 const vaneMount = extrude([[-.09,-.05],[.09,-.05],[.09,.05],[-.09,.05]], .014, M.dark, [[-.06,0,.008],[.06,0,.008]]);
 vaneMount.position.set(0,.18,-.014); vaneG.add(vaneMount);
 function vaneBlade(){
-  // 刀片輪廓：上下端導入斜角；旋轉後 Z 深 6cm（±.030）、X 厚 8mm、高 58cm
-  const b=extrude([[-.030,-.35],[-.012,-.40],[.012,-.40],[.030,-.35],[.030,.13],[.012,.18],[-.012,.18],[-.030,.13]], .008, M.vane);
+  // 正面看：X面寬5cm(extrude depth .050)、Z深2cm(contour X ±.010)、高58cm
+  const b=extrude([[-.010,-.35],[-.005,-.40],[.005,-.40],[.010,-.35],[.010,.13],[.005,.18],[-.005,.18],[-.010,.13]], .050, M.vane);
   b.rotation.y=Math.PI/2;
-  const g=new THREE.Group(); b.position.set(-.004,0,0); g.add(b);
+  const g=new THREE.Group(); b.position.set(-.025,0,0); g.add(b);  // 置中
   return g;
 }
-const bladeL = vaneBlade(); bladeL.position.set(-.03,0,-.085); vaneG.add(bladeL);
-const bladeR = vaneBlade(); bladeR.position.set( .03,0,-.085); vaneG.add(bladeR);
+const bladeL = vaneBlade(); bladeL.position.set(-.040,0,-.135); vaneG.add(bladeL);  // 可動（左）
+const bladeR = vaneBlade(); bladeR.position.set( .040,0,-.135); vaneG.add(bladeR);  // 固定（右）
 const bladeLMesh = bladeL.children[0], bladeRMesh = bladeR.children[0];
 function vaneArm(){
   const g=new THREE.Group();
@@ -753,7 +753,7 @@ const pivotPin = CYL(.011,.026,M.dark); pivotPin.position.set(0,.0,0); hookG.add
 /* 垂直雙開鎖滾輪（上下排列・伸向車側給門刀夾） */
 function lockRoller(){
   const g=new THREE.Group();
-  const tire=CYL(.032,.022,M.pu); g.add(tire);
+  const tire=CYL(.013,.022,M.pu); g.add(tire);  // 直徑2.6cm，配合3cm刀片縫
   const hub=CYL(.011,.03,M.steel); g.add(hub);
   const nut=HEX(.007,.007); nut.position.z=.017; g.add(nut);
   return g;
@@ -1151,7 +1151,7 @@ function updateKeyDemo(kd){
   shortBar.position.x=-.005 - .022*e3;
   lockLED.material.emissive.setHex(0x000000); lockLED.material.emissiveIntensity=0;
   /* 羽棒維持釋放（車不在） */
-  bladeL.position.x=-.040; bladeR.position.x=(.040+.095);   // 釋放：固定羽瓣(左)定位、可動羽瓣(右)大幅外擺
+  bladeR.position.x=+.040; bladeL.position.x=-(.040+.095);  // 釋放：固定羽瓣(右)定位、可動羽瓣(左)大幅外擺
   /* 乘場門重錘隨門開拉高 */
   const lwy=0.5+0.95*dLnd; lcwWeight.position.y=lwy;
   const lrp=lcwRopeGeo.attributes.position.array;
@@ -1182,12 +1182,12 @@ function update(){
   for(const r of lL.rollers) r.rotation.z= (TRAVEL*d)/.042;
   for(const r of lR.rollers) r.rotation.z=-(TRAVEL*d)/.042;
 
-  // 一動一固定（依 user 標註 IMG_9636：可動羽瓣+聯軸器在馬達對側=右、固定羽瓣在馬達側=左）
-  bladeL.position.x=-.040;                      // 固定羽瓣（馬達側/左）：定位不動、當夾合基準
-  bladeR.position.x= (.040+.095*(1-clamp));     // 可動羽瓣（馬達對側/右）：聯軸器帶動・夾合貼驅動輪/放開往右外擺
-  linkL.rotation.z= .3;                         // 固定側連桿定位
-  linkR.rotation.z=-.3*clamp;                   // 可動側連桿隨夾合
-  couplerLink.rotation.z=-0.5*clamp;            // 聯軸器連桿隨夾合擺動・帶動可動羽瓣
+  // 左動右固（user 照片確認：正面看左邊可動、右邊固定）
+  bladeR.position.x= .040;                      // 固定羽瓣（右）：定位不動
+  bladeL.position.x=-(.040+.095*(1-clamp));     // 可動羽瓣（左）：夾合貼驅動輪/放開往左外擺
+  linkR.rotation.z=-.3;                         // 固定側（右）連桿定位
+  linkL.rotation.z= .3*clamp;                   // 可動側（左）連桿隨夾合
+  couplerLink.rotation.z= 0.5*clamp;            // 聯軸器連桿隨夾合擺動
 
   hookG.rotation.z=.30*hOpen;
   lockRollerG.rotation.z=-0.30*(1-clamp);   // 鎖輪原地旋轉：羽棒夾住(門開)垂直、放開(關門)傾斜
