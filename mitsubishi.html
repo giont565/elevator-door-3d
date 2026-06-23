@@ -338,7 +338,7 @@ scene.fog = new THREE.Fog(0x12100f, 7, 16);
 const camera = new THREE.PerspectiveCamera(46, 1, 0.05, 50);
 camera.position.set(0.4, 1.9, 4.4);
 
-const renderer = new THREE.WebGLRenderer({antialias:true});
+const renderer = new THREE.WebGLRenderer({antialias:true, preserveDrawingBuffer:true});
 window.renderer = renderer;
 window.__forceSize = (w,h) => { renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); };
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -1312,6 +1312,14 @@ loop();
 /* 測試掛勾 */
 window.__setT=v=>{T=v;forceStep();update();};
 window.__pause=()=>{playing=false;ui.play.textContent='▶ 播放';};
+window.__setISO=v=>{ISO=(v==='all'?null:v);applyLayers();};
+window.__setKeyDemo=v=>{
+  if(v>=0){keyDemoOn=true;keyDemo=v;playing=false;updateKeyDemo(v);drawSpeed(0);}
+  else{keyDemoOn=false;keyDemo=-1;resetKeyDemoParts();forceStep();}
+  renderer.render(scene,camera);
+};
+window.__grab=()=>{renderer.render(scene,camera);return renderer.domElement.toDataURL('image/png');};
+window.__scene=scene; window.__camera=camera;
 window.__state=()=>({T,d:dOf(T),step:stepOf(T),sig:sig(T)});
 window.__setCam=(p,t)=>{camera.position.set(...p);controls.target.set(...t);};
 window.__world=o=>{const v=new THREE.Vector3();({hook:hookBody,keeper,bridge,pin1:cPin1,blade:bladeLMesh,roller:cR1,gscam:gsCam,gssw:gsBody}[o]).getWorldPosition(v);return v.toArray();};/* 零件側別稽核：名字(車門/廳門) vs 實際掛載(hL/hR=車門・lL/lR=廳門) + 世界Z */
