@@ -449,7 +449,8 @@ const basePlate = B(2.5, .38, .03, M.plateX); basePlate.position.set(0, 2.49, .0
 /* 門導軌：斜頂斷面（滑輪騎在斜頂自動對中） */
 const railMesh = extrude([[0,0],[.03,0],[.03,.032],[.015,.045],[0,.032]], 2.34, M.railX);
 railMesh.rotation.y=Math.PI/2; railMesh.position.set(-1.17, 2.2775, .115); scene.add(railMesh);
-for(const bx of [-.9,-.45,.45,.9]){ const b=HEX(.007,.008); b.position.set(bx,2.296,.119); scene.add(b); }
+const railBolts=[];
+for(const bx of [-.9,-.45,.45,.9]){ const b=HEX(.007,.008); b.position.set(bx,2.296,.119); scene.add(b); railBolts.push(b); }
 const railLbl=new THREE.Object3D(); railLbl.position.set(1.0,2.345,.10); scene.add(railLbl);
 addLabel(railLbl,'門導軌（斜頂斷面）');
 
@@ -496,22 +497,24 @@ const dorPcb = B(.30,.20,.012,M.pcb); dorPcb.position.set(.62,2.52,.205); scene.
 const dorLED = new THREE.Mesh(new THREE.SphereGeometry(.007,12,12),
   new THREE.MeshStandardMaterial({color:0x123018, emissive:0x16c95e, emissiveIntensity:1.2}));
 dorLED.position.set(.74,2.60,.213); scene.add(dorLED);
+const dorScrews=[];
 for(const [bx,by] of [[-.155,.105],[.155,.105],[-.155,-.105],[.155,-.105]]){
-  const b=HEX(.006,.008); b.position.set(.62+bx,2.52+by,.202); scene.add(b);
+  const b=HEX(.006,.008); b.position.set(.62+bx,2.52+by,.202); scene.add(b); dorScrews.push(b);
 }
-for(let i=0;i<5;i++){ const fin=B(.012,.18,.028,M.steel); fin.position.set(.50+i*.06,2.52,.14); scene.add(fin); }
+const dorFins=[];
+for(let i=0;i<5;i++){ const fin=B(.012,.18,.028,M.steel); fin.position.set(.50+i*.06,2.52,.14); scene.add(fin); dorFins.push(fin); }
 const gl1=CYL(.011,.03,M.cable); gl1.rotation.x=Math.PI/2; gl1.position.set(.54,2.39,.175); scene.add(gl1);
 const gl2=CYL(.011,.03,M.cable); gl2.rotation.x=Math.PI/2; gl2.position.set(.70,2.39,.175); scene.add(gl2);
 addLabel(dorBox,'門機控制板（DOR 系列・VVVF）', .17, 0, .03, true);
 
 /* ---- 馬達 → DOR 板 動力出線管 ---- */
-{
+const motorTube=(()=>{
   const pts=[new THREE.Vector3(-1.0,2.615,.26), new THREE.Vector3(-.75,2.685,.21),
              new THREE.Vector3(-.2,2.705,.19),  new THREE.Vector3(.4,2.665,.19),
              new THREE.Vector3(.54,2.41,.18)];
-  const tube=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),48,.0075,10),M.cable);
-  tube.castShadow=true; scene.add(tube);
-}
+  const t=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),48,.0075,10),M.cable);
+  t.castShadow=true; scene.add(t); return t;
+})();
 
 /* ---- 同步齒型帶（齒在內側）---- */
 const beltUp = B(2.0,.012,.034, M.belt); beltUp.position.set(0,2.56,.10); scene.add(beltUp);
@@ -906,15 +909,15 @@ function setFocus(keys){
 
 /* ============ 圖層管理（像 AutoCAD 圖層：每組可切 標籤＋元件 / 只元件 / 隱藏）============ */
 const LAYERS = [
-  {key:'frame',  name:'機座・框架・導軌', mesh:[basePlate,railMesh,lndRailMesh,lndHeader,topBeam,railLbl,swOpen.g,swClose.g,...frameCols]},
-  {key:'drive',  name:'門機馬達・控制板', mesh:[motorG,motorBracket,dorBox]},
+  {key:'frame',  name:'機座・框架・導軌', mesh:[basePlate,railMesh,lndRailMesh,lndHeader,topBeam,railLbl,swOpen.g,swClose.g,...frameCols,...railBolts]},
+  {key:'drive',  name:'門機馬達・控制板', mesh:[motorG,motorBracket,dorBox,dorPcb,dorLED,...dorScrews,...dorFins,gl1,gl2,motorTube]},
   {key:'belt',   name:'連動皮帶傳動',     mesh:[dp.g,ip.g,beltUp,beltDn,teethUp,teethDn,hL.clamp,hL.post,hR.clamp,hR.post]},
   {key:'doors',  name:'門板・吊板・門護弓', mesh:[hL.panel,hL.plate,...hL.rollers,hL.bow,hL.bumper,hR.panel,hR.plate,...hR.rollers,hR.bow,hR.bumper,lL.panel,lL.plate,...lL.rollers,...lL.antiDrops,lR.panel,lR.plate,...lR.rollers,...lR.antiDrops]},
   {key:'vane',   name:'活動羽瓣・聯軸器',   mesh:[vaneG]},
   {key:'lock',   name:'門閉鎖器・鎖機構',  mesh:[lockRollerG,hookG,gsG,gsCam,keeper,kBkt,contactBase,cPin1,lockLED,shortBar,liftRod,liftRodTop,cordPulL,cordPulR,cordClampL,cordClampR,cordRope,keyEsc,keyHole,lcwPul,lcwPulHub,lcwBkt,lcwGuard,lcwWeight,lcwTubeL,lcwTubeR,lcwTubeB,lcwTubeF,lcwRope]},
   {key:'safety', name:'安全裝置（光幕／門邊）', gated:1, mesh:[hL.strip,hR.strip,hL.me,hR.me,beams,...hL.dots,...hR.dots]},
   {key:'sill',   name:'門檻・護板',       mesh:[carSill,lndSill,carApron,lndApron,sillLbl1,sillLbl2]},
-  {key:'env',    name:'環境・示意・EMO',  mesh:[hallF,carF,cart,emoBtn]},
+  {key:'env',    name:'環境・示意・EMO',  mesh:[hallF,carF,cart,emoBtn,emoBase]},
 ];
 const LAYER_STATE={};
 LAYERS.forEach(L=>LAYER_STATE[L.key]='mesh');   // 預設：只顯示元件、標籤全關
@@ -924,7 +927,9 @@ labels.forEach(lb=>{ let p=lb.parent, L=null; while(p){ if(OBJ2LAYER.has(p)){L=O
 /* ---- 門別隔離：只看車廂門 / 只看乘場門 ---- */
 let ISO=null;   // null=全部、'car'=只看車廂門、'land'=只看乘場門
 // 車廂門組 = hL/hR 門組（含吊板/羽棒/皮帶座/門腳/安全門邊）+ 場景級操作器（馬達/皮帶/控制板/機座板/車廂門軌/車廂地坎護板/GS開關/OLT/CLT）
-const CAR_TOPS=[motorG,motorBracket,dorBox,beltUp,beltDn,teethUp,teethDn,dp.g,ip.g,basePlate,railMesh,carSill,carApron,gsG,swOpen.g,swClose.g];
+const CAR_TOPS=[motorG,motorBracket,dorBox,dorPcb,dorLED,...dorScrews,...dorFins,gl1,gl2,motorTube,
+               beltUp,beltDn,teethUp,teethDn,dp.g,ip.g,basePlate,railMesh,...railBolts,
+               carSill,carApron,gsG,swOpen.g,swClose.g,emoBtn,emoBase];
 // 乘場門組 = lL/lR 門組（含吊板/重錘/連動鋼索/引上棒/鑰匙孔）+ 場景級鎖機構（鎖座/接點/短路棒/連動索輪）+ 門楣/乘場門軌/乘場地坎護板
 const LAND_TOPS=[lndSill,lndApron,lndHeader,lndRailMesh,kBkt,keeper,contactBase,cPin1,lockLED,shortBar,cordPulL,cordPulR,cordRope];
 function doorOf(o){
