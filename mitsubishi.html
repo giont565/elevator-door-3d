@@ -654,14 +654,14 @@ const vaneG = new THREE.Group(); vaneG.position.set(.25, 2.20, .03); hL.g.add(va
 const vaneMount = extrude([[-.09,-.05],[.09,-.05],[.09,.05],[-.09,.05]], .014, M.dark, [[-.06,0,.008],[.06,0,.008]]);
 vaneMount.position.set(0,.18,-.014); vaneG.add(vaneMount);
 function vaneBlade(){
-  // 正面看：X面寬5cm(extrude depth .050)、Z深2cm(contour X ±.010)、高58cm
-  const b=extrude([[-.010,-.35],[-.005,-.40],[.005,-.40],[.010,-.35],[.010,.13],[.005,.18],[-.005,.18],[-.010,.13]], .050, M.vane);
+  // 正面看X面寬5cm；Z深10cm(contour X ±.050)讓刀片從聯軸器延伸到滾輪；高58cm
+  const b=extrude([[-.050,-.35],[-.025,-.40],[.025,-.40],[.050,-.35],[.050,.13],[.025,.18],[-.025,.18],[-.050,.13]], .050, M.vane);
   b.rotation.y=Math.PI/2;
-  const g=new THREE.Group(); b.position.set(-.025,0,0); g.add(b);  // 置中
+  const g=new THREE.Group(); b.position.set(-.025,0,0); g.add(b);
   return g;
 }
-const bladeL = vaneBlade(); bladeL.position.set(-.040,0,-.135); vaneG.add(bladeL);  // 可動（左）
-const bladeR = vaneBlade(); bladeR.position.set( .040,0,-.135); vaneG.add(bladeR);  // 固定（右）
+const bladeL = vaneBlade(); bladeL.position.set(-.040,0,-.085); vaneG.add(bladeL);  // 可動（左）
+const bladeR = vaneBlade(); bladeR.position.set( .040,0,-.085); vaneG.add(bladeR);  // 固定（右）
 const bladeLMesh = bladeL.children[0], bladeRMesh = bladeR.children[0];
 function vaneArm(){
   const g=new THREE.Group();
@@ -675,24 +675,24 @@ const linkR = vaneArm(); linkR.position.set( .02,.16,-.02); linkR.rotation.z=-.3
 { // 拉簧（兩刀片頂端之間）
   const pts=[]; const N=90;
   for(let i=0;i<=N;i++){ const u=i/N, a=u*Math.PI*2*7;
-    pts.push(new THREE.Vector3(-.028+.056*u, .21+Math.cos(a)*.006, -.05+Math.sin(a)*.006)); }
+    pts.push(new THREE.Vector3(-.040+.080*u, .16+Math.cos(a)*.006, -.085+Math.sin(a)*.006)); }
   const spring=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),120,.0018,6),M.steel);
   vaneG.add(spring);
 }
 /* ---- 活動羽瓣聯軸器（連桿驅動・取代錯誤的扇形轉盤；依 user 標註 IMG_9636）----
    固定門上臂(固定在車門) → 聯軸器連桿 → 可動羽瓣(右)；連桿隨夾合擺動帶動羽瓣伸縮 */
-const couplerArm = new THREE.Group(); couplerArm.position.set(.175,.255,-.04); vaneG.add(couplerArm);   // 右側(馬達對側)
-{ const a=B(.016,.18,.012,M.steel); a.position.set(.018,-.075,0); a.rotation.z=.42; couplerArm.add(a);   // 斜臂
-  const base=B(.036,.028,.024,M.dark); base.position.set(.05,.03,0); couplerArm.add(base);              // 門上固定座
-  const pin=CYL(.009,.022,M.copper); pin.position.set(-.045,-.145,0); couplerArm.add(pin); }            // 樞軸銷
-addLabel(couplerArm,'聯軸器固定門上臂（固定在車門）', .12, .05, 0);
-const couplerLink = new THREE.Group(); couplerLink.position.set(.125,.12,-.04); vaneG.add(couplerLink);
-{ const rod=B(.011,.13,.008,M.steel); rod.position.set(0,-.055,0); couplerLink.add(rod);                // 連桿
-  const pin1=CYL(.008,.018,M.copper); couplerLink.add(pin1);                                            // 上樞軸
-  const pin2=CYL(.007,.016,M.copper); pin2.position.set(.006,-.115,0); couplerLink.add(pin2); }         // 下樞軸(接可動羽瓣)
-addLabel(couplerLink,'活動羽瓣聯軸器（連桿・帶動可動羽瓣）', .14, -.02, 0);
-addLabel(bladeRMesh,'車廂門活動羽瓣（可動・聯軸器帶動・夾乘場門驅動輪）', .26, 0, 0);
-addLabel(bladeLMesh,'活動羽瓣（固定・夾合基準）', -.26, 0, 0);
+const couplerArm = new THREE.Group(); couplerArm.position.set(-.175,.255,-.06); vaneG.add(couplerArm);  // 左側(可動羽瓣側)
+{ const a=B(.045,.22,.025,M.steel); a.position.set(-.018,-.075,0); a.rotation.z=-.42; couplerArm.add(a); // 斜臂（放大2.5x）
+  const base=B(.09,.06,.05,M.dark); base.position.set(-.05,.03,0); couplerArm.add(base);                // 門上固定座
+  const pin=CYL(.012,.024,M.copper); pin.position.set(.045,-.145,0); couplerArm.add(pin); }             // 樞軸銷
+addLabel(couplerArm,'聯軸器固定門上臂（固定在車門）', -.12, .05, 0);
+const couplerLink = new THREE.Group(); couplerLink.position.set(-.125,.12,-.06); vaneG.add(couplerLink);
+{ const rod=B(.025,.20,.020,M.steel); rod.position.set(0,-.065,0); couplerLink.add(rod);                // 連桿（放大2.5x）
+  const pin1=CYL(.010,.020,M.copper); couplerLink.add(pin1);                                            // 上樞軸
+  const pin2=CYL(.009,.018,M.copper); pin2.position.set(-.006,-.115,0); couplerLink.add(pin2); }        // 下樞軸(接可動羽瓣)
+addLabel(couplerLink,'活動羽瓣聯軸器（連桿・帶動可動羽瓣）', -.14, -.02, 0);
+addLabel(bladeLMesh,'車廂門活動羽瓣（可動・聯軸器帶動・夾乘場門驅動輪）', -.26, 0, 0);
+addLabel(bladeRMesh,'活動羽瓣（固定・夾合基準）', .26, 0, 0);
 
 /* ---- 乘場門總成 ---- */
 const lndHeader = B(2.5,.34,.03,M.headerX); lndHeader.position.set(0,2.30,-.315); scene.add(lndHeader);
