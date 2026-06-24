@@ -696,6 +696,10 @@ const bladeLMesh = bladeL.children[0], bladeRMesh = bladeR.children[0];
    → 2段真的帶動動件、不浮空、跟著一起動。box→編輯模式可調 */
 const coupler1 = new THREE.Group(); coupler1.position.set(.20, .36, -.085); vaneG.add(coupler1);  // 1段樞軸：右側支點（跟左馬達不同側、靠近右邊動件bladeR）
 { const arm1 = B(.15, .028, .016, M.steel); arm1.position.set(-.075, 0, 0); coupler1.add(arm1); } // 1段(長15cm)：從右支點往左伸
+{ // 1段固定端：樞軸銷＋固定座＋立柱 → 接到上方門機機座板（門機構），不簍空
+  const pin = CYL(.013,.034,M.copper); coupler1.add(pin);                                  // 樞軸銷
+  const mnt = B(.05,.06,.022, M.frame); mnt.position.set(.018,.05,.02); coupler1.add(mnt);   // 固定座
+  const stem= B(.022,.13,.022,M.frame); stem.position.set(.018,.12,.045); coupler1.add(stem); } // 立柱：往上接門機機座板(y≈2.49)
 const coupler2 = new THREE.Group(); coupler2.position.set(-.15, 0, 0); coupler1.add(coupler2);     // 2段肘節：接1段末端（被1段拉起）
 { const arm2 = B(.15, .024, .015, M.steel); arm2.position.set(-.075, 0, 0); coupler2.add(arm2); }  // 2段(長15cm)：伸到動件bladeR頂
 const armTip = new THREE.Object3D(); armTip.position.set(-.15, 0, 0); coupler2.add(armTip);         // 2段末端＝動件bladeR接點（接右邊動件、不跨越）
@@ -1199,7 +1203,7 @@ function update(){
   // 動作（已對：bladeR=動件、bladeL=固定件）：固定件不動；動件被聯軸器拉動往左上靠近固定件→兩刀距離變短夾住驅動輪
   bladeL.position.set(-.030, 0, -.085);         // 固定件(左)：不動（夾合基準）
   const _rx = .10 - .07*clamp;                  // 動件 x：放開 +.10 → 夾合 +.03（往左靠固定件、驅動輪置中）
-  const _ry = -.09 + .075*clamp;                // 動件 y：開門被1段拉起上抬
+  const _ry = -.06 + .14*clamp;                 // 動件 y：開門被1段拉起、明顯往上「擠壓上提」（非下垂）
   bladeR.position.set(_rx, _ry, -.085);         // 動件(右)由公式直接驅動
   // 2-link IK：右支點(.20,.36) 兩段各長 .15，反解伸到動件bladeR頂(_rx,_ry+.20) → 2段被1段拉起、真帶動、不跨越固定件
   const _Px=.20, _Py=.36, _L1=.15, _L2=.15, _ux=_Px-_rx, _uy=_Py-(_ry+.20);
