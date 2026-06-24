@@ -23,8 +23,24 @@
   button:hover,a.btn:hover{border-color:var(--accent);color:var(--accent)}
   button.primary{background:var(--accent);color:#2e070a;border-color:var(--accent);font-weight:700}
   button.on{background:#5c1a22;border-color:var(--accent);color:#ffb3b9}
-  #layerWrap{position:relative;display:inline-block}
-  #layerPanel{position:absolute;top:calc(100% + 6px);left:0;z-index:60;display:none;
+  /* ── 下拉群組 ── */
+  .drop-wrap{position:relative;display:inline-block}
+  .drop-btn{display:flex;align-items:center;gap:5px}
+  .drop-btn::after{content:"▾";font-size:10px;opacity:.6;transition:transform .15s}
+  .drop-btn.open::after{transform:rotate(180deg)}
+  .drop-menu{position:absolute;top:calc(100% + 6px);left:0;z-index:70;display:none;
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px;
+    min-width:160px;box-shadow:0 10px 28px rgba(0,0,0,.55);white-space:nowrap}
+  .drop-menu.open{display:block}
+  .drop-menu button,.drop-menu a.btn{display:block;width:100%;text-align:left;margin:2px 0;
+    border-radius:7px;min-height:36px}
+  /* playback group — always visible */
+  .play-group{display:flex;gap:6px;align-items:center;flex:none}
+  /* separator */
+  .ctrl-sep{width:1px;height:22px;background:var(--line);flex:none;margin:0 4px}
+  /* layer panel lives inside display drop-menu */
+  #layerWrap{position:static;display:block}
+  #layerPanel{position:absolute;top:calc(100% + 6px);left:0;z-index:80;display:none;
     background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px;
     min-width:320px;box-shadow:0 10px 28px rgba(0,0,0,.5)}
   #layerPanel.open{display:block}
@@ -101,15 +117,20 @@
   .lbl.code{background:rgba(255,213,140,.95)}
   @media (max-width:980px){ aside{width:330px} }
   @media (max-width:760px){
-    header{padding:8px 10px;gap:8px}
-    header h1{font-size:14px;width:100%;line-height:1.3}
-    .ctrl{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%;padding-bottom:5px;gap:6px}
-    .ctrl::-webkit-scrollbar{height:4px}
-    .ctrl::-webkit-scrollbar-thumb{background:var(--line);border-radius:2px}
-    .ctrl > span{display:none}
-    button,a.btn{flex:none;padding:9px 13px;font-size:13px;min-height:40px}
+    header{padding:8px 10px;gap:6px;flex-wrap:wrap}
+    header h1{font-size:13px;width:100%;line-height:1.3;order:-1}
+    .ctrl{flex-wrap:wrap;gap:5px;width:100%}
+    .ctrl-sep{display:none}
+    .play-group{gap:5px}
+    button,a.btn{padding:9px 11px;font-size:13px;min-height:44px}
+    .play-group button{min-width:44px;padding:9px 10px}
+    /* on mobile, drop menus go full-width and anchor to left edge */
+    .drop-menu{left:0;right:auto;min-width:200px;font-size:13px}
+    .drop-menu button,.drop-menu a.btn{min-height:44px;font-size:13px}
+    /* layer panel: full-width from bottom of its anchor */
+    #layerPanel{min-width:min(340px, 96vw);max-height:55vh;overflow-y:auto}
     main{flex-direction:column}
-    #viewport{flex:none;height:54vh;width:100%}
+    #viewport{flex:none;height:52vh;width:100%}
     aside{width:100%;flex:1 1 auto;border-left:none;border-top:1px solid var(--line)}
     #stepList button{padding:7px 11px;font-size:13px;min-height:34px}
     #detail{padding:12px 13px}
@@ -126,25 +147,67 @@
 <div id="app">
   <header>
     <h1>🛗 三菱電梯門機構 <span>3D 實機版（NexWay 世代）</span></h1>
-    <div class="ctrl">
-      <button id="btnPlay" class="primary">⏸ 暫停</button>
-      <button id="btnPrev">⏮ 上一步</button>
-      <button id="btnNext">下一步 ⏭</button>
-      <button id="btnSpeed">速度 1×</button>
-      <span style="width:8px"></span>
-      <button id="camAll" class="on">全景</button>
-      <button id="camMachine">門機特寫</button>
-      <button id="camLock">羽棒／門閉鎖器特寫</button>
-      <button id="camSide">側面剖視</button>
-      <span style="width:8px"></span>
-      <button id="btnXray" class="on">X-ray 透視</button>
-      <span id="layerWrap"><button id="btnLayers">▦ 圖層</button><div id="layerPanel"></div></span>
-      <button id="btnSafety">🚧 防夾示範（光幕擋門反轉）</button>
-      <button id="btnKey">🔑 鑰匙緊急開鎖</button>
-      <button id="btnBom">📋 真實零件表</button>
-      <a class="btn" href="index.html">↩ 教學版</a>
-      <a class="btn" href="fujitec.html">🟠 富士達</a>
-      <a class="btn" href="kone.html">🔵 通力</a>
+    <div class="ctrl" id="ctrlBar">
+      <!-- ① 播放控制（常駐） -->
+      <div class="play-group">
+        <button id="btnPlay" class="primary">⏸ 暫停</button>
+        <button id="btnPrev">⏮ 上一步</button>
+        <button id="btnNext">下一步 ⏭</button>
+        <button id="btnSpeed">速度 1×</button>
+      </div>
+
+      <div class="ctrl-sep"></div>
+
+      <!-- ② 📷 鏡頭 -->
+      <div class="drop-wrap" id="dropCam">
+        <button class="drop-btn" id="dropCamBtn" aria-haspopup="true" aria-expanded="false">📷 鏡頭</button>
+        <div class="drop-menu" id="dropCamMenu" role="menu">
+          <button id="camAll" class="on">🌐 全景</button>
+          <button id="camMachine">🔩 門機特寫</button>
+          <button id="camLock">🔒 羽棒／門閉鎖器特寫</button>
+          <button id="camSide">📐 側面剖視</button>
+        </div>
+      </div>
+
+      <!-- ③ 👁 顯示 -->
+      <div class="drop-wrap" id="dropDisplay">
+        <button class="drop-btn" id="dropDisplayBtn" aria-haspopup="true" aria-expanded="false">👁 顯示</button>
+        <div class="drop-menu" id="dropDisplayMenu" role="menu">
+          <button id="btnXray" class="on">🔬 X-ray 透視</button>
+          <span id="layerWrap" style="position:relative;display:block">
+            <button id="btnLayers">▦ 圖層切換</button>
+            <div id="layerPanel"></div>
+          </span>
+        </div>
+      </div>
+
+      <!-- ④ 🎬 示範 -->
+      <div class="drop-wrap" id="dropDemo">
+        <button class="drop-btn" id="dropDemoBtn" aria-haspopup="true" aria-expanded="false">🎬 示範</button>
+        <div class="drop-menu" id="dropDemoMenu" role="menu">
+          <button id="btnSafety">🚧 防夾示範（光幕擋門反轉）</button>
+          <button id="btnKey">🔑 鑰匙緊急開鎖</button>
+        </div>
+      </div>
+
+      <!-- ⑤ 🛠 工具 -->
+      <div class="drop-wrap" id="dropTool">
+        <button class="drop-btn" id="dropToolBtn" aria-haspopup="true" aria-expanded="false">🛠 工具</button>
+        <div class="drop-menu" id="ctrlToolDrop" role="menu">
+          <button id="btnBom">📋 真實零件表</button>
+          <!-- ✏️ 編輯模式 & 🔍 單看羽瓣＋鎖 由 IIFE 動態插入此處 -->
+        </div>
+      </div>
+
+      <!-- ⑥ 🛗 機型 -->
+      <div class="drop-wrap" id="dropModel">
+        <button class="drop-btn" id="dropModelBtn" aria-haspopup="true" aria-expanded="false">🛗 機型</button>
+        <div class="drop-menu" id="dropModelMenu" role="menu">
+          <a class="btn" href="index.html">↩ 教學版（三菱）</a>
+          <a class="btn" href="fujitec.html">🟠 富士達</a>
+          <a class="btn" href="kone.html">🔵 通力</a>
+        </div>
+      </div>
     </div>
   </header>
   <main>
@@ -1532,11 +1595,12 @@ window.__sweep=(thr=0.005)=>{
     catch(e){ $('eCopy').textContent='⚠ 請手動複製下框'; }
     setTimeout(()=>$('eCopy').textContent='📋 複製修正單給 Claude',2200); };
 
-  /* 7) 編輯模式開關（塞進既有控制列）+ 時間軸 slider */
+  /* 7) 編輯模式開關（塞進「🛠 工具」下拉）+ 時間軸 slider */
+  const toolDrop = document.getElementById('ctrlToolDrop');
   let editOn=false;
   const toggle=document.createElement('button');
   toggle.textContent='✏️ 編輯模式'; toggle.className=ui.prev.className;
-  ui.play.parentElement.appendChild(toggle);
+  toolDrop.appendChild(toggle);
 
   // 單獨拉出「活動羽瓣＋門閉鎖器」研究鈕
   const focusBtn=document.createElement('button');
@@ -1549,7 +1613,7 @@ window.__sweep=(thr=0.005)=>{
       window.__pause&&window.__pause(); window.__setT(6.0);
       const bl=window.__world('blade'); window.__setCam([bl[0]+0.45,bl[1]+0.05,bl[2]+0.85],[bl[0],bl[1]-0.02,bl[2]]); }
     else { window.__allLayers(); } };
-  ui.play.parentElement.appendChild(focusBtn);
+  toolDrop.appendChild(focusBtn);
 
   const tlWrap=document.createElement('div');
   tlWrap.style.cssText='position:fixed;left:14px;bottom:12px;width:300px;background:#161d25dd;border:1px solid #2a3645;border-radius:9px;padding:8px 10px;z-index:50;display:none;font:12px "PingFang TC",sans-serif;color:#dce6f0';
@@ -1585,6 +1649,69 @@ window.__sweep=(thr=0.005)=>{
   window.__editPick=q=>{ for(const m of reg.keys()){ if(m.userData.editId===q||(reg.get(m)||'').includes(q)){ setEdit(true); select(m); return {picked:nameOf(m),id:m.userData.editId}; } } return null; };
   window.__editDiff=()=>changedList();
   console.log('[edit] 編輯模式就緒，可選零件數 =', reg.size);
+})();
+</script>
+
+<script>
+/* ── 下拉選單開合邏輯 ── */
+(function(){
+  const groups = [
+    { btn: 'dropCamBtn',     menu: 'dropCamMenu'     },
+    { btn: 'dropDisplayBtn', menu: 'dropDisplayMenu'  },
+    { btn: 'dropDemoBtn',    menu: 'dropDemoMenu'     },
+    { btn: 'dropToolBtn',    menu: 'ctrlToolDrop'     },
+    { btn: 'dropModelBtn',   menu: 'dropModelMenu'    },
+  ];
+
+  function closeAll(except) {
+    groups.forEach(function(g) {
+      if (g.btn === except) return;
+      var btn  = document.getElementById(g.btn);
+      var menu = document.getElementById(g.menu);
+      if (!btn || !menu) return;
+      btn.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+      menu.classList.remove('open');
+    });
+    /* also close layerPanel if display group is being closed */
+    if (except !== 'dropDisplayBtn') {
+      var lp = document.getElementById('layerPanel');
+      var lb = document.getElementById('btnLayers');
+      if (lp) lp.classList.remove('open');
+      if (lb) lb.classList.remove('on');
+    }
+  }
+
+  groups.forEach(function(g) {
+    var btn  = document.getElementById(g.btn);
+    var menu = document.getElementById(g.menu);
+    if (!btn || !menu) return;
+
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var isOpen = menu.classList.contains('open');
+      closeAll(null);          // close everything first
+      if (!isOpen) {
+        menu.classList.add('open');
+        btn.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+      }
+    });
+  });
+
+  /* click outside → close all (but leave layerPanel to its own handler) */
+  document.addEventListener('click', function(e) {
+    var insideDrop = groups.some(function(g) {
+      var wrap = document.getElementById(g.btn);
+      return wrap && wrap.closest('.drop-wrap') && wrap.closest('.drop-wrap').contains(e.target);
+    });
+    if (!insideDrop) closeAll(null);
+  });
+
+  /* keyboard: Escape closes everything */
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeAll(null);
+  });
 })();
 </script>
 </body>
