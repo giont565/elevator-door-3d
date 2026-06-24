@@ -529,7 +529,7 @@ function sillProfile(){
 const carSill = extrude(sillProfile(), 2.3, M.sill);
 carSill.rotation.y=Math.PI/2; carSill.position.set(-1.15, 0, .15); scene.add(carSill);
 const lndSill = extrude(sillProfile(), 2.3, M.sill);
-lndSill.rotation.y=Math.PI/2; lndSill.position.set(-1.15, 0, -.135); scene.add(lndSill);
+lndSill.rotation.y=Math.PI/2; lndSill.position.set(-1.15, 0, -.055); scene.add(lndSill);  // z 隨乘場門 +0.08（門腳回到溝槽）
 const sillLbl1=new THREE.Object3D(); sillLbl1.position.set(1.05,.05,.085); scene.add(sillLbl1);
 addLabel(sillLbl1,'車廂門門檻（地坎・含門腳溝槽）');
 const sillLbl2=new THREE.Object3D(); sillLbl2.position.set(-1.05,.05,-.2); scene.add(sillLbl2);
@@ -727,7 +727,7 @@ const bowLbl = addLabel(hL.bow,'安全門邊支臂＋門護弓', -.70, 0, .05);
 
 /* ---- 車廂護板／乘場護板（門檻下方金屬護板・固定）---- */
 const carApron = B(2.2,.42,.016, M.hangerX); carApron.position.set(0,-.21,.145); scene.add(carApron);   // M.hangerX：銀色且掛 X-ray 透視
-const lndApron = B(2.2,.42,.016, M.hangerX); lndApron.position.set(0,-.21,-.135); scene.add(lndApron);
+const lndApron = B(2.2,.42,.016, M.hangerX); lndApron.position.set(0,-.21,-.055); scene.add(lndApron);  // z 隨乘場門 +0.08
 addLabel(carApron,'車廂護板（門檻下方）', -.05, 1.0, 0);
 addLabel(lndApron,'乘場護板（門檻下方）', -.12, -1.0, 0);
 
@@ -773,10 +773,10 @@ addLabel(bladeLMesh,'活動羽瓣 固定件（不動・夾合基準）',-.26,0,0
 addLabel(bladeRMesh,'活動羽瓣 動件（可動・聯軸器帶動・夾乘場門驅動輪）',.26,0,0);
 
 /* ---- 乘場門總成 ---- */
-const lndHeader = B(2.5,.34,.03,M.headerX); lndHeader.position.set(0,2.30,-.315); scene.add(lndHeader);
+const lndHeader = B(2.5,.34,.03,M.headerX); lndHeader.position.set(0,2.30,-.235); scene.add(lndHeader);  // z 隨乘場門 +0.08
 addLabel(lndHeader,'乘場門門楣（每層樓一套）', .21, .9, 0);
 const lndRailMesh = extrude([[0,0],[.03,0],[.03,.032],[.015,.045],[0,.032]], 2.34, M.railX);   // 斷面與車廂門軌一致
-lndRailMesh.rotation.y=Math.PI/2; lndRailMesh.position.set(-1.17, 2.2775, -.22); scene.add(lndRailMesh);   // 高度對齊車廂門軌(2.2775)、前移貼近門板平面
+lndRailMesh.rotation.y=Math.PI/2; lndRailMesh.position.set(-1.17, 2.2775, -.14); scene.add(lndRailMesh);   // z 隨乘場門 leaf +0.08 對齊滾輪(世界 z=-0.14)，不脫離
 function lndHanger(side){
   const g=new THREE.Group(); scene.add(g);
   const plate=extrude([[-.22,-.18],[.22,-.18],[.22,.08],[.18,.12],[-.18,.12],[-.22,.08]], .011, M.hangerX, [[0,-.02,.03]]);
@@ -857,24 +857,24 @@ addLabel(cR1,'乘場門驅動輪×2（上下排・被活動羽瓣推成垂直＝
 const bridge = B(.034,.012,.022,M.copper); bridge.position.set(.004,-.146,-.03); hookG.add(bridge);
 addLabel(hookBody,'門閉鎖器（彈簧鉤・羽棒放開即落下鎖住乘場門）', .14, .04, 0);
 /* 鎖座銷（固定於門楣，鉤口咬這支） */
-const kBkt = B(.026,.04,.014,M.steel); kBkt.position.set(.0465,2.42,-.296); scene.add(kBkt);
-const keeper = CYL(.010,.044,M.steel); keeper.position.set(.0465,2.392,-.282); scene.add(keeper);
+const kBkt = B(.026,.04,.014,M.steel); kBkt.position.set(.0465,2.42,-.216); scene.add(kBkt);  // z 隨乘場門鎖 +0.08
+const keeper = CYL(.010,.044,M.steel); keeper.position.set(.0465,2.392,-.202); scene.add(keeper);  // z +0.08：鉤指咬得到
 addLabel(keeper,'鎖座銷（固定於門楣）', .05, .05, 0);
 /* DS 接點開關（黑色開關盒＋按鈕，臂尾壓塊壓上＝導通） */
-const contactBase = B(.05,.036,.03,M.belt); contactBase.position.set(-.041,2.156,-.285); scene.add(contactBase);
-const cPin1 = CYL(.006,.014,M.copper); cPin1.rotation.x=Math.PI/2; cPin1.position.set(-.041,2.181,-.285); scene.add(cPin1);
+const contactBase = B(.05,.036,.03,M.belt); contactBase.position.set(-.041,2.156,-.205); scene.add(contactBase);  // z +0.08：臂尾壓得到
+const cPin1 = CYL(.006,.014,M.copper); cPin1.rotation.x=Math.PI/2; cPin1.position.set(-.041,2.181,-.205); scene.add(cPin1);  // z +0.08
 const lockLED = new THREE.Mesh(new THREE.SphereGeometry(.012,16,16),
   new THREE.MeshStandardMaterial({color:0x333a42, emissive:0x000000}));
-lockLED.position.set(-.041,2.118,-.275); scene.add(lockLED);
+lockLED.position.set(-.041,2.118,-.195); scene.add(lockLED);  // z +0.08（隨接點盒）
 addLabel(contactBase,'乘場門門接點（DS・電器接點・串入安全迴路）', -.06, -.10, 0, true);
 /* 短路棒：閉鎖器臂尾銅棒・門全閉時與門接點接觸＝迴路導通 */
-const shortBar = B(.032,.007,.008,M.copper); shortBar.position.set(-.005,2.178,-.272); scene.add(shortBar);
+const shortBar = B(.032,.007,.008,M.copper); shortBar.position.set(-.005,2.178,-.192); scene.add(shortBar);  // z +0.08（夾在臂尾與接點之間）
 addLabel(shortBar,'乘場門閉鎖器短路棒（碰門接點＝迴路導通）', .05, .10, .04, true);
 
 /* ---- 乘場門連動鋼索（兩扇乘場門等速連動・依改造文件照片）---- */
 /* 乘場門連動鋼索輪：門楣兩端的黑色滑輪（依廠內照片・明顯黑色） */
 function cordSheave(x){
-  const g=new THREE.Group(); g.position.set(x,2.42,-.28); scene.add(g);   // 門楣上方兩端（依實機・前移避免埋進門楣樑）
+  const g=new THREE.Group(); g.position.set(x,2.42,-.20); scene.add(g);   // z 隨乘場門 +0.08（兩個鋼索輪同此函式・改一次兩輪都動）
   const tyre=CYL(.046,.022,M.belt); g.add(tyre);
   const cheek=CYL(.05,.006,M.dark); cheek.position.z=.013; g.add(cheek);
   const hub=CYL(.014,.03,M.steel); g.add(hub);
@@ -883,8 +883,8 @@ function cordSheave(x){
 const cordPulL=cordSheave(-1.10), cordPulR=cordSheave(1.10);
 const cordRopeGeo=new THREE.BufferGeometry();
 cordRopeGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([
-  -1.10,2.44,-.28,  1.10,2.44,-.28,
-  -1.10,2.40,-.28,  1.10,2.40,-.28]),3));
+  -1.10,2.44,-.20,  1.10,2.44,-.20,
+  -1.10,2.40,-.20,  1.10,2.40,-.20]),3));
 const cordRope=new THREE.LineSegments(cordRopeGeo, new THREE.LineBasicMaterial({color:0xaaaaaa}));
 scene.add(cordRope);
 const cordClampL=B(.04,.016,.014,M.dark); cordClampL.position.set(.18,2.44,-.28); lL.g.add(cordClampL);
