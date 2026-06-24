@@ -139,7 +139,7 @@
       <span style="width:8px"></span>
       <button id="btnXray" class="on">X-ray 透視</button>
       <span id="layerWrap"><button id="btnLayers">▦ 圖層</button><div id="layerPanel"></div></span>
-      <button id="btnSafety">防夾：MBS 光幕（新式）</button>
+      <button id="btnSafety">🚧 防夾示範（光幕擋門反轉）</button>
       <button id="btnKey">🔑 鑰匙緊急開鎖</button>
       <button id="btnBom">📋 真實零件表</button>
       <a class="btn" href="index.html">↩ 教學版</a>
@@ -210,32 +210,45 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 /* ============ 時間軸（同教學版，已驗證）============ */
-const T_TOTAL = 16.5;
+let T_TOTAL = 12;   // 主循環(乾淨開關門)一輪12s；防夾示範時切回16.5
 const ei  = t => t*t;
 const eo  = t => 1-(1-t)*(1-t);
 const eio = t => t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+/* 主門行程用 cubic S 曲線：起步更緩、中段更快、收門更穩，貼近真實門機加減速 */
+const eioC = t => t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2;
 const seg = (t,a,b) => Math.min(1, Math.max(0,(t-a)/(b-a)));
 
 let safetyMode='curtain';   // 'curtain'=MBS 光幕（更新後） / 'edge'=SDE 機械安全門邊（更新前）
-function dOf(t){
+let curtainDemo=false;   // 光幕防夾示範（移到獨立按鈕；主循環＝乾淨開關門，不被光幕觸發）
+function dOfCurtain(t){   // 舊：含光幕擋門反轉的防夾示範時間軸（貨物車擋門→門反轉重開）
   if(safetyMode==='edge'){
     if (t < 2.15)  return 1 - 0.60*ei(seg(t,0,2.15));
     if (t < 2.45)  return 0.40 - 0.12*eo(seg(t,2.15,2.45));
     if (t < 3.00)  return 0.28;
-    if (t < 5.00)  return 0.28 + 0.72*eio(seg(t,3.0,5.0));
+    if (t < 5.00)  return 0.28 + 0.72*eioC(seg(t,3.0,5.0));
   }else{
     if (t < 2.15)  return 1 - 0.45*ei(seg(t,0,2.15));
     if (t < 2.50)  return 0.55 - 0.035*eo(seg(t,2.15,2.50));
     if (t < 3.00)  return 0.515;
-    if (t < 5.00)  return 0.515 + 0.485*eio(seg(t,3.0,5.0));
+    if (t < 5.00)  return 0.515 + 0.485*eioC(seg(t,3.0,5.0));
   }
   if (t < 8.80)  return 1;
   if (t < 9.60)  return 1 - 0.06*ei(seg(t,8.8,9.6));
-  if (t < 12.40) return 0.94 - 0.88*eio(seg(t,9.6,12.4));
+  if (t < 12.40) return 0.94 - 0.88*eioC(seg(t,9.6,12.4));
   if (t < 12.85) return 0.06 - 0.06*eo(seg(t,12.4,12.85));
   return 0;
+}
+function dOf(t){
+  if(curtainDemo) return dOfCurtain(t);
+  // 主循環：乾淨完整開關門（關→開→開著等→關），無光幕觸發
+  if (t < 1.0)  return 0;                        // 起始：門關
+  if (t < 4.0)  return eioC(seg(t,1.0,4.0));      // 開門 0→1
+  if (t < 7.0)  return 1;                        // 開著（人/貨通過）
+  if (t < 10.0) return 1 - eioC(seg(t,7.0,10.0)); // 關門 1→0
+  return 0;                                      // 門關
 }
 const comp01 = d => Math.min(1, Math.max(0, (0.3067 - d) / 0.0267));
 function vaneClamp(t){
@@ -249,6 +262,7 @@ function hookOpen(t){
   return 0;
 }
 function boxZ(t){
+  if(!curtainDemo) return 1.6;   // 乾淨模式：貨物車停遠處、不擋門（無光幕觸發）
   const hold = safetyMode==='edge' ? -0.02 : -0.15;
   if (t < 1.0)  return -1.5;
   if (t < 2.15) return -1.5 + (hold+1.5)*eio(seg(t,1.0,2.15));
@@ -344,6 +358,15 @@ window.__forceSize = (w,h) => { renderer.setSize(w,h,false); camera.aspect=w/h; 
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+/* 電影級色調映射：把過曝的點光源高光柔順收尾，金屬反白不死白 */
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+/* 環境反射（IBL）：用 RoomEnvironment 烘一張反射貼圖，讓金屬有東西可反射，
+   不鏽鋼/銅/鋁從死黑變成有層次的金屬光澤（不改深色背景，只給材質反射） */
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+pmrem.dispose();
 vp.appendChild(renderer.domElement);
 
 const labelRenderer = new CSS2DRenderer();
@@ -361,6 +384,7 @@ key.position.set(3, 5, 4); key.castShadow = true;
 key.shadow.mapSize.set(2048, 2048);
 key.shadow.camera.left=-3; key.shadow.camera.right=3;
 key.shadow.camera.top=4;  key.shadow.camera.bottom=-1;
+key.shadow.bias = -0.0002; key.shadow.normalBias = 0.02; key.shadow.radius = 3;
 scene.add(key);
 const fill = new THREE.DirectionalLight(0xffb39a, 0.6);
 fill.position.set(-3, 3, -3); scene.add(fill);
@@ -398,6 +422,11 @@ const M = {
   curtain: new THREE.MeshStandardMaterial({color:0x10151a, roughness:.6, emissive:0x07301c, emissiveIntensity:.6}),
   lens   : new THREE.MeshStandardMaterial({color:0x0c2018, emissive:0x16c95e, emissiveIntensity:.9}),
 };
+/* 拋光金屬（metalness≥.5）拉高環境反射強度 → 不鏽鋼/銅/鋁/滾輪更有金屬光澤；
+   非金屬（皮帶/纜線/螺帽/PU）不動，避免塑膠件被反射打亮失真 */
+for (const m of Object.values(M)) {
+  if (m.metalness >= 0.5) m.envMapIntensity = 1.7;
+}
 const B = (w,h,d,m)=>{const x=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);x.castShadow=x.receiveShadow=true;return x};
 const CYL=(r,len,m,seg2=28)=>{const g=new THREE.CylinderGeometry(r,r,len,seg2);g.rotateX(Math.PI/2);
   const x=new THREE.Mesh(g,m);x.castShadow=x.receiveShadow=true;return x};
@@ -652,71 +681,29 @@ beamGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(NBEA
 const beamMat=new THREE.LineBasicMaterial({color:0x37d67a, transparent:true, opacity:.85});
 const beams=new THREE.LineSegments(beamGeo,beamMat); scene.add(beams);
 
-/* ---- 門刀（兩片導入斜角刀片＋平行連桿＋拉簧）---- */
-const vaneG = new THREE.Group(); vaneG.position.set(.25, 2.20, .03); hL.g.add(vaneG);  // 活動羽瓣在「兩門接合正中央」(hL.g 局部 +.25 → 關門時 world x≈0，依官方結構圖 Fig4-1)・整組互鎖隨之置中
-const vaneMount = extrude([[-.09,-.05],[.09,-.05],[.09,.05],[-.09,.05]], .014, M.dark, [[-.06,0,.008],[.06,0,.008]]);
-vaneMount.position.set(0,.18,-.014); vaneG.add(vaneMount);
+/* ---- 活動羽瓣＋聯軸器（兩片薄板刀片：動件/固定件 ＋ 兩段手臂聯軸器）---- */
+const vaneG = new THREE.Group(); vaneG.position.set(-.25, 2.20, .08); hR.g.add(vaneG);  // 活動羽瓣掛在「右車廂門扇」；z=.08 → 刀片世界 z=-.005 與驅動輪同深度，真的咬到(非空夾)
+/* 兩片活動羽瓣：細長薄板（依現場照片：窄、薄、長；不是厚塊）。做成 box→編輯模式可直接調尺寸 */
 function vaneBlade(){
-  // 正面看X面寬5cm(extrude depth .050)；Z深8cm(contour X ±.040)；高58cm
-  const b=extrude([[-.040,-.35],[-.020,-.40],[.020,-.40],[.040,-.35],[.040,.13],[.020,.18],[-.020,.18],[-.040,.13]], .050, M.vane);
-  b.rotation.y=Math.PI/2;
-  const g=new THREE.Group(); b.position.set(-.025,0,0); g.add(b);
-  return g;
+  const b = B(.026, .40, .013, M.vane);   // 寬2.6cm × 高40cm × 厚1.3cm（薄板）
+  const g = new THREE.Group(); g.add(b); return g;
 }
-const bladeL = vaneBlade(); bladeL.position.set(-.040,0,-.085); vaneG.add(bladeL);  // 可動（左）
-const bladeR = vaneBlade(); bladeR.position.set( .040,0,-.085); vaneG.add(bladeR);  // 固定（右）
+const bladeL = vaneBlade(); bladeL.position.set(-.030,0,-.085); vaneG.add(bladeL);  // 固定件（左・不動・夾合基準）
+const bladeR = vaneBlade(); bladeR.position.set( .030,0,-.085); vaneG.add(bladeR);  // 動件（右・會動・聯軸器帶動）
 const bladeLMesh = bladeL.children[0], bladeRMesh = bladeR.children[0];
-function vaneArm(){
-  const g=new THREE.Group();
-  const bar=B(.016,.1,.005,M.steel); g.add(bar);
-  const b1=HEX(.006,.008); b1.position.set(0,.05,.005); g.add(b1);
-  const b2=HEX(.006,.008); b2.position.set(0,-.05,.005); g.add(b2);
-  return g;
-}
-const linkL = vaneArm(); linkL.position.set(-.02,.16,-.085); linkL.rotation.z=.3; vaneG.add(linkL);
-const linkR = vaneArm(); linkR.position.set( .02,.16,-.085); linkR.rotation.z=-.3; vaneG.add(linkR);
-{ // 拉簧（兩刀片頂端之間）
-  const pts=[]; const N=90;
-  for(let i=0;i<=N;i++){ const u=i/N, a=u*Math.PI*2*7;
-    pts.push(new THREE.Vector3(-.040+.080*u, .16+Math.cos(a)*.006, -.085+Math.sin(a)*.006)); }
-  const spring=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),120,.0018,6),M.steel);
-  vaneG.add(spring);
-}
-/* ---- 活動羽瓣聯軸器：大菱形驅動板 ----------------------------------------
-   聯軸器板掛在 bladeL(活動羽瓣) 上，隨刀片平移，永不懸空。
-   照片原件：大菱形金屬板 + 中心樞軸銷；車門開閉帶動刀片夾合乘場門驅動輪。 */
-// 靜態掛臂：從羽棒座彎向刀片上方（顯示結構連接來源）
-{ const pts=[
-    new THREE.Vector3(  0,  .175,-.030),
-    new THREE.Vector3(-.015,.165,-.055),
-    new THREE.Vector3(-.040,.145,-.085)
-  ];
-  const mountBar=new THREE.Mesh(
-    new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),8,.008,6,false),M.steel);
-  vaneG.add(mountBar);
-}
-// 大菱形聯軸器板（加入 bladeL 子節點，隨刀片一起平移）
-const couplerPlate = new THREE.Group();
-couplerPlate.position.set(0,.130,0);   // bladeL 局部空間：刀片正上方同 Z
-bladeL.add(couplerPlate);
-{ const plate=extrude([[-.055,0],[0,.050],[.055,0],[0,-.050]],.016,M.dark,[[0,0,.005]]);
-  couplerPlate.add(plate);
-  const cPin=CYL(.012,.025,M.copper); couplerPlate.add(cPin);             // 中心樞軸
-  const b1=HEX(.007,.009); b1.position.set( .040, .018,.010); couplerPlate.add(b1); // 固定螺栓
-  const b2=HEX(.007,.009); b2.position.set(-.040,-.018,.010); couplerPlate.add(b2);
-}
-addLabel(couplerPlate,'活動羽瓣聯軸器板（菱形大板・車門帶動）',-.14,.06,0);
-// 短連動臂（聯軸器板下緣→刀片頂端・傳遞夾合動作）
-const couplerLink = new THREE.Group();
-couplerLink.position.set(0,.030,0);    // bladeL 局部空間
-bladeL.add(couplerLink);
-{ const rod=B(.014,.12,.011,M.steel); rod.position.set(0,-.040,0); couplerLink.add(rod);
-  const pin1=CYL(.008,.018,M.copper); couplerLink.add(pin1);
-  const pin2=CYL(.008,.016,M.copper); pin2.position.set(0,-.100,0); couplerLink.add(pin2);
-}
-addLabel(couplerLink,'聯軸器短連臂（傳遞夾合力）',-.10,-.02,0);
-addLabel(bladeLMesh,'車廂門活動羽瓣（可動・聯軸器帶動・夾乘場門驅動輪）',-.26,0,0);
-addLabel(bladeRMesh,'活動羽瓣（固定・夾合基準）',.26,0,0);
+/* 聯軸器：兩段手臂。1段樞軸支點在「右側」(跟左側馬達不同側)，手臂往左伸到動件。
+   動件由公式直接驅動(向右夾向固定件+上抬)，兩段手臂用 2-link IK 每幀反解伸到動件頂
+   → 2段真的帶動動件、不浮空、跟著一起動。box→編輯模式可調 */
+const coupler1 = new THREE.Group(); coupler1.position.set(.20, .36, -.085); vaneG.add(coupler1);  // 1段樞軸：右側支點（跟左馬達不同側、靠近右邊動件bladeR）
+{ const arm1 = B(.15, .028, .016, M.steel); arm1.position.set(-.075, 0, 0); coupler1.add(arm1); } // 1段(長15cm)：從右支點往左伸
+const coupler2 = new THREE.Group(); coupler2.position.set(-.15, 0, 0); coupler1.add(coupler2);     // 2段肘節：接1段末端（被1段拉起）
+{ const arm2 = B(.15, .024, .015, M.steel); arm2.position.set(-.075, 0, 0); coupler2.add(arm2); }  // 2段(長15cm)：伸到動件bladeR頂
+const armTip = new THREE.Object3D(); armTip.position.set(-.15, 0, 0); coupler2.add(armTip);         // 2段末端＝動件bladeR接點（接右邊動件、不跨越）
+const _vaneTmp = new THREE.Vector3();
+addLabel(coupler1,'聯軸器 1 段（固定在車廂門機・繞支點上抬帶動動件）', .10, .04, 0);
+addLabel(coupler2,'聯軸器 2 段（接動件頂・隨動件一起動）', .04, .04, 0);
+addLabel(bladeLMesh,'活動羽瓣 固定件（不動・夾合基準）',-.26,0,0);
+addLabel(bladeRMesh,'活動羽瓣 動件（可動・聯軸器帶動・夾乘場門驅動輪）',.26,0,0);
 
 /* ---- 乘場門總成 ---- */
 const lndHeader = B(2.5,.34,.03,M.headerX); lndHeader.position.set(0,2.30,-.315); scene.add(lndHeader);
@@ -747,26 +734,27 @@ function lndHanger(side){
   return {g,plate,panel,rollers,antiDrops};
 }
 const lL = lndHanger(-1), lR = lndHanger(1);
+lL.g.position.z = .08; lR.g.position.z = .08;   // 乘場門整組往車廂門靠近 8cm（縮小兩門間距）
 addLabel(lR.antiDrops[0],'乘場門吊板防脫離裝置（卡門軌下緣・防脫軌）', .12, 0, .04);
 addLabel(lL.panel,'外門板／乘場門（被活動羽棒帶動）', -.5, -.1, -.02);
 /* 外門開關鑰匙孔（乘場門上的緊急開鎖孔・隨左乘場門・在門楣下方乘場門板上） */
 const keyEsc = new THREE.Mesh(new THREE.CylinderGeometry(.02,.02,.008,20), M.steel);
-keyEsc.rotation.x=Math.PI/2; keyEsc.position.set(.325,1.90,-.197); lL.g.add(keyEsc);   // 對齊引上棒正下方（互鎖整組置中 +.25）
-const keyHole = B(.004,.014,.014,M.dark); keyHole.position.set(.325,1.90,-.205); lL.g.add(keyHole);
+keyEsc.rotation.x=Math.PI/2; keyEsc.position.set(-.325,1.90,-.197); lR.g.add(keyEsc);   // 隨右乘場門扇（鎖總成整組移右側對齊羽瓣）
+const keyHole = B(.004,.014,.014,M.dark); keyHole.position.set(-.325,1.90,-.205); lR.g.add(keyHole);
 addLabel(keyEsc,'乘場門開關鑰匙孔（緊急開鎖・對引上棒）', -.30, 0, -.02, true);
 /* 緊急開鎖鑰匙（平常隱藏・示範時插入後往上頂引上棒・不轉動） */
-const keyTool=new THREE.Group(); keyTool.position.set(.325,1.90,-.16); keyTool.visible=false; lL.g.add(keyTool);
+const keyTool=new THREE.Group(); keyTool.position.set(-.325,1.90,-.16); keyTool.visible=false; lR.g.add(keyTool);
 { const shaft=CYL(.005,.07,M.steel); shaft.rotation.x=Math.PI/2; keyTool.add(shaft);
   const bow=new THREE.Mesh(new THREE.TorusGeometry(.018,.005,8,18),M.steel); bow.position.z=.04; keyTool.add(bow);
   const bit=B(.005,.016,.004,M.steel); bit.position.set(0,-.009,-.024); keyTool.add(bit); }
 /* 引上棒：鑰匙孔上提時頂起閉鎖器解鎖（縱桿・連鑰匙孔到閉鎖器） */
-const liftRod = B(.012,.42,.012,M.steel); liftRod.position.set(.325,2.13,-.20); lL.g.add(liftRod);
-const liftRodTop = B(.03,.012,.014,M.steel); liftRodTop.position.set(.29,2.33,-.20); lL.g.add(liftRodTop);
+const liftRod = B(.012,.42,.012,M.steel); liftRod.position.set(-.325,2.13,-.20); lR.g.add(liftRod);
+const liftRodTop = B(.03,.012,.014,M.steel); liftRodTop.position.set(-.29,2.33,-.20); lR.g.add(liftRodTop);
 addLabel(liftRod,'引上棒（鑰匙孔上提→頂起閉鎖器解鎖）', -.24, .06, .04);
 
 /* ---- 三菱型乘場門鎖總成（依改造文件實photo）----
    鍍鋅鈑金鉤臂＋「垂直排列」雙開鎖滾輪（門刀夾這兩顆）＋彈簧＋接點開關 */
-const hookG = new THREE.Group(); hookG.position.set(.205, 2.34, -.255); lL.g.add(hookG);
+const hookG = new THREE.Group(); hookG.position.set(-.205, 2.34, -.255); lR.g.add(hookG);
 /* 鉤臂：縱向鍍鋅板，上端右伸鉤指（鉤口朝下咬鎖座銷），下端壓接點開關 */
 const hookBody = extrude(
   [[-.025,.09],[.105,.09],[.105,.052],[.078,.052],[.078,.030],[.030,.028],
@@ -782,14 +770,14 @@ function lockRoller(){
   const nut=HEX(.007,.007); nut.position.z=.017; g.add(nut);
   return g;
 }
-/* 鎖輪掛在乘場門(lL.g)、以堆疊中心原地旋轉：位置固定不位移(羽棒對位不偏)，
+/* 鎖輪掛在乘場門(lR.g)、以堆疊中心原地旋轉：位置固定不位移(羽棒對位不偏)，
    羽棒夾住(門開)時兩滾輪垂直、放開(關門鎖閉)時傾斜。旋轉在動畫迴圈設定。 */
 const lockRollerG = new THREE.Group();
-lockRollerG.position.set(.25, 2.265, -.085); lL.g.add(lockRollerG);
+lockRollerG.position.set(-.25, 2.265, -.085); lR.g.add(lockRollerG);
 const cR1=lockRoller(); cR1.position.set(0, .030, 0); lockRollerG.add(cR1);
 const cR2=lockRoller(); cR2.position.set(0,-.030, 0); lockRollerG.add(cR2);
-const stand1=B(.011,.011,.145,M.steel); stand1.position.set(0, .030,-.0775); lockRollerG.add(stand1);
-const stand2=B(.011,.011,.145,M.steel); stand2.position.set(0,-.030,-.0775); lockRollerG.add(stand2);
+const stand1=B(.011,.011,.085,M.steel); stand1.position.set(0, .030,-.0475); lockRollerG.add(stand1);  // 延伸棒縮短 14.5→8.5cm
+const stand2=B(.011,.011,.085,M.steel); stand2.position.set(0,-.030,-.0475); lockRollerG.add(stand2);
 addLabel(cR1,'乘場門驅動輪×2（上下排・被活動羽瓣推成垂直＝解鎖、帶動乘場門）', -.08, 0, .05);
 /* 復位彈簧（拉臂回鎖閉位置） */
 {
@@ -1065,11 +1053,12 @@ function syncSafetyVis(){
   edgeLbl.visible    = lab && e;    // 門邊標籤：同上、門邊模式才顯示
 }
 btnSafety.onclick=()=>{
-  safetyMode = safetyMode==='edge' ? 'curtain' : 'edge';
-  const e = safetyMode==='edge';
-  btnSafety.textContent = e ? '防夾：SDE 安全門邊（更新前）' : '防夾：MBS 光幕（新式）';
-  btnSafety.classList.toggle('on', e);
-  syncSafetyVis(); buildSamples(); forceStep();
+  curtainDemo = !curtainDemo;
+  T_TOTAL = curtainDemo ? 16.5 : 12;
+  safetyMode = 'curtain';   // 防夾示範用 MBS 光幕
+  btnSafety.textContent = curtainDemo ? '↩ 結束防夾示範' : '🚧 防夾示範（光幕擋門反轉）';
+  btnSafety.classList.toggle('on', curtainDemo);
+  T = 0; syncSafetyVis(); buildSamples(); forceStep();
 };
 syncSafetyVis();
 document.getElementById('btnBom').onclick=()=>{ document.getElementById('bom').style.display='block'; };
@@ -1207,13 +1196,17 @@ function update(){
   for(const r of lL.rollers) r.rotation.z= (TRAVEL*d)/.042;
   for(const r of lR.rollers) r.rotation.z=-(TRAVEL*d)/.042;
 
-  // 左動右固（user 照片確認：正面看左邊可動、右邊固定）
-  bladeR.position.x= .040;                      // 固定羽瓣（右）：定位不動
-  bladeL.position.x=-(.040+.095*(1-clamp));     // 可動羽瓣（左）：夾合貼驅動輪/放開往左外擺
-  linkR.rotation.z=-.3;                         // 固定側（右）連桿定位
-  linkL.rotation.z= .3*clamp;                   // 可動側（左）連桿隨夾合
-  couplerPlate.rotation.z= 0.30*clamp;          // 菱形板隨夾合傾動
-  couplerLink.rotation.z=  0.20*clamp;          // 短連臂隨板
+  // 動作（已對：bladeR=動件、bladeL=固定件）：固定件不動；動件被聯軸器拉動往左上靠近固定件→兩刀距離變短夾住驅動輪
+  bladeL.position.set(-.030, 0, -.085);         // 固定件(左)：不動（夾合基準）
+  const _rx = .10 - .07*clamp;                  // 動件 x：放開 +.10 → 夾合 +.03（往左靠固定件、驅動輪置中）
+  const _ry = -.09 + .075*clamp;                // 動件 y：開門被1段拉起上抬
+  bladeR.position.set(_rx, _ry, -.085);         // 動件(右)由公式直接驅動
+  // 2-link IK：右支點(.20,.36) 兩段各長 .15，反解伸到動件bladeR頂(_rx,_ry+.20) → 2段被1段拉起、真帶動、不跨越固定件
+  const _Px=.20, _Py=.36, _L1=.15, _L2=.15, _ux=_Px-_rx, _uy=_Py-(_ry+.20);
+  const _d=Math.min(Math.hypot(_ux,_uy), _L1+_L2-1e-4);
+  const _c2=-Math.acos(Math.max(-1,Math.min(1,(_d*_d-_L1*_L1-_L2*_L2)/(2*_L1*_L2))));
+  const _c1=Math.atan2(_uy,_ux)-Math.atan2(_L2*Math.sin(_c2), _L1+_L2*Math.cos(_c2));
+  coupler1.rotation.z=_c1; coupler2.rotation.z=_c2;
 
   hookG.rotation.z=.30*hOpen;
   lockRollerG.rotation.z=-0.30*(1-clamp);   // 鎖輪原地旋轉：羽棒夾住(門開)垂直、放開(關門)傾斜
@@ -1301,7 +1294,7 @@ function loop(){
     if(keyDemo<0){ keyDemo=-1; resetKeyDemoParts(); forceStep(); }
   }
   if(flashT>0){ flashT-=dt; ui.flash.style.opacity=Math.min(.8,flashT*2); }
-  update();
+  if(!window.__editFreeze) update();   // 編輯模式凍結：手動改的位置/尺寸不被動畫覆寫
   controls.update();
   renderer.render(scene,camera);
   labelRenderer.render(scene,camera);
@@ -1313,6 +1306,9 @@ loop();
 window.__setT=v=>{T=v;forceStep();update();};
 window.__pause=()=>{playing=false;ui.play.textContent='▶ 播放';};
 window.__setISO=v=>{ISO=(v==='all'?null:v);applyLayers();};
+/* 只顯示指定圖層（其餘全藏）— 用來單獨拉出某幾個零件研究/修正 */
+window.__only=(keys,withLabels)=>{ ISO=null; LAYERS.forEach(L=>{ LAYER_STATE[L.key]= keys.includes(L.key)?(withLabels?'full':'mesh'):'off'; }); applyLayers(); return LAYERS.filter(L=>keys.includes(L.key)).map(L=>L.name); };
+window.__allLayers=()=>{ LAYERS.forEach(L=>LAYER_STATE[L.key]='mesh'); ISO=null; applyLayers(); };
 window.__setKeyDemo=v=>{
   if(v>=0){keyDemoOn=true;keyDemo=v;playing=false;updateKeyDemo(v);drawSpeed(0);}
   else{keyDemoOn=false;keyDemo=-1;resetKeyDemoParts();forceStep();}
@@ -1345,7 +1341,7 @@ window.__safety=()=>btnSafety.click();
 
 /* ---- 碰撞稽核：逐零件世界 AABB 量測，回報「不同門/動對固定」之間的穿透 ---- */
 window.__auditList=[
- {n:'羽棒',o:bladeLMesh,d:'cL'},{n:'聯軸器',o:couplerLink,d:'cL'},{n:'羽棒座',o:vaneMount,d:'cL'},
+ {n:'羽棒',o:bladeLMesh,d:'cL'},{n:'聯軸器2段',o:coupler2,d:'cL'},{n:'聯軸器1段',o:coupler1,d:'cL'},
  {n:'皮帶座L',o:hL.clamp,d:'cL'},{n:'門腳L',o:hL.gib,d:'cL'},{n:'阻擋橡皮L',o:hL.bumper,d:'cL'},{n:'門護弓L',o:hL.bow,d:'cL'},
  {n:'皮帶座R',o:hR.clamp,d:'cR'},{n:'門腳R',o:hR.gib,d:'cR'},{n:'阻擋橡皮R',o:hR.bumper,d:'cR'},{n:'門護弓R',o:hR.bow,d:'cR'},{n:'SW撞塊',o:gsCam,d:'cR'},
  {n:'閉鎖鉤',o:hookBody,d:'hl'},{n:'鎖輪1',o:cR1,d:'hl'},{n:'鎖輪2',o:cR2,d:'hl'},{n:'索夾L',o:cordClampL,d:'hl'},{n:'鑰匙孔',o:keyEsc,d:'hl'},{n:'外門板L',o:lL.panel,d:'hl'},
@@ -1379,6 +1375,213 @@ window.__sweep=(thr=0.005)=>{
   scan('幕'); window.__safety(); scan('邊'); window.__safety();   // 掃完切回原模式
   return Object.entries(agg).map(([k,v])=>({pair:k,maxPen:v.m,at_t:v.t})).sort((a,b)=>b.maxPen-a.maxPen);
 };
+
+/* ==================================================================
+   編輯模式 — 點零件、直接拖/打數字改大小位置角度，匯出「修正單」給 Claude
+   目的：把「用文字描述哪裡錯」換成「指著零件直接改」+ 精準 diff
+   ================================================================== */
+(async () => {
+  let TransformControls=null;
+  try { ({ TransformControls } = await import('three/addons/controls/TransformControls.js')); }
+  catch(e){ console.warn('[edit] TransformControls 載入失敗，仍可用數字框編輯', e); }
+
+  const MM = 1000;                              // 場景單位=公尺，UI 用公釐
+  const r3 = n => +(+n).toFixed(4);
+  const layerOf = m => { for(let p=m;p;p=p.parent){ if(OBJ2LAYER.has(p)) return OBJ2LAYER.get(p).name; } return ''; };
+
+  /* 1) 可選零件登錄：名字優先用既有 __auditList → 標籤文字 → 圖層名 */
+  const reg = new Map();
+  for (const p of (window.__auditList||[])) if (p && p.o && p.o.isObject3D && !reg.has(p.o)) reg.set(p.o, p.n);
+  for (const lb of labels){ const m=lb.parent, t=((lb.element&&lb.element.textContent)||'').trim();
+    if (m && m.isMesh && t && !reg.has(m)) reg.set(m, t); }
+  for (const L of LAYERS) for (const m of L.mesh) if (m && m.isMesh && !reg.has(m)) reg.set(m, '');
+  let _i=0; for (const m of reg.keys()) if(!m.userData.editId) m.userData.editId='P'+(_i++);
+  const byId = id => [...reg.keys()].find(m=>m.userData.editId===id);
+  const nameOf = m => reg.get(m) || '(未命名零件)';
+
+  /* 2) gizmo */
+  let tc=null;
+  if (TransformControls){
+    tc = new TransformControls(camera, renderer.domElement);
+    tc.setSize(0.9); scene.add(tc);
+    tc.addEventListener('dragging-changed', e=>{ controls.enabled = !e.value; });
+    tc.addEventListener('objectChange', ()=>{ if(helper) helper.update(); if(selected) syncInputs(selected); });
+  }
+  const isGizmo = o => { for(;o;o=o.parent){ if(tc && o===tc) return true; } return false; };
+  const findReg = o => { for(;o;o=o.parent){ if(reg.has(o)) return o; } return null; };
+
+  /* 3) raycast 選取 */
+  const ray=new THREE.Raycaster(), ptr=new THREE.Vector2();
+  let selected=null, helper=null;
+  function pickAt(cx,cy){
+    const b=renderer.domElement.getBoundingClientRect();
+    ptr.x=((cx-b.left)/b.width)*2-1; ptr.y=-((cy-b.top)/b.height)*2+1;
+    ray.setFromCamera(ptr,camera);
+    for(const h of ray.intersectObjects(scene.children,true)){
+      if(!h.object.isMesh || h.object.visible===false) continue;
+      if(isGizmo(h.object)) continue;
+      return findReg(h.object) || h.object;
+    }
+    return null;
+  }
+
+  /* 4) 原始快照（用來算 diff） */
+  const orig=new Map();
+  const sizeOf = o => { const pa=o.geometry&&o.geometry.parameters;
+    return (pa&&'width'in pa)?[r3(pa.width),r3(pa.height),r3(pa.depth)]:null; };
+  const snap = o => ({ id:o.userData.editId, zh:nameOf(o), layer:layerOf(o),
+    pos:o.position.toArray().map(r3), rot:[o.rotation.x,o.rotation.y,o.rotation.z].map(r3), size:sizeOf(o) });
+  const ensureOrig = o => { if(!orig.has(o.userData.editId)) orig.set(o.userData.editId, snap(o)); };
+
+  function select(o){
+    if(helper){ scene.remove(helper); helper.geometry.dispose(); helper=null; }
+    selected=o;
+    if(!o){ if(tc) tc.detach(); panel.style.display='none'; return; }
+    ensureOrig(o);
+    helper=new THREE.BoxHelper(o,0x39c5ff); scene.add(helper);
+    if(tc){ tc.attach(o); }
+    fillPanel(o); panel.style.display='block';
+  }
+
+  /* 5) 面板 UI */
+  const panel=document.createElement('div');
+  panel.style.cssText='position:fixed;right:14px;top:96px;width:268px;max-height:78vh;overflow:auto;'+
+    'background:#161d25ee;border:1px solid #2a3645;border-radius:10px;padding:12px;z-index:50;'+
+    'font:13px/1.5 "PingFang TC","Noto Sans TC",sans-serif;color:#dce6f0;display:none;'+
+    'box-shadow:0 8px 30px #0009;backdrop-filter:blur(4px)';
+  const rowS='display:flex;align-items:center;gap:6px;margin:5px 0';
+  const lblS='width:62px;color:#8fa3b8;font-size:12px;flex:none';
+  const inpS='flex:1;width:100%;background:#0e1318;border:1px solid #2a3645;border-radius:6px;color:#dce6f0;padding:4px 6px;font-size:12px';
+  const btnS='background:#1c2530;color:#dce6f0;border:1px solid #2a3645;border-radius:7px;padding:5px 8px;font-size:12px;cursor:pointer';
+  panel.innerHTML=`
+    <div style="font-weight:700;font-size:14px;margin-bottom:2px">🔧 <span id="ePart">—</span></div>
+    <div id="eMeta" style="color:#8fa3b8;font-size:11px;margin-bottom:8px">—</div>
+    <div style="color:#39c5ff;font-size:11px;font-weight:700;margin:6px 0 2px">位置（公釐 mm）</div>
+    <div style="${rowS}"><span style="${lblS}">左 ← → 右</span><input id="ePX" type="number" step="1" style="${inpS}"></div>
+    <div style="${rowS}"><span style="${lblS}">下 ↓ ↑ 上</span><input id="ePY" type="number" step="1" style="${inpS}"></div>
+    <div style="${rowS}"><span style="${lblS}">後 ← → 前</span><input id="ePZ" type="number" step="1" style="${inpS}"></div>
+    <div id="eSizeWrap">
+      <div style="color:#39c5ff;font-size:11px;font-weight:700;margin:8px 0 2px">尺寸（公釐 mm，僅方塊零件）</div>
+      <div style="${rowS}"><span style="${lblS}">寬 W</span><input id="eSW" type="number" step="1" style="${inpS}"></div>
+      <div style="${rowS}"><span style="${lblS}">高 H</span><input id="eSH" type="number" step="1" style="${inpS}"></div>
+      <div style="${rowS}"><span style="${lblS}">深 D</span><input id="eSD" type="number" step="1" style="${inpS}"></div>
+    </div>
+    <div style="display:flex;gap:6px;margin:8px 0">
+      <button id="eMove" style="${btnS};flex:1">✛ 移動</button>
+      <button id="eRot"  style="${btnS};flex:1">⟳ 旋轉</button>
+      <button id="eMirror" style="${btnS};flex:1">⇋ 鏡到對側</button>
+    </div>
+    <button id="eReset" style="${btnS};width:100%;margin-bottom:6px">↺ 還原這個零件</button>
+    <hr style="border:none;border-top:1px solid #2a3645;margin:8px 0">
+    <div id="eCount" style="color:#ffb02e;font-size:12px;margin-bottom:6px">已改 0 個零件</div>
+    <button id="eCopy" style="${btnS};width:100%;background:#11445c;border-color:#39c5ff;color:#39c5ff;font-weight:700">📋 複製修正單給 Claude</button>
+    <textarea id="eJSON" readonly style="${inpS};height:80px;margin-top:6px;font-family:monospace;display:none"></textarea>`;
+  document.body.appendChild(panel);
+  const $=id=>panel.querySelector('#'+id);
+
+  function fillPanel(o){
+    $('ePart').textContent = nameOf(o);
+    $('eMeta').textContent = `圖層：${layerOf(o)||'—'} ・ id：${o.userData.editId}`;
+    syncInputs(o);
+    const sz=sizeOf(o); $('eSizeWrap').style.display = sz?'block':'none';
+  }
+  function syncInputs(o){
+    $('ePX').value=Math.round(o.position.x*MM); $('ePY').value=Math.round(o.position.y*MM); $('ePZ').value=Math.round(o.position.z*MM);
+    const sz=sizeOf(o); if(sz){ $('eSW').value=Math.round(sz[0]*MM); $('eSH').value=Math.round(sz[1]*MM); $('eSD').value=Math.round(sz[2]*MM); }
+    refreshCount();
+  }
+  function applyPos(){ if(!selected) return;
+    selected.position.set((+$('ePX').value||0)/MM,(+$('ePY').value||0)/MM,(+$('ePZ').value||0)/MM);
+    if(helper) helper.update(); refreshCount(); }
+  function applySize(){ if(!selected) return; const o=selected, pa=o.geometry&&o.geometry.parameters;
+    if(!pa||!('width'in pa)) return;
+    const w=(+$('eSW').value||1)/MM,h=(+$('eSH').value||1)/MM,d=(+$('eSD').value||1)/MM;
+    o.geometry.dispose(); o.geometry=new THREE.BoxGeometry(w,h,d);
+    if(helper) helper.update(); refreshCount(); }
+  ['ePX','ePY','ePZ'].forEach(id=>$(id).addEventListener('input',applyPos));
+  ['eSW','eSH','eSD'].forEach(id=>$(id).addEventListener('input',applySize));
+  $('eMove').onclick=()=>tc&&tc.setMode('translate');
+  $('eRot').onclick =()=>tc&&tc.setMode('rotate');
+  $('eMirror').onclick=()=>{ if(!selected) return; selected.position.x*=-1; if(helper)helper.update(); syncInputs(selected); };
+  $('eReset').onclick=()=>{ if(!selected) return; const o0=orig.get(selected.userData.editId); if(!o0) return;
+    selected.position.fromArray(o0.pos); selected.rotation.set(...o0.rot);
+    if(o0.size){ selected.geometry.dispose(); selected.geometry=new THREE.BoxGeometry(...o0.size); }
+    if(helper)helper.update(); syncInputs(selected); };
+
+  /* 6) 匯出修正單 */
+  function changedList(){
+    const out=[];
+    for(const [id,o0] of orig){ const o=byId(id); if(!o) continue; const now=snap(o);
+      const moved=now.pos.some((v,i)=>Math.abs(v-o0.pos[i])>1e-4);
+      const rotd =now.rot.some((v,i)=>Math.abs(v-o0.rot[i])>1e-4);
+      const sized=o0.size&&now.size&&now.size.some((v,i)=>Math.abs(v-o0.size[i])>1e-4);
+      if(moved||rotd||sized) out.push({ id, 零件:now.zh, 圖層:now.layer,
+        位置m前:o0.pos, 位置m後:now.pos, ...(rotd?{角度前:o0.rot,角度後:now.rot}:{}),
+        ...(sized?{尺寸m前:o0.size,尺寸m後:now.size}:{}) }); }
+    return out;
+  }
+  function refreshCount(){ $('eCount').textContent=`已改 ${changedList().length} 個零件`; }
+  $('eCopy').onclick=async()=>{ const data=changedList();
+    const txt=JSON.stringify(data,null,2);
+    $('eJSON').value=txt; $('eJSON').style.display='block';
+    try{ await navigator.clipboard.writeText(txt); $('eCopy').textContent='✓ 已複製，貼給 Claude'; }
+    catch(e){ $('eCopy').textContent='⚠ 請手動複製下框'; }
+    setTimeout(()=>$('eCopy').textContent='📋 複製修正單給 Claude',2200); };
+
+  /* 7) 編輯模式開關（塞進既有控制列）+ 時間軸 slider */
+  let editOn=false;
+  const toggle=document.createElement('button');
+  toggle.textContent='✏️ 編輯模式'; toggle.className=ui.prev.className;
+  ui.play.parentElement.appendChild(toggle);
+
+  // 單獨拉出「活動羽瓣＋門閉鎖器」研究鈕
+  const focusBtn=document.createElement('button');
+  focusBtn.textContent='🔍 單看羽瓣＋鎖'; focusBtn.className=ui.prev.className;
+  let focused=false;
+  focusBtn.onclick=()=>{ focused=!focused; focusBtn.classList.toggle('on',focused);
+    focusBtn.style.background=focused?'#11445c':''; focusBtn.style.borderColor=focused?'#39c5ff':''; focusBtn.style.color=focused?'#39c5ff':'';
+    if(focused){ window.__only(['vane','lock'],false);
+      const x=document.getElementById('btnXray'); if(x&&x.classList.contains('on'))x.click();
+      window.__pause&&window.__pause(); window.__setT(6.0);
+      const bl=window.__world('blade'); window.__setCam([bl[0]+0.45,bl[1]+0.05,bl[2]+0.85],[bl[0],bl[1]-0.02,bl[2]]); }
+    else { window.__allLayers(); } };
+  ui.play.parentElement.appendChild(focusBtn);
+
+  const tlWrap=document.createElement('div');
+  tlWrap.style.cssText='position:fixed;left:14px;bottom:12px;width:300px;background:#161d25dd;border:1px solid #2a3645;border-radius:9px;padding:8px 10px;z-index:50;display:none;font:12px "PingFang TC",sans-serif;color:#dce6f0';
+  tlWrap.innerHTML=`<div style="color:#8fa3b8;margin-bottom:4px">時間軸（拖動看機構怎麼動）：<span id="eT">0.0</span>s / 16.5s</div>
+    <input id="eTL" type="range" min="0" max="16.5" step="0.05" value="0" style="width:100%">`;
+  document.body.appendChild(tlWrap);
+  tlWrap.querySelector('#eTL').addEventListener('input',ev=>{ const v=+ev.target.value;
+    tlWrap.querySelector('#eT').textContent=v.toFixed(1); window.__setT(v); if(helper)helper.update(); });
+
+  function setEdit(on){
+    editOn=on; window.__editFreeze=on;
+    toggle.classList.toggle('on',on);
+    toggle.style.background=on?'#11445c':''; toggle.style.borderColor=on?'#39c5ff':''; toggle.style.color=on?'#39c5ff':'';
+    panel.style.display=(on&&selected)?'block':'none';
+    tlWrap.style.display=on?'block':'none';
+    if(on){ window.__pause&&window.__pause(); }
+    else { select(null); if(tc) tc.detach(); }
+  }
+  toggle.onclick=()=>setEdit(!editOn);
+
+  /* 8) 點畫布選零件（編輯模式下，且非拖 gizmo / 非剛 orbit 拖曳） */
+  let down=null;
+  renderer.domElement.addEventListener('pointerdown',e=>{ down=[e.clientX,e.clientY]; });
+  renderer.domElement.addEventListener('pointerup',e=>{
+    if(!editOn || !down) return;
+    const moved=Math.hypot(e.clientX-down[0],e.clientY-down[1])>6; down=null;
+    if(moved) return;                               // 拖曳（轉視角/拉 gizmo）不算選取
+    if(tc && tc.dragging) return;
+    const o=pickAt(e.clientX,e.clientY); if(o) select(o);
+  });
+
+  window.__edit=setEdit;                            // 程式化開關（驗證用）
+  window.__editPick=q=>{ for(const m of reg.keys()){ if(m.userData.editId===q||(reg.get(m)||'').includes(q)){ setEdit(true); select(m); return {picked:nameOf(m),id:m.userData.editId}; } } return null; };
+  window.__editDiff=()=>changedList();
+  console.log('[edit] 編輯模式就緒，可選零件數 =', reg.size);
+})();
 </script>
 </body>
 </html>
