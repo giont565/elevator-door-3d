@@ -239,7 +239,7 @@
           <tr><td>門軌</td><td>—</td><td>門吊板滑輪行走的軌道（斜頂斷面自動對中）</td></tr>
           <tr><td>連動皮帶</td><td>同步齒型帶</td><td>門機驅動；上下股各夾一扇車廂門，等速對開對關</td></tr>
           <tr><td>皮帶固定座</td><td>—</td><td>把連動皮帶夾在車廂門吊板上的固定座，皮帶動＝門板動</td></tr>
-          <tr><td>位置開關（門開度）</td><td>OLT／CLT</td><td>偵測「門開到位／門關到位」的位置開關。<b>光遮斷器（photointerrupter）原理</b>：ㄈ形溝槽一側發光、一側受光，門到位時擋光片滑入溝槽<b>遮斷光束</b>＝感測訊號，<b>非機械撥動</b>接觸</td></tr>
+          <tr><td>位置開關（門開度）</td><td>OLT／CLT</td><td>偵測「門開到位／門關到位」的位置開關。<b>光遮斷器（photointerrupter）原理</b>：黑色方盒朝下打出光束，門移動到定位時擋光片滑入盒子下方<b>遮斷往下的光源</b>＝感測訊號（光束綠→紅），<b>非機械撥動</b>接觸</td></tr>
           <tr><td>車廂門SW開關</td><td>GS</td><td>車廂門全閉才導通的電氣門鎖開關；撞塊壓上接點＝導通</td></tr>
           <tr><td>光幕開關／安全門邊</td><td>MBS／SDE</td><td>防夾：<b>更新後</b>＝MBS 電子光幕（遮光即反向開門）；<b>更新前</b>＝SDE 機械安全門邊（一定要碰到才反向，人慢易被夾）</td></tr>
           <tr><td>安全門邊支臂＋門護弓</td><td>—</td><td>機械安全門邊的連桿臂＋前緣護弓；被壓到→帶動安全門邊SW開關→反向開門</td></tr>
@@ -620,20 +620,19 @@ for(let i=0;i<NT;i++){
 }
 scene.add(teethUp, teethDn);
 
-/* ---- OLT / CLT 到位感知（滾輪槓桿微動開關型）---- */
+/* ---- OLT / CLT 到位感知（光遮斷器：黑方盒朝下打光，擋光片滑入遮斷光源）---- */
 function limitSwitch(x, name){
-  const g=new THREE.Group(); g.position.set(x, 2.165, .12); scene.add(g);
-  // 光遮斷器(photointerrupter)：ㄈ形溝槽，一叉發光、一叉受光；擋光片進溝槽遮斷光束＝感測門到位(非機械撥動)
-  const base=B(.05,.045,.028,M.dark); base.position.set(.02,0,0); g.add(base);            // 本體(黑膠・LED+光電晶體)
-  const fork1=B(.04,.05,.012,M.dark); fork1.position.set(-.01,.045,.018); g.add(fork1);     // 上叉(發光側)
-  const fork2=B(.04,.05,.012,M.dark); fork2.position.set(-.01,.045,-.018); g.add(fork2);    // 下叉(受光側)
-  const mount=B(.018,.12,.018,M.frame); mount.position.set(.02,-.07,-.01); g.add(mount);  // 固定臂
-  const beam=CYL(.0012,.034,M.sw); beam.rotation.x=Math.PI/2; beam.position.set(-.01,.045,0);  // 溝槽中間光束(沿z・LED→受光)
-  beam.material=new THREE.MeshStandardMaterial({color:0x16c95e,emissive:0x16c95e,emissiveIntensity:1.6});
+  const g=new THREE.Group(); g.position.set(x, 2.27, .12); scene.add(g);
+  // OLT/CLT 光遮斷感測器：黑色方形盒往下打光；門移動到定位時擋光片滑入光束下方遮斷光源＝感測訊號(非機械撥動)
+  const box=B(.032,.03,.026,M.belt); g.add(box);                                   // 黑色方形盒(正常大小)
+  const lens=B(.012,.005,.012,M.dark); lens.position.set(0,-.016,0); g.add(lens);   // 下方出光口
+  const mount=B(.012,.045,.012,M.frame); mount.position.set(0,.038,-.006); g.add(mount); // 固定臂(往門楣)
+  const beam=B(.0025,.04,.0025,M.belt); beam.position.set(0,-.04,0);                // 往下的光束
+  beam.material=new THREE.MeshStandardMaterial({color:0x16c95e,emissive:0x16c95e,emissiveIntensity:1.7});
   g.add(beam);
-  const flag=B(.002,.045,.03,M.steel); flag.position.set(-.06,.045,0); g.add(flag);        // 擋光片(平常在溝槽外，到位時滑入遮斷)
-  addLabel(base,name,-.06,0,.02,true);
-  return {g,beam,flag,body:base};
+  const flag=B(.045,.003,.018,M.steel); flag.position.set(-.06,-.052,0); g.add(flag);  // 擋光片(門到位時水平滑入光束下遮斷)
+  addLabel(box,name,-.05,0,.02,true);
+  return {g,beam,flag,body:box};
 }
 const swOpen  = limitSwitch(-.95,'位置開關 OLT（門開到位）');
 const swClose = limitSwitch(-.04,'位置開關 CLT（門關到位）');
@@ -1284,10 +1283,10 @@ function update(){
   lockLED.material.emissive.setHex(S.ds?0x16c95e:0x000000);
   lockLED.material.emissiveIntensity=S.ds?1.8:0;
 
-  // OLT/CLT＝光遮斷器：門到位時擋光片滑入溝槽遮斷光束(綠光→紅)，非機械撥桿
+  // OLT/CLT＝光遮斷感測器：門到定位時擋光片滑入往下光束遮斷光源(綠→紅)，非機械撥桿
   { const oltOn=d>.985, cltOn=d<.03;
-    swOpen.flag.position.x  = oltOn ? -.01 : -.06;
-    swClose.flag.position.x = cltOn ? -.01 : -.06;
+    swOpen.flag.position.x  = oltOn ? 0 : -.06;
+    swClose.flag.position.x = cltOn ? 0 : -.06;
     swOpen.beam.material.color.setHex(oltOn?0xff5252:0x16c95e);  swOpen.beam.material.emissive.setHex(oltOn?0xff5252:0x16c95e);
     swClose.beam.material.color.setHex(cltOn?0xff5252:0x16c95e); swClose.beam.material.emissive.setHex(cltOn?0xff5252:0x16c95e); }
 
