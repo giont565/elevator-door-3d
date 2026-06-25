@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>三菱電梯門機構 3D 實機版 — NexWay 世代門機判定鏈</title>
+<title>三菱電梯門機構 3D 實機版 — 門機判定鏈</title>
 <style>
   :root{
     --bg:#12100f; --panel:#1d1817; --card:#272020; --line:#453734;
@@ -141,12 +141,42 @@
     #speedBox{transform:scale(.82);transform-origin:bottom right}
     #banner{font-size:17px;padding:12px 18px;white-space:normal;max-width:calc(100% - 32px)}
   }
+  /* ===== 解說錄影模式（旁白字幕條 + 指標籤 + 描邊高亮）===== */
+  body.narrate header,body.narrate aside,body.narrate #stepChip,body.narrate #timerChip,
+  body.narrate #signals,body.narrate #speedBox,body.narrate #banner,body.narrate #bom{display:none!important}
+  body.narrate main{padding:0}
+  body.narrate #viewport{border-radius:0}
+  /* 底部字幕條 */
+  #narrateBar{position:absolute;left:0;right:0;bottom:0;z-index:80;display:none;
+    padding:18px 32px 22px;background:linear-gradient(to top,rgba(8,6,6,.94) 60%,rgba(8,6,6,0));
+    font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;pointer-events:none}
+  body.narrate #narrateBar{display:block}
+  #narrateBar .nb-head{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+  #narrateBar .nb-no{background:#ff5560;color:#2e070a;font-weight:800;font-size:18px;
+    border-radius:8px;padding:3px 12px;letter-spacing:.5px}
+  #narrateBar .nb-title{font-size:26px;font-weight:800;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.8)}
+  #narrateBar .nb-chips{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+  #narrateBar .nb-chip{background:rgba(57,197,255,.18);border:1.5px solid #39c5ff;color:#bfeaff;
+    font-size:15px;font-weight:700;border-radius:999px;padding:4px 14px}
+  #narrateBar .nb-body{font-size:20px;line-height:1.5;color:#f0e6e2;max-width:1500px;
+    text-shadow:0 1px 4px rgba(0,0,0,.9)}
+  #narrateBar .nb-body b{color:#ffd76a}
+  /* 指標籤（引線指到高亮元件） */
+  .ptrLbl{position:relative;transform:translate(-50%,-140%);pointer-events:none;
+    font-family:"PingFang TC","Noto Sans TC",sans-serif;white-space:nowrap}
+  .ptrLbl .pl-box{background:rgba(57,197,255,.95);color:#062130;font-weight:800;font-size:15px;
+    border-radius:7px;padding:4px 11px;box-shadow:0 3px 12px rgba(0,0,0,.6);
+    border:1px solid #bfeaff}
+  .ptrLbl .pl-stem{position:absolute;left:50%;top:100%;width:2px;height:26px;
+    background:linear-gradient(to bottom,#39c5ff,rgba(57,197,255,.1));transform:translateX(-50%)}
+  .ptrLbl .pl-dot{position:absolute;left:50%;top:calc(100% + 26px);width:9px;height:9px;
+    background:#39c5ff;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 8px #39c5ff}
 </style>
 </head>
 <body>
 <div id="app">
   <header>
-    <h1>🛗 三菱電梯門機構 <span>3D 實機版（NexWay 世代）</span></h1>
+    <h1>🛗 三菱電梯門機構 <span>3D 實機版</span></h1>
     <div class="ctrl" id="ctrlBar">
       <!-- ① 播放控制（常駐） -->
       <div class="play-group">
@@ -225,6 +255,14 @@
       </div>
       <div id="speedBox"><div class="l">門速曲線（FG 速度回授）｜▲＝現在</div><canvas id="speedCv" width="216" height="64"></canvas></div>
       <div id="loopFlash"></div>
+      <div id="narrateBar">
+        <div class="nb-head">
+          <span class="nb-no">S0</span>
+          <span class="nb-title">—</span>
+          <span class="nb-chips"></span>
+        </div>
+        <div class="nb-body">—</div>
+      </div>
       <div id="bom">
         <button class="close" id="bomClose">✕ 關閉</button>
         <h3>📋 三菱門系統零件對照表（依廠內實機照片用詞）</h3>
@@ -250,7 +288,7 @@
           <tr><td>車廂護板／乘場護板</td><td>—</td><td>門檻下方延伸的金屬護板（防夾腳、防止物件掉進門縫）</td></tr>
           <tr><td>外門開關鑰匙孔</td><td>—</td><td>乘場門上的緊急開鎖鑰匙孔（受困救援、維保時從外面開門用）</td></tr>
           <tr><td>EMO</td><td>—</td><td>車頂緊急停止按鈕（維修在車頂作業時急停用）</td></tr>
-          <tr><td>PM 永磁同步門機</td><td>NexWay</td><td>扁碟型永磁馬達直驅皮帶輪，無減速機無連桿</td></tr>
+          <tr><td>PM 永磁同步門機</td><td>三菱</td><td>扁碟型永磁馬達直驅皮帶輪，無減速機無連桿</td></tr>
           <tr><td>門機控制板</td><td>DOR</td><td>VVVF 驅動馬達＋所有開關門判定</td></tr>
           <tr><td>編碼器</td><td>FG</td><td>回報門位置/速度，減速點與到位判定靠它</td></tr>
         </table>
@@ -271,9 +309,14 @@
 </script>
 <script type="module">
 import * as THREE from 'three';
+window.THREE = THREE;
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 /* ============ 時間軸（同教學版，已驗證）============ */
 let T_TOTAL = 12;   // 主循環(乾淨開關門)一輪12s；防夾示範時切回16.5
@@ -435,6 +478,24 @@ vp.appendChild(renderer.domElement);
 const labelRenderer = new CSS2DRenderer();
 labelRenderer.domElement.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none';
 vp.appendChild(labelRenderer.domElement);
+
+/* 解說錄影模式：發光描邊輪廓（OutlinePass）*/
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const outlinePass = new OutlinePass(new THREE.Vector2(1,1), scene, camera);
+outlinePass.edgeStrength = 6.0;
+outlinePass.edgeGlow = 0.7;
+outlinePass.edgeThickness = 2.0;
+outlinePass.pulsePeriod = 2.0;
+outlinePass.visibleEdgeColor.set('#3ad0ff');
+outlinePass.hiddenEdgeColor.set('#1a6e8c');
+composer.addPass(outlinePass);
+composer.addPass(new OutputPass());
+window.__narrateOn = false;
+window.__narrate = (on)=>{ window.__narrateOn = !!on; document.body.classList.toggle('narrate', !!on);
+  if(!on){ outlinePass.selectedObjects = []; clearPtrLabels(); }
+  if(typeof resize==='function') resize();   // 隱藏側欄後 viewport 變寬 → 重設 canvas/composer 尺寸
+  forceStep(); };
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 1.5, 0);
@@ -951,17 +1012,54 @@ const FOCUS = {
   gsSw    : [gsBody, gsCam],
 };
 let curFocusMats = [];
+let curFocusMeshes = [];
+/* 高亮元件群 → 白話元件名（描邊指標籤＋字幕 chip 用）*/
+const FOCUS_NAME = {
+  beams:'MBS 光幕', curtain:'MBS 光幕', edge:'機械安全門邊',
+  motor:'門機馬達', belt:'連動皮帶', vane:'活動羽瓣',
+  openLim:'OLT 開門到位開關', closeLim:'CLT 關門到位開關',
+  hook:'門閉鎖器彈簧鉤', contacts:'DS 接點開關', gsSw:'車廂門SW（GS）',
+};
 function setFocus(keys){
   for(const m of curFocusMats){ m.emissive.setHex(m.userData._em??0); m.emissiveIntensity=1; }
-  curFocusMats = [];
+  curFocusMats = []; curFocusMeshes = [];
   const seen = new Set();
   const eff = safetyMode==='edge' ? keys.map(k=>(k==='beams'||k==='curtain')?'edge':k) : keys;
   for(const k of eff) for(const mesh of (FOCUS[k]||[])){
+    if(mesh && mesh.visible!==false) curFocusMeshes.push(mesh);
     const m = mesh.material;
     if(seen.has(m.uuid)) continue; seen.add(m.uuid);
     if(m.userData._em===undefined) m.userData._em = m.emissive ? m.emissive.getHex() : 0;
     curFocusMats.push(m);
   }
+  if(window.__narrateOn){ outlinePass.selectedObjects = curFocusMeshes; buildPtrLabels(eff); }
+}
+/* ---- 指標籤（引線指到高亮元件）---- */
+let ptrLabels = [];
+function clearPtrLabels(){ for(const o of ptrLabels){ o.parent && o.parent.remove(o); } ptrLabels = []; }
+function buildPtrLabels(keys){
+  clearPtrLabels();
+  const done = new Set();
+  for(const k of keys){
+    const name = FOCUS_NAME[k]; if(!name || done.has(name)) continue; done.add(name);
+    const arr = FOCUS[k]||[]; const mesh = arr.find(m=>m && m.visible!==false); if(!mesh) continue;
+    const div = document.createElement('div'); div.className='ptrLbl';
+    div.innerHTML = `<div class="pl-box">${name}</div><div class="pl-stem"></div><div class="pl-dot"></div>`;
+    const o = new CSS2DObject(div); mesh.add(o); ptrLabels.push(o);
+  }
+}
+/* ---- 底部字幕條：步驟說明 + 高亮元件 chips ---- */
+const stripTag = s => (s||'').replace(/<[^>]+>/g,'');
+function narrateCaption(s){
+  const bar = document.getElementById('narrateBar'); if(!bar) return;
+  bar.querySelector('.nb-no').textContent = s.no;
+  bar.querySelector('.nb-title').textContent = stepTitle(s).replace(/^S\d+\s*/,'');
+  const eff = safetyMode==='edge' ? s.focus.map(k=>(k==='beams'||k==='curtain')?'edge':k) : s.focus;
+  const names=[]; const done=new Set();
+  for(const k of eff){ const n=FOCUS_NAME[k]; if(n&&!done.has(n)){done.add(n);names.push(n);} }
+  bar.querySelector('.nb-chips').innerHTML = names.map(n=>`<span class="nb-chip">${n}</span>`).join('');
+  const mech = (safetyMode==='edge' && s.mechE) ? s.mechE : s.mech;
+  bar.querySelector('.nb-body').innerHTML = mech || stripTag(s.trig||'');
 }
 
 /* ============ 圖層管理（像 AutoCAD 圖層：每組可切 標籤＋元件 / 只元件 / 隱藏）============ */
@@ -1189,6 +1287,7 @@ function resize(){
   const w=vp.clientWidth,h=vp.clientHeight;
   camera.aspect=w/h; camera.updateProjectionMatrix();
   renderer.setSize(w,h); labelRenderer.setSize(w,h);
+  composer.setSize(w,h); outlinePass.setSize(w,h);
 }
 addEventListener('resize',resize); resize();
 
@@ -1244,6 +1343,26 @@ function updateKeyDemo(kd){
   let phase=KD_STEPS[0][1]; for(const [thr,txt] of KD_STEPS) if(kd>=thr) phase=txt;
   ui.chipNo.textContent='🔑 鑰匙緊急開鎖示範'; ui.chipTi.textContent=phase;
   ui.timer.style.display='none'; ui.banner.classList.remove('show');
+  if(window.__narrateOn) narrateKeyCaption(kd, phase);
+}
+let _kdPhase=null;
+function narrateKeyCaption(kd, phase){
+  outlinePass.selectedObjects = [keyTool, liftRod, liftRodTop, hookG, lockRollerG, shortBar].filter(o=>o&&o.visible!==false);
+  if(phase!==_kdPhase){
+    _kdPhase = phase;
+    clearPtrLabels();
+    const pts = [[keyTool,'外門開關鑰匙'],[liftRod,'引上棒'],[hookG,'門閉鎖器掛鉤']];
+    for(const [mesh,name] of pts){ if(!mesh) continue;
+      const div=document.createElement('div'); div.className='ptrLbl';
+      div.innerHTML=`<div class="pl-box">${name}</div><div class="pl-stem"></div><div class="pl-dot"></div>`;
+      const o=new CSS2DObject(div); mesh.add(o); ptrLabels.push(o);
+    }
+    const bar=document.getElementById('narrateBar');
+    bar.querySelector('.nb-no').textContent='🔑';
+    bar.querySelector('.nb-title').textContent='鑰匙緊急開鎖';
+    bar.querySelector('.nb-chips').innerHTML=['外門開關鑰匙','引上棒','門閉鎖器'].map(n=>`<span class="nb-chip">${n}</span>`).join('');
+    bar.querySelector('.nb-body').innerHTML=phase;
+  }
 }
 
 function update(){
@@ -1350,9 +1469,12 @@ function update(){
     ui.chipTi.textContent=stepTitle(s);
     [...ui.list.children].forEach((b,i)=>b.classList.toggle('act',i===si));
     renderDetail(s); setFocus(s.focus);
+    if(window.__narrateOn) narrateCaption(s);
   }
-  const pulse=(Math.sin(performance.now()/240)+1)/2;
-  for(const m of curFocusMats){ m.emissive.setHex(0x8a2a35); m.emissiveIntensity=.25+.75*pulse; }
+  if(!window.__narrateOn){
+    const pulse=(Math.sin(performance.now()/240)+1)/2;
+    for(const m of curFocusMats){ m.emissive.setHex(0x8a2a35); m.emissiveIntensity=.25+.75*pulse; }
+  }
 
   drawSpeed(t);
 }
@@ -1374,7 +1496,7 @@ function loop(){
   if(flashT>0){ flashT-=dt; ui.flash.style.opacity=Math.min(.8,flashT*2); }
   if(!window.__editFreeze) update();   // 編輯模式凍結：手動改的位置/尺寸不被動畫覆寫
   controls.update();
-  renderer.render(scene,camera);
+  if(window.__narrateOn) composer.render(); else renderer.render(scene,camera);
   labelRenderer.render(scene,camera);
 }
 renderDetail(STEPS[0]);

@@ -1,2 +1,9 @@
 .claude/
 .DS_Store
+
+# 三菱官方技術文件（版權資料，整夾僅本地參考、不進版控/不上公開 Pages）
+docs/官方技術文件/
+
+.venv-rec/
+_rec/
+_smoke/
