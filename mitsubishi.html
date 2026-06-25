@@ -124,11 +124,21 @@
     .play-group{gap:5px}
     button,a.btn{padding:9px 11px;font-size:13px;min-height:44px}
     .play-group button{min-width:44px;padding:9px 10px}
-    /* on mobile, drop menus go full-width and anchor to left edge */
-    .drop-menu{left:0;right:auto;min-width:200px;font-size:13px}
-    .drop-menu button,.drop-menu a.btn{min-height:44px;font-size:13px}
-    /* layer panel: full-width from bottom of its anchor */
-    #layerPanel{min-width:min(340px, 96vw);max-height:55vh;overflow-y:auto}
+    /* 手機：下拉改「貼底全寬面板」，靠右按鈕展開不再超出畫面被切 */
+    .drop-menu{position:fixed;left:0;right:0;bottom:0;top:auto;width:auto;
+      min-width:0;max-width:none;max-height:66vh;overflow-y:auto;white-space:normal;
+      border-radius:16px 16px 0 0;border-bottom:none;font-size:14px;z-index:90;
+      padding:10px 12px calc(14px + env(safe-area-inset-bottom));
+      box-shadow:0 -10px 30px rgba(0,0,0,.6)}
+    .drop-menu button,.drop-menu a.btn{min-height:46px;font-size:14px}
+    /* 圖層面板：內嵌在「顯示」面板裡一起捲動（不再獨立浮出右側） */
+    #layerPanel{position:static;display:none;width:100%;min-width:0;max-width:none;
+      max-height:none;overflow:visible;border:none;border-top:1px solid var(--line);
+      border-radius:0;margin-top:6px;padding:4px 0 0;box-shadow:none;background:transparent}
+    #layerPanel.open{display:block}
+    .lyRow{padding:8px 4px}
+    .lyRow .nm{font-size:14px}
+    .lySeg button{padding:7px 11px;font-size:13px;min-height:40px}
     main{flex-direction:column}
     #viewport{flex:none;height:52vh;width:100%}
     aside{width:100%;flex:1 1 auto;border-left:none;border-top:1px solid var(--line)}
