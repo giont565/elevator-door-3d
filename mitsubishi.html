@@ -882,11 +882,13 @@ const keyEsc = new THREE.Mesh(new THREE.CylinderGeometry(.02,.02,.008,20), M.ste
 keyEsc.rotation.x=Math.PI/2; keyEsc.position.set(-.325,1.90,-.197); lR.g.add(keyEsc);   // 隨右乘場門扇（鎖總成整組移右側對齊羽瓣）
 const keyHole = B(.004,.014,.014,M.dark); keyHole.position.set(-.325,1.90,-.205); lR.g.add(keyHole);
 addLabel(keyEsc,'乘場門開關鑰匙孔（緊急開鎖・對引上棒）', -.30, 0, -.02, true);
-/* 緊急開鎖鑰匙（平常隱藏・示範時插入後往上頂引上棒・不轉動） */
-const keyTool=new THREE.Group(); keyTool.position.set(-.325,1.90,-.16); keyTool.visible=false; lR.g.add(keyTool);
-{ const shaft=CYL(.005,.07,M.steel); shaft.rotation.x=Math.PI/2; keyTool.add(shaft);
-  const bow=new THREE.Mesh(new THREE.TorusGeometry(.018,.005,8,18),M.steel); bow.position.z=.04; keyTool.add(bow);
-  const bit=B(.005,.016,.004,M.steel); bit.position.set(0,-.009,-.024); keyTool.add(bit); }
+/* 緊急開鎖鑰匙（平常隱藏・示範時：沿軸插入鑰匙孔 → 以鑰匙孔為支點槓桿：外端壓低、內端上翹頂引上棒）
+   群組原點＝鑰匙孔(支點)；shaft 沿 z：手把(bow)在外側(-z 乘場側)、刀端(bit)在內側(+z 井道側) */
+const KEY_PIVOT=[-.325,1.90,-.205];
+const keyTool=new THREE.Group(); keyTool.position.set(...KEY_PIVOT); keyTool.visible=false; lR.g.add(keyTool);
+{ const shaft=CYL(.005,.12,M.steel); shaft.rotation.x=Math.PI/2; shaft.position.z=-.01; keyTool.add(shaft);
+  const bow=new THREE.Mesh(new THREE.TorusGeometry(.018,.005,8,18),M.steel); bow.rotation.y=Math.PI/2; bow.position.z=-.082; keyTool.add(bow);
+  const bit=B(.005,.016,.004,M.steel); bit.position.set(0,.011,.05); keyTool.add(bit); }
 /* 引上棒：鑰匙孔上提時頂起閉鎖器解鎖（縱桿・連鑰匙孔到閉鎖器） */
 const liftRod = B(.012,.42,.012,M.steel); liftRod.position.set(-.325,2.13,-.20); lR.g.add(liftRod);
 const liftRodTop = B(.03,.012,.014,M.steel); liftRodTop.position.set(-.29,2.33,-.20); lR.g.add(liftRodTop);
@@ -1304,14 +1306,14 @@ addEventListener('resize',resize); resize();
 /* ============ 鑰匙緊急開鎖示範：鑰匙→引上棒→閉鎖器→外門可扒開 ============ */
 let keyDemo=-1, keyDemoOn=false;
 const KD_STEPS=[
-  [0.00,'① 把外門開關鑰匙插入乘場門鑰匙孔（只插入・不轉動）'],
-  [0.20,'② 鑰匙往上頂起「引上棒」（向上抬一點點即可）'],
-  [0.45,'③ 引上棒抬起「閉鎖器」→ 掛鉤離開鎖座銷＝解鎖（門接點同時斷、DS 失電）'],
-  [0.70,'④ 鎖已解開 → 從乘場（外）側就能用手把外門扒開'],
+  [0.00,'① 把外門開關鑰匙沿軸插入乘場門鑰匙孔（推到底）'],
+  [0.20,'② 壓低鑰匙外端（手把）→ 以鑰匙孔為支點槓桿作動 → 內端上翹'],
+  [0.45,'③ 內端上翹頂起「引上棒」→ 抬起閉鎖器、掛鉤離開鎖座銷＝解鎖（DS 同時斷電）'],
+  [0.70,'④ 鎖已解開 → 從乘場（外）側用手把外門扒開'],
 ];
 const btnKey=document.getElementById('btnKey');
 function resetKeyDemoParts(){
-  keyTool.visible=false; keyTool.rotation.z=0; keyTool.position.y=1.90;
+  keyTool.visible=false; keyTool.rotation.set(0,0,0); keyTool.position.set(...KEY_PIVOT);
   liftRod.position.y=2.13; liftRodTop.position.y=2.33;
   shortBar.position.x=-.005;
 }
@@ -1321,7 +1323,7 @@ btnKey.onclick=()=>{
   btnKey.textContent = keyDemoOn ? '↩ 結束緊急開鎖示範' : '🔑 鑰匙緊急開鎖';
   if(keyDemoOn){
     playing=false; ui.play.textContent='▶ 播放';
-    camera.position.set(-0.9,2.15,0.95); controls.target.set(-0.12,2.05,-0.22);
+    camera.position.set(-0.95,1.99,0.22); controls.target.set(-0.33,1.94,-0.19);
   }
 };
 function updateKeyDemo(kd){
@@ -1331,11 +1333,13 @@ function updateKeyDemo(kd){
   const dLnd=0.5*e4;
   hL.g.position.x=-(PANEL_W/2); hR.g.position.x=(PANEL_W/2);
   lL.g.position.x=-(PANEL_W/2)-TRAVEL*dLnd; lR.g.position.x=(PANEL_W/2)+TRAVEL*dLnd;
-  /* ① 鑰匙插入鑰匙孔（只插入、不轉動） */
-  keyTool.visible=true; keyTool.rotation.z=0;
-  /* ② 鑰匙頂著引上棒往上抬一點點（小行程・不是轉開、不是抬很多） */
-  const up=0.018*e2; liftRod.position.y=2.13+up; liftRodTop.position.y=2.33+up;
-  keyTool.position.y=1.90+up;        // 鑰匙頂著引上棒一起略升
+  /* ① 沿軸把鑰匙插入鑰匙孔：手把從外側(-z 乘場側)推到底（不轉動） */
+  keyTool.visible=true; keyTool.rotation.x=0;
+  keyTool.position.set(KEY_PIVOT[0], KEY_PIVOT[1], KEY_PIVOT[2]-0.06*(1-e1));
+  /* ② 槓桿原理：壓低外端(手把) → 以鑰匙孔為支點 → 內端(刀端)上翹 */
+  keyTool.rotation.x = 0.32*e2;
+  /* 內端上翹頂起引上棒（小行程上提・隨槓桿作動） */
+  const up=0.024*e2; liftRod.position.y=2.13+up; liftRodTop.position.y=2.33+up;
   /* ③ 引上棒抬起閉鎖器解鎖（掛鉤小幅抬起・滾輪被頂回正） */
   hookG.rotation.z=.22*e3;
   lockRollerG.rotation.z=-0.30*(1-e3);
