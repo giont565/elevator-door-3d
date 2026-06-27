@@ -181,6 +181,19 @@
     background:linear-gradient(to bottom,#39c5ff,rgba(57,197,255,.1));transform:translateX(-50%)}
   .ptrLbl .pl-dot{position:absolute;left:50%;top:calc(100% + 26px);width:9px;height:9px;
     background:#39c5ff;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 8px #39c5ff}
+  /* 電控／機械 雙色標示圖例 */
+  #catLegend{position:absolute;left:18px;bottom:18px;z-index:75;display:none;
+    background:rgba(8,10,16,.86);border:1px solid rgba(255,255,255,.15);border-radius:12px;
+    padding:12px 16px;max-width:580px;font-family:"PingFang TC","Noto Sans TC",sans-serif;
+    box-shadow:0 6px 24px rgba(0,0,0,.5)}
+  body.show-cat #catLegend{display:block}
+  #catLegend .cl-title{font-size:14px;font-weight:800;color:#fff;margin-bottom:8px;letter-spacing:.5px}
+  #catLegend .cl-row{font-size:12.5px;color:#d8dde2;line-height:1.5;margin-top:5px;display:flex;align-items:baseline;gap:8px}
+  #catLegend .cl-row b{color:#fff}
+  #catLegend .cl-dot{flex:none;width:14px;height:14px;border-radius:4px;transform:translateY(2px)}
+  #catLegend .cl-dot.elec{background:#2E86DE;box-shadow:0 0 8px #2E86DE}
+  #catLegend .cl-dot.mech{background:#E38B29;box-shadow:0 0 8px #E38B29}
+  #btnCategory.on{background:linear-gradient(90deg,#2E86DE,#E38B29);color:#fff;border-color:transparent}
 </style>
 </head>
 <body>
@@ -214,6 +227,7 @@
         <button class="drop-btn" id="dropDisplayBtn" aria-haspopup="true" aria-expanded="false">👁 顯示</button>
         <div class="drop-menu" id="dropDisplayMenu" role="menu">
           <button id="btnXray" class="on">🔬 X-ray 透視</button>
+          <button id="btnCategory">🎨 電控／機械標示</button>
           <span id="layerWrap" style="position:relative;display:block">
             <button id="btnLayers">▦ 圖層切換</button>
             <div id="layerPanel"></div>
@@ -265,6 +279,11 @@
       </div>
       <div id="speedBox"><div class="l">門速曲線（FG 速度回授）｜▲＝現在</div><canvas id="speedCv" width="216" height="64"></canvas></div>
       <div id="loopFlash"></div>
+      <div id="catLegend">
+        <div class="cl-title">🎨 元件類別標示</div>
+        <div class="cl-row"><span class="cl-dot elec"></span><b>電控元件</b>　馬達・控制板(DOR)・位置開關(OLT/CLT)・門鎖開關(GS/DS)・門接點・短路棒・光幕・LED・EMO</div>
+        <div class="cl-row"><span class="cl-dot mech"></span><b>機械元件</b>　活動羽瓣・聯軸器・皮帶傳動・門板吊板・閉鎖鉤・驅動輪・引上棒・連動鋼索・重錘・導軌・門檻護板</div>
+      </div>
       <div id="narrateBar">
         <div class="nb-head">
           <span class="nb-no">S0</span>
@@ -1219,6 +1238,37 @@ ui.xray.onclick=()=>{
   }
   ui.xray.classList.toggle('on',!solid);
 };
+/* ============ 電控／機械 雙色高亮標示 ============ */
+const ELEC_MAT=new THREE.MeshStandardMaterial({color:0x2E86DE,metalness:.35,roughness:.55,emissive:0x12466e,emissiveIntensity:.35});
+const MECH_MAT=new THREE.MeshStandardMaterial({color:0xE38B29,metalness:.35,roughness:.6,emissive:0x6e3a00,emissiveIntensity:.25});
+// 功能色件(DS綠燈/OLT・CLT光束)動畫會改其材質→排除染色、保留指示色且不污染共享材質
+const SKIP_PAINT=new Set([lockLED,swOpen.beam,swClose.beam]);
+const ELEC_OBJS=[swOpen.g,swClose.g,motorG,dorBox,dorPcb,dorLED,...dorScrews,...dorFins,gl1,gl2,motorTube,
+  gsG,lockLED,contactBase,cPin1,shortBar,...hL.dots,...hR.dots,emoBtn,emoBase];
+const MECH_OBJS=[basePlate,railMesh,lndRailMesh,lndHeader,topBeam,...frameCols,...railBolts,motorBracket,
+  dp.g,ip.g,beltUp,beltDn,teethUp,teethDn,hL.clamp,hL.post,hR.clamp,hR.post,
+  hL.panel,hL.plate,...hL.rollers,hL.bow,hL.bumper,hR.panel,hR.plate,...hR.rollers,hR.bow,hR.bumper,
+  lL.panel,lL.plate,...lL.rollers,...lL.antiDrops,lR.panel,lR.plate,...lR.rollers,...lR.antiDrops,
+  vaneG,lockRollerG,hookG,gsCam,keeper,kBkt,liftRod,liftRodTop,cordPulL,cordPulR,cordClampL,cordClampR,
+  keyEsc,keyHole,lcwPul,lcwPulHub,lcwBkt,lcwGuard,lcwWeight,lcwTubeL,lcwTubeR,lcwTubeB,lcwTubeF,
+  hL.strip,hR.strip,hL.me,hR.me,carSill,lndSill,carApron,lndApron];
+let catMode=false;
+function paintCat(obj,mat){
+  obj.traverse(o=>{ if(o.isMesh&&!SKIP_PAINT.has(o)){
+    if(mat){ if(o.userData._catOM===undefined) o.userData._catOM=o.material; o.material=mat; }
+    else if(o.userData._catOM!==undefined){ o.material=o.userData._catOM; delete o.userData._catOM; }
+  }});
+}
+function setCategoryMode(on){
+  catMode=on;
+  if(on && ui.xray.classList.contains('on')) ui.xray.click();   // 標示時關 X-ray 畫面乾淨
+  ELEC_OBJS.forEach(o=>o&&paintCat(o,on?ELEC_MAT:null));
+  MECH_OBJS.forEach(o=>o&&paintCat(o,on?MECH_MAT:null));
+  document.body.classList.toggle('show-cat',on);
+  const b=document.getElementById('btnCategory'); b&&b.classList.toggle('on',on);
+}
+document.getElementById('btnCategory').onclick=()=>setCategoryMode(!catMode);
+window.__setCat=setCategoryMode;   // 截圖驗證用
 /* 防夾切換：光幕（更新後）⇄ 機械門邊（更新前）；安全裝置＝圖層 gated（隱藏才整組關） */
 const btnSafety=document.getElementById('btnSafety');
 function syncSafetyVis(){
