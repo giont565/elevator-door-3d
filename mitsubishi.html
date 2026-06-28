@@ -935,10 +935,13 @@ function lockRoller(){
    羽棒夾住(門開)時兩滾輪垂直、放開(關門鎖閉)時傾斜。旋轉在動畫迴圈設定。 */
 const lockRollerG = new THREE.Group();
 lockRollerG.position.set(-.25, 2.265, -.085); lR.g.add(lockRollerG);
-const cR1=lockRoller(); cR1.position.set(0, .030, 0); lockRollerG.add(cR1);
+// 下輪 cR2＋支臂固定掛 lockRollerG（不動・門全關時靠在固定羽瓣 bladeL 上）
 const cR2=lockRoller(); cR2.position.set(0,-.030, 0); lockRollerG.add(cR2);
-const stand1=B(.011,.011,.085,M.steel); stand1.position.set(0, .030,-.0475); lockRollerG.add(stand1);  // 延伸棒縮短 14.5→8.5cm
 const stand2=B(.011,.011,.085,M.steel); stand2.position.set(0,-.030,-.0475); lockRollerG.add(stand2);
+// 上輪 cR1＋支臂掛「以下輪為樞軸的擺動組」：羽瓣夾住→繞下輪回正成垂直一直線；放開→偏開
+const upperRoll=new THREE.Group(); upperRoll.position.set(0,-.030,0); lockRollerG.add(upperRoll);   // 樞軸＝下輪中心
+const cR1=lockRoller(); cR1.position.set(0, .060, 0); upperRoll.add(cR1);          // 相對下輪上方 6cm＝上輪位
+const stand1=B(.011,.011,.085,M.steel); stand1.position.set(0, .060,-.0475); upperRoll.add(stand1);  // 延伸棒縮短 14.5→8.5cm
 addLabel(cR1,'乘場門驅動輪×2（上下排・被活動羽瓣推成垂直＝解鎖、帶動乘場門）', -.08, 0, .05);
 /* 復位彈簧（拉臂回鎖閉位置） */
 {
@@ -1390,9 +1393,9 @@ function updateKeyDemo(kd){
   keyTool.rotation.x = 0.32*e2;
   /* 內端上翹頂起引上棒（小行程上提・隨槓桿作動） */
   const up=0.024*e2; liftRod.position.y=2.13+up; liftRodTop.position.y=2.33+up;
-  /* ③ 引上棒抬起閉鎖器解鎖（掛鉤小幅抬起・滾輪被頂回正） */
+  /* ③ 引上棒抬起閉鎖器解鎖（掛鉤小幅抬起・上輪被頂回正成一直線） */
   hookG.rotation.z=.22*e3;
-  lockRollerG.rotation.z=-0.30*(1-e3);
+  upperRoll.rotation.z=-0.30*(1-e3);   // 只上輪擺、下輪固定
   /* 短路棒離開門接點 → DS 斷電（LED 滅） */
   shortBar.position.x=-.005 - .022*e3;
   lockLED.material.emissive.setHex(0x000000); lockLED.material.emissiveIntensity=0;
@@ -1461,7 +1464,7 @@ function update(){
   coupler1.rotation.z=_c1; coupler2.rotation.z=_c2;
 
   hookG.rotation.z=.30*hOpen;
-  lockRollerG.rotation.z=-0.30*(1-clamp);   // 鎖輪原地旋轉：羽棒夾住(門開)垂直、放開(關門)傾斜
+  upperRoll.rotation.z=-0.30*(1-clamp);   // 只上輪繞下輪擺：羽瓣夾住(門開)回正成垂直一直線、放開(門關)偏開；下輪 cR2 固定不動
   const S=sig(t);
   lockLED.material.emissive.setHex(S.ds?0x16c95e:0x000000);
   lockLED.material.emissiveIntensity=S.ds?1.8:0;
