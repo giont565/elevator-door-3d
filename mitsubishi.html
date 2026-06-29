@@ -1114,7 +1114,7 @@ function narrateCaption(s){
 
 /* ============ 圖層管理（像 AutoCAD 圖層：每組可切 標籤＋元件 / 只元件 / 隱藏）============ */
 const LAYERS = [
-  {key:'frame',  name:'機座・框架・導軌', mesh:[basePlate,railMesh,lndRailMesh,lndHeader,topBeam,railLbl,swOpen.g,swClose.g,...frameCols,...railBolts]},
+  {key:'frame',  name:'機座・框架・導軌', mesh:[basePlate,railMesh,lndRailMesh,lndHeader,topBeam,railLbl,swOpen.g,swClose.g,hL.oltVane,hL.cltVane,...frameCols,...railBolts]},
   {key:'drive',  name:'門機馬達・控制板', mesh:[motorG,motorBracket,dorBox,dorPcb,dorLED,...dorScrews,...dorFins,gl1,gl2,motorTube]},
   {key:'belt',   name:'連動皮帶傳動',     mesh:[dp.g,ip.g,beltUp,beltDn,teethUp,teethDn,hL.clamp,hL.post,hR.clamp,hR.post]},
   {key:'doors',  name:'門板・吊板・門護弓', mesh:[hL.panel,hL.plate,...hL.rollers,hL.bow,hL.bumper,hR.panel,hR.plate,...hR.rollers,hR.bow,hR.bumper,lL.panel,lL.plate,...lL.rollers,...lL.antiDrops,lR.panel,lR.plate,...lR.rollers,...lR.antiDrops]},
