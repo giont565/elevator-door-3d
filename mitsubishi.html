@@ -871,10 +871,10 @@ const couplerBase = new THREE.Group(); couplerBase.position.set(1.10, 2.62, -.00
   const mnt = B(.05,.06,.022, M.frame); mnt.position.set(-.018,.05,.02); couplerBase.add(mnt);    // 固定座(固定)
   const stem= B(.022,.13,.022,M.frame); stem.position.set(-.018,.10,.045); couplerBase.add(stem); } // 立柱：往上接門機機座板(固定)
 const coupler1 = new THREE.Group(); coupler1.position.set(0,0,0); couplerBase.add(coupler1);    // 1段：繞固定支點擺動
-{ const arm1 = B(1.0, .028, .016, M.steel); arm1.position.set(-.50, 0, 0); coupler1.add(arm1); } // 1段(長1.0m)：繞最右端固定支點，往左伸
-const coupler2 = new THREE.Group(); coupler2.position.set(-.50, 0, 0); coupler1.add(coupler2);   // 2段關節固定在「1段中點」(非尾端)→ 往左拉才會把2段上抬
-{ const arm2 = B(.65, .024, .015, M.steel); arm2.position.set(-.325, 0, 0); coupler2.add(arm2); } // 2段(長0.65m)：接到動件羽瓣「中間旁」(非頂端)
-const armTip = new THREE.Object3D(); armTip.position.set(-.65, 0, 0); coupler2.add(armTip);         // 2段末端＝動件羽瓣中間旁接點
+{ const arm1 = B(0.5, .028, .016, M.steel); arm1.position.set(-.25, 0, 0); coupler1.add(arm1); } // 1段(長0.5m·短)：繞最右端固定支點，往左伸
+const coupler2 = new THREE.Group(); coupler2.position.set(-.25, 0, 0); coupler1.add(coupler2);   // 2段關節固定在「1段中點」(非尾端)→ 往左拉才會把2段上抬
+{ const arm2 = B(.90, .024, .015, M.steel); arm2.position.set(-.45, 0, 0); coupler2.add(arm2); } // 2段(長0.90m·比1段長)：接到動件羽瓣「中間旁」(非頂端)
+const armTip = new THREE.Object3D(); armTip.position.set(-.90, 0, 0); coupler2.add(armTip);         // 2段末端＝動件羽瓣中間旁接點
 addLabel(coupler1,'聯軸器 1 段（樞軸固定於門機機座・繞固定支點擺動）', .10, .04, 0);
 addLabel(coupler2,'聯軸器 2 段（接於 1 段中點＋動件羽瓣中間旁・被 1 段中點上抬）', .04, .04, 0);
 addLabel(bladeLMesh,'活動羽瓣 固定件（不動・夾合基準）',-.26,0,0);
@@ -1473,8 +1473,8 @@ function update(){
   const _ry = -.06 + .14*clamp;                 // 動件 y：開門被1段拉起、明顯往上「擠壓上提」（非下垂）
   bladeR.position.set(_rx, _ry, -.085);         // 動件(右)由公式直接驅動（隨 vaneG→hR.g 一起平移）
   // 連桿(Hao 06-26 指定 topology)：2段關節接在「1段中點」、2段另端接動件羽瓣「中間旁」
-  // 支點固定 P=(1.10,2.62)；解兩圓交點求中關節 M(|M-P|=1段半長.50、|M-V|=2段長.65) → 1段繞P轉、中點抬2段
-  const _Px=1.10, _Py=2.62, _r1=.50, _r2=.65;
+  // 支點固定 P=(1.10,2.62)；解兩圓交點求中關節 M(|M-P|=1段半長.25、|M-V|=2段長.90) → 1段短·2段長·1段繞P轉、中點抬2段
+  const _Px=1.10, _Py=2.62, _r1=.25, _r2=.90;
   const _Vx = xr - .25 + _rx + .013;            // 動件羽瓣「中間旁」世界 x（中高度・靠支點側半寬）
   const _Vy = 2.20 + _ry;                       // 動件羽瓣中高度 世界 y
   const _dx=_Vx-_Px, _dy=_Vy-_Py, _D=Math.hypot(_dx,_dy);
