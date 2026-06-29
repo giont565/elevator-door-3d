@@ -862,21 +862,21 @@ function vaneBlade(){
 const bladeL = vaneBlade(); bladeL.position.set(-.030,0,-.085); vaneG.add(bladeL);  // 固定件（左・不動・夾合基準）
 const bladeR = vaneBlade(); bladeR.position.set( .030,0,-.085); vaneG.add(bladeR);  // 動件（右・會動・聯軸器帶動）
 const bladeLMesh = bladeL.children[0], bladeRMesh = bladeR.children[0];
-/* 聯軸器：兩段手臂。1段樞軸支點在「右側」(跟左側馬達不同側)，手臂往左伸到動件。
-   動件由公式直接驅動(向右夾向固定件+上抬)，兩段手臂用 2-link IK 每幀反解伸到動件頂
-   → 2段真的帶動動件、不浮空、跟著一起動。box→編輯模式可調 */
-const coupler1 = new THREE.Group(); coupler1.position.set(.20, .36, -.085); vaneG.add(coupler1);  // 1段樞軸：右側支點（跟左馬達不同側、靠近右邊動件bladeR）
-{ const arm1 = B(.15, .028, .016, M.steel); arm1.position.set(-.075, 0, 0); coupler1.add(arm1); } // 1段(長15cm)：從右支點往左伸
-{ // 1段固定端：樞軸銷＋固定座＋立柱 → 接到上方門機機座板（門機構），不簍空
-  const pin = CYL(.013,.034,M.copper); coupler1.add(pin);                                  // 樞軸銷
-  const mnt = B(.05,.06,.022, M.frame); mnt.position.set(.018,.05,.02); coupler1.add(mnt);   // 固定座
-  const stem= B(.022,.13,.022,M.frame); stem.position.set(.018,.12,.045); coupler1.add(stem); } // 立柱：往上接門機機座板(y≈2.49)
-const coupler2 = new THREE.Group(); coupler2.position.set(-.15, 0, 0); coupler1.add(coupler2);     // 2段肘節：接1段末端（被1段拉起）
+/* 聯軸器：2 段彎臂。⚠️ 樞軸支點「固定在門機機座板」(couplerBase 掛 scene・不隨門平移)。
+   依實機照片(08/09)：彎臂樞軸鎖在上方固定機座，手臂伸到「掛在動門上的動件 bladeR」。
+   每幀 2-link IK 反解伸到動件頂的世界位置 → 跨門相對運動真帶動、不浮空、不脫節。box→編輯模式可調 */
+const couplerBase = new THREE.Group(); couplerBase.position.set(.20, 2.56, -.005); scene.add(couplerBase);  // 固定支點世界座標(不掛 hR.g・不隨門平移)
+{ // 固定端：樞軸銷＋固定座＋立柱 → 接到上方門機機座板（不簍空・不旋轉）
+  const pin = CYL(.013,.034,M.copper); couplerBase.add(pin);                                   // 樞軸銷(固定)
+  const mnt = B(.05,.06,.022, M.frame); mnt.position.set(.018,.05,.02); couplerBase.add(mnt);    // 固定座(固定)
+  const stem= B(.022,.16,.022,M.frame); stem.position.set(.018,.11,.045); couplerBase.add(stem); } // 立柱：往上接門機機座板(固定)
+const coupler1 = new THREE.Group(); coupler1.position.set(0,0,0); couplerBase.add(coupler1);    // 1段：繞固定支點擺動
+{ const arm1 = B(.15, .028, .016, M.steel); arm1.position.set(-.075, 0, 0); coupler1.add(arm1); } // 1段(長15cm)：從固定支點往動件伸
+const coupler2 = new THREE.Group(); coupler2.position.set(-.15, 0, 0); coupler1.add(coupler2);   // 2段肘節：接1段末端（被1段拉起）
 { const arm2 = B(.15, .024, .015, M.steel); arm2.position.set(-.075, 0, 0); coupler2.add(arm2); }  // 2段(長15cm)：伸到動件bladeR頂
-const armTip = new THREE.Object3D(); armTip.position.set(-.15, 0, 0); coupler2.add(armTip);         // 2段末端＝動件bladeR接點（接右邊動件、不跨越）
-const _vaneTmp = new THREE.Vector3();
-addLabel(coupler1,'聯軸器 1 段（固定在車廂門機・繞支點上抬帶動動件）', .10, .04, 0);
-addLabel(coupler2,'聯軸器 2 段（接動件頂・隨動件一起動）', .04, .04, 0);
+const armTip = new THREE.Object3D(); armTip.position.set(-.15, 0, 0); coupler2.add(armTip);         // 2段末端＝動件bladeR接點
+addLabel(coupler1,'聯軸器 1 段（樞軸固定於門機機座・繞固定支點擺動帶動動件）', .10, .04, 0);
+addLabel(coupler2,'聯軸器 2 段（接動件頂・隨動件擺動）', .04, .04, 0);
 addLabel(bladeLMesh,'活動羽瓣 固定件（不動・夾合基準）',-.26,0,0);
 addLabel(bladeRMesh,'活動羽瓣 動件（可動・聯軸器帶動・夾乘場門驅動輪）',.26,0,0);
 
@@ -1118,7 +1118,7 @@ const LAYERS = [
   {key:'drive',  name:'門機馬達・控制板', mesh:[motorG,motorBracket,dorBox,dorPcb,dorLED,...dorScrews,...dorFins,gl1,gl2,motorTube]},
   {key:'belt',   name:'連動皮帶傳動',     mesh:[dp.g,ip.g,beltUp,beltDn,teethUp,teethDn,hL.clamp,hL.post,hR.clamp,hR.post]},
   {key:'doors',  name:'門板・吊板・門護弓', mesh:[hL.panel,hL.plate,...hL.rollers,hL.bow,hL.bumper,hR.panel,hR.plate,...hR.rollers,hR.bow,hR.bumper,lL.panel,lL.plate,...lL.rollers,...lL.antiDrops,lR.panel,lR.plate,...lR.rollers,...lR.antiDrops]},
-  {key:'vane',   name:'活動羽瓣・聯軸器',   mesh:[vaneG]},
+  {key:'vane',   name:'活動羽瓣・聯軸器',   mesh:[vaneG,couplerBase]},
   {key:'lock',   name:'門閉鎖器・鎖機構',  mesh:[lockRollerG,hookG,gsG,gsCam,keeper,kBkt,contactBase,cPin1,lockLED,shortBar,liftRod,liftRodTop,cordPulL,cordPulR,cordClampL,cordClampR,cordRope,keyEsc,keyHole,lcwPul,lcwPulHub,lcwBkt,lcwGuard,lcwWeight,lcwTubeL,lcwTubeR,lcwTubeB,lcwTubeF,lcwRope]},
   {key:'safety', name:'安全裝置（光幕／門邊）', gated:1, mesh:[hL.strip,hR.strip,hL.me,hR.me,beams,...hL.dots,...hR.dots]},
   {key:'sill',   name:'門檻・護板',       mesh:[carSill,lndSill,carApron,lndApron,sillLbl1,sillLbl2]},
@@ -1268,7 +1268,7 @@ const MECH_OBJS=[basePlate,railMesh,lndRailMesh,lndHeader,topBeam,...frameCols,.
   dp.g,ip.g,beltUp,beltDn,teethUp,teethDn,hL.clamp,hL.post,hR.clamp,hR.post,
   hL.panel,hL.plate,...hL.rollers,hL.bow,hL.bumper,hR.panel,hR.plate,...hR.rollers,hR.bow,hR.bumper,
   lL.panel,lL.plate,...lL.rollers,...lL.antiDrops,lR.panel,lR.plate,...lR.rollers,...lR.antiDrops,
-  vaneG,lockRollerG,hookG,gsCam,keeper,kBkt,liftRod,liftRodTop,cordPulL,cordPulR,cordClampL,cordClampR,
+  vaneG,couplerBase,lockRollerG,hookG,gsCam,keeper,kBkt,liftRod,liftRodTop,cordPulL,cordPulR,cordClampL,cordClampR,
   keyEsc,keyHole,lcwPul,lcwPulHub,lcwBkt,lcwGuard,lcwWeight,lcwTubeL,lcwTubeR,lcwTubeB,lcwTubeF,
   hL.strip,hR.strip,hL.me,hR.me,carSill,lndSill,carApron,lndApron];
 let catMode=false;
@@ -1471,9 +1471,12 @@ function update(){
   bladeL.position.set(-.030, 0, -.085);         // 固定件(左)：不動（夾合基準）
   const _rx = .10 - .07*clamp;                  // 動件 x：放開 +.10 → 夾合 +.03（往左靠固定件、驅動輪置中）
   const _ry = -.06 + .14*clamp;                 // 動件 y：開門被1段拉起、明顯往上「擠壓上提」（非下垂）
-  bladeR.position.set(_rx, _ry, -.085);         // 動件(右)由公式直接驅動
-  // 2-link IK：右支點(.20,.36) 兩段各長 .15，反解伸到動件bladeR頂(_rx,_ry+.20) → 2段被1段拉起、真帶動、不跨越固定件
-  const _Px=.20, _Py=.36, _L1=.15, _L2=.15, _ux=_Px-_rx, _uy=_Py-(_ry+.20);
+  bladeR.position.set(_rx, _ry, -.085);         // 動件(右)由公式直接驅動（隨 vaneG→hR.g 一起平移）
+  // 2-link IK：支點固定在門機機座(couplerBase 世界 .20,2.56)，反解伸到「掛在動門上的動件 bladeR 頂」的世界位置(跨門相對運動)
+  // bladeR 頂世界座標：x 隨右門 xr 平移(vaneG.x=-.25, blade 頂 = bladeR 局部 + .20m 半高)；支點不動 → 開門時手臂掃過去帶動
+  const _bwx = xr - .25 + _rx;                  // 動件頂 世界 x（隨右門平移）
+  const _bwy = 2.20 + _ry + .20;               // 動件頂 世界 y（vaneG.y=2.20）
+  const _L1=.15, _L2=.15, _ux=.20-_bwx, _uy=2.56-_bwy;   // 相對固定支點(.20,2.56)；arm 基準指 -x
   const _d=Math.min(Math.hypot(_ux,_uy), _L1+_L2-1e-4);
   const _c2=-Math.acos(Math.max(-1,Math.min(1,(_d*_d-_L1*_L1-_L2*_L2)/(2*_L1*_L2))));
   const _c1=Math.atan2(_uy,_ux)-Math.atan2(_L2*Math.sin(_c2), _L1+_L2*Math.cos(_c2));
