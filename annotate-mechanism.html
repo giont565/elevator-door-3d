@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-Hant"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>活動羽瓣・驅動輪・門 — 標注</title>
+<title>活動羽瓣・驅動輪・門・聯軸器 — 標注</title>
 <style>
  :root{--navy:#2C3E48;--gold:#C8A064;--cream:#F5F1E8;--ink:#333;--line:#d8d2c4;--pin:#e23b3b;--arrow:#16a34a;}
  *{box-sizing:border-box;margin:0;padding:0;}
@@ -20,6 +20,7 @@
  .part text{font-size:13px;font-weight:700;fill:var(--navy);pointer-events:none;user-select:none;}
  .part.sel .shape{stroke:#ff7a00 !important;stroke-width:3 !important;}
  .handle{fill:#ff7a00;stroke:#fff;stroke-width:1.5;cursor:nwse-resize;}
+ .handle[data-h="rot"]{fill:#16a34a;cursor:grab;}
  .right{width:320px;flex:none;background:#fff;border-left:1px solid var(--line);display:flex;flex-direction:column;}
  .right h2{font-size:13px;padding:10px 13px;background:#f0ece2;color:var(--navy);border-bottom:1px solid var(--line);}
  .sizebox{padding:9px 13px;border-bottom:1px solid var(--line);font-size:12.5px;color:#555;}
@@ -33,11 +34,11 @@
  .export textarea{width:100%;height:130px;font:11px monospace;border:1px solid var(--line);border-radius:6px;padding:6px;}
  .export button{width:100%;margin-top:6px;padding:10px;background:var(--gold);color:#3a2c10;font-weight:700;border:none;border-radius:8px;cursor:pointer;font-size:13px;}
 </style></head><body>
-<header><h1>🛗 活動羽瓣・驅動輪・門 — 標注</h1>
-<p>① 點零件選取 → 拖中間＝移動、拖<b>橘色角</b>＝改大小　② 工具列切「固定點/運動方向」標上去　③ 右下「導出」貼回給我</p></header>
+<header><h1>🛗 活動羽瓣・驅動輪・門・聯軸器 — 標注</h1>
+<p>① 點零件選取 → 拖中間＝移動、拖<b>橘角</b>＝改大小、拖<b>綠點</b>＝旋轉　② 切「固定點/運動方向」標上去　③ 右下「導出」貼回給我</p></header>
 <div class="wrap"><div class="left">
  <div class="toolbar">
-  <button id="tMove" class="on">🖱 移動/改大小</button>
+  <button id="tMove" class="on">🖱 移動/大小/旋轉</button>
   <div class="sep"></div>
   <button id="tPin">📌 固定點</button>
   <button id="tArrow">➡ 運動方向</button>
@@ -45,7 +46,7 @@
   <button id="tUndo">↩ 復原標記</button>
   <button id="tClearMk">🗑 清標記</button>
   <button id="tReset">⟲ 復位零件</button>
-  <span class="hint" id="hint">點零件選取；拖中間移動、拖橘角改大小</span>
+  <span class="hint" id="hint">點零件：拖中間移動、橘角改大小、綠點旋轉</span>
  </div>
  <div class="stage">
   <svg id="svg" viewBox="0 0 900 640" width="900" height="640">
@@ -57,7 +58,7 @@
  </div>
 </div>
 <div class="right"><h2 id="selName">目前選取：（未選）</h2>
- <div class="sizebox" id="sizebox">點一個零件看/改大小</div>
+ <div class="sizebox" id="sizebox">點一個零件看/改大小、角度</div>
  <div class="marklist" id="marklist"></div>
  <div class="export"><textarea id="out" readonly placeholder="按下方導出會把文字產生在這…"></textarea>
   <button id="btnExport">📋 導出標注（複製給我）</button></div>
@@ -66,13 +67,13 @@
 const svg=document.getElementById('svg'),partsG=document.getElementById('parts'),marksG=document.getElementById('marks'),
       handlesG=document.getElementById('handles'),ghost=document.getElementById('ghost');
 const DEF=()=>[
- {id:'door',  name:'門（車廂門板）', shape:'rect', x:300,y:90, w:300,h:470, fill:'#dfe6ea', op:.55},
- {id:'vaneFix',name:'活動羽瓣 固定件',shape:'rect', x:415,y:230,w:26, h:180, fill:'#f0d9a0', op:1},
- {id:'vaneMov',name:'活動羽瓣 動件', shape:'rect', x:480,y:230,w:26, h:180, fill:'#f4b24a', op:1, labelDy:-20},
+ {id:'door',  name:'門（車廂門板）', shape:'rect', x:300,y:90, w:300,h:470, rot:0, fill:'#dfe6ea', op:.55},
+ {id:'vaneFix',name:'活動羽瓣 固定件',shape:'rect', x:415,y:230,w:26, h:180, rot:0, fill:'#f0d9a0', op:1},
+ {id:'vaneMov',name:'活動羽瓣 動件', shape:'rect', x:480,y:230,w:26, h:180, rot:0, fill:'#f4b24a', op:1, labelDy:-20},
  {id:'rollU', name:'上驅動輪',       shape:'circle',cx:455,cy:285,r:30, fill:'#e3e3ea', op:1},
  {id:'rollD', name:'下驅動輪',       shape:'circle',cx:455,cy:360,r:30, fill:'#e3e3ea', op:1},
- {id:'coup1', name:'聯軸器1段(接門機機座)', shape:'rect', x:560,y:120,w:130,h:15, fill:'#cfd6db', op:1, labelDy:-2},
- {id:'coup2', name:'聯軸器2段(接動件)',     shape:'rect', x:515,y:135,w:15, h:100, fill:'#aab6bd', op:1, labelDy:-2},
+ {id:'coup1', name:'聯軸器1段(接門機機座)', shape:'rect', x:560,y:120,w:130,h:15, rot:0, fill:'#cfd6db', op:1, labelDy:-2},
+ {id:'coup2', name:'聯軸器2段(接動件)',     shape:'rect', x:515,y:135,w:15, h:100, rot:0, fill:'#aab6bd', op:1, labelDy:-2},
 ];
 let parts=DEF(), sel=null, mode='move', marks=[], drag=null;
 
@@ -80,27 +81,36 @@ function svgPt(e){const r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal;
  return{x:(e.clientX-r.left)/r.width*vb.width,y:(e.clientY-r.top)/r.height*vb.height};}
 function partAt(id){return parts.find(p=>p.id===id);}
 function centerOf(p){return p.shape==='circle'?{x:p.cx,y:p.cy}:{x:p.x+p.w/2,y:p.y+p.h/2};}
+function rot2(px,py,cx,cy,deg){const r=deg*Math.PI/180,c=Math.cos(r),s=Math.sin(r),dx=px-cx,dy=py-cy;
+ return{x:cx+dx*c-dy*s,y:cy+dx*s+dy*c};}
 
 function render(){
  partsG.innerHTML=parts.map(p=>{
-  const t=p.shape==='circle'
-   ?`<circle class="shape" cx="${p.cx}" cy="${p.cy}" r="${p.r}" fill="${p.fill}" fill-opacity="${p.op}" stroke="#888" stroke-width="2"/>`
-   :`<rect class="shape" x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="5" fill="${p.fill}" fill-opacity="${p.op}" stroke="#888" stroke-width="2"/>`;
-  const c=centerOf(p);
-  return `<g class="part ${sel===p.id?'sel':''}" data-id="${p.id}">${t}<text x="${c.x}" y="${(p.shape==='circle'?p.cy-p.r-6:p.y-6)+(p.labelDy||0)}" text-anchor="middle">${p.name}</text></g>`;
+  const c=centerOf(p); let t;
+  if(p.shape==='circle') t=`<circle class="shape" cx="${p.cx}" cy="${p.cy}" r="${p.r}" fill="${p.fill}" fill-opacity="${p.op}" stroke="#888" stroke-width="2"/>`;
+  else t=`<g transform="rotate(${p.rot||0} ${c.x} ${c.y})"><rect class="shape" x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="5" fill="${p.fill}" fill-opacity="${p.op}" stroke="#888" stroke-width="2"/></g>`;
+  const ly=(p.shape==='circle'?p.cy-p.r-6:p.y-6)+(p.labelDy||0);
+  return `<g class="part ${sel===p.id?'sel':''}" data-id="${p.id}">${t}<text x="${c.x}" y="${ly}" text-anchor="middle">${p.name}</text></g>`;
  }).join('');
+ // 把手(僅選中)
  let h='';const p=sel&&partAt(sel);
  if(p){ if(p.shape==='circle'){ h=`<circle class="handle" cx="${p.cx+p.r}" cy="${p.cy}" r="7" data-h="r"/>`; }
-   else{ h=`<rect class="handle" x="${p.x+p.w-7}" y="${p.y+p.h-7}" width="14" height="14" data-h="br"/>`; } }
+   else{ const c=centerOf(p),deg=p.rot||0;
+     const sc=rot2(p.x+p.w,p.y+p.h,c.x,c.y,deg), rh=rot2(c.x,p.y-28,c.x,c.y,deg);
+     h=`<line x1="${c.x}" y1="${c.y}" x2="${rh.x}" y2="${rh.y}" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="3 2"/>`
+      +`<rect class="handle" x="${sc.x-7}" y="${sc.y-7}" width="14" height="14" data-h="br"/>`
+      +`<circle class="handle" cx="${rh.x}" cy="${rh.y}" r="8" data-h="rot"/>`; } }
  handlesG.innerHTML=h;
+ // 標記
  marksG.innerHTML=marks.map((m,i)=>{const n=i+1;
   if(m.type==='pin')return `<g><circle cx="${m.x}" cy="${m.y}" r="8" fill="#e23b3b" stroke="#fff" stroke-width="2.5"/><text x="${m.x+11}" y="${m.y-8}" font-size="15" font-weight="800" fill="#e23b3b" stroke="#fff" stroke-width="3" paint-order="stroke">${n}</text></g>`;
   return `<g><line x1="${m.x1}" y1="${m.y1}" x2="${m.x2}" y2="${m.y2}" stroke="#16a34a" stroke-width="4.5" marker-end="url(#ah)"/><text x="${m.x2+5}" y="${m.y2}" font-size="15" font-weight="800" fill="#0c8a3a" stroke="#fff" stroke-width="3" paint-order="stroke">${n}</text></g>`;
  }).join('');
+ // 右側
  document.getElementById('selName').textContent='目前選取：'+(p?p.name:'（未選）');
  document.getElementById('sizebox').innerHTML=p?(p.shape==='circle'
    ?`<b>${p.name}</b><br>圓心(${p.cx|0},${p.cy|0})　半徑 <b>${p.r|0}</b>`
-   :`<b>${p.name}</b><br>位置(${p.x|0},${p.y|0})　大小 <b>${p.w|0}×${p.h|0}</b>`):'點一個零件看/改大小';
+   :`<b>${p.name}</b><br>位置(${p.x|0},${p.y|0})　大小 <b>${p.w|0}×${p.h|0}</b>　角度 <b>${p.rot|0}°</b>`):'點一個零件看/改大小、角度';
  const TY={pin:'📌固定點',arrow:'➡運動方向'};
  document.getElementById('marklist').innerHTML=marks.length?marks.map((m,i)=>
   `<div class="mk ${m.type}"><div><b>${i+1}. ${TY[m.type]}</b> — ${m.partName}${m.note?'<br>「'+m.note+'」':''}</div><div class="x" data-i="${i}">✕</div></div>`).join(''):
@@ -111,20 +121,20 @@ function nearestPart(x,y){let b=null,bd=1e9;for(const p of parts){const c=center
 
 function setMode(m){mode=m;['tMove','tPin','tArrow'].forEach(id=>document.getElementById(id).classList.remove('on'));
  ({move:'tMove',pin:'tPin',arrow:'tArrow'})[m]&&document.getElementById(({move:'tMove',pin:'tPin',arrow:'tArrow'})[m]).classList.add('on');
- document.getElementById('hint').textContent=({move:'點零件選取；拖中間移動、拖橘角改大小',
+ document.getElementById('hint').textContent=({move:'點零件：拖中間移動、橘角改大小、綠點旋轉',
   pin:'點零件＝在那裡放固定點',arrow:'在某零件上按住拖一條＝運動方向'})[m];}
 document.getElementById('tMove').onclick=()=>setMode('move');
 document.getElementById('tPin').onclick=()=>setMode('pin');
 document.getElementById('tArrow').onclick=()=>setMode('arrow');
 document.getElementById('tUndo').onclick=()=>{marks.pop();render();};
 document.getElementById('tClearMk').onclick=()=>{marks=[];render();};
-document.getElementById('tReset').onclick=()=>{if(confirm('零件大小/位置復位？(標記保留)')){parts=DEF();sel=null;render();}};
+document.getElementById('tReset').onclick=()=>{if(confirm('零件大小/位置/角度復位？(標記保留)')){parts=DEF();sel=null;render();}};
 
 svg.addEventListener('mousedown',e=>{
- const p0=svgPt(e); const h=e.target.closest('.handle'); const g=e.target.closest('.part');
+ const p0=svgPt(e),h=e.target.closest('.handle'),g=e.target.closest('.part');
  if(mode==='move'){
-   if(h){ drag={kind:'resize',h:h.dataset.h,start:p0,orig:{...partAt(sel)}}; return; }
-   if(g){ sel=g.dataset.id; const p=partAt(sel); drag={kind:'move',start:p0,orig:{...p}}; render(); return; }
+   if(h){ const hk=h.dataset.h; drag={kind:hk==='rot'?'rotate':'resize',h:hk,start:p0,orig:{...partAt(sel)},center:centerOf(partAt(sel))}; return; }
+   if(g){ sel=g.dataset.id; drag={kind:'move',start:p0,orig:{...partAt(sel)}}; render(); return; }
    sel=null; render();
  } else if(mode==='arrow'){ drag={kind:'arrow',x1:p0.x,y1:p0.y}; }
  else if(mode==='pin'){ if(g){ const p=partAt(g.dataset.id); addMark({type:'pin',x:p0.x,y:p0.y,part:p.id,partName:p.name}); } }
@@ -135,7 +145,9 @@ svg.addEventListener('mousemove',e=>{
    if(d.shape==='circle'){d.cx=o.cx+dx;d.cy=o.cy+dy;}else{d.x=o.x+dx;d.y=o.y+dy;} render(); }
  else if(drag.kind==='resize'){ const d=partAt(sel),o=drag.orig;
    if(d.shape==='circle'){ d.r=Math.max(8,Math.hypot(p.x-o.cx,p.y-o.cy)); }
-   else{ d.w=Math.max(10,p.x-o.x); d.h=Math.max(10,p.y-o.y); } render(); }
+   else{ const lp=rot2(p.x,p.y,drag.center.x,drag.center.y,-(o.rot||0)); d.w=Math.max(10,lp.x-o.x); d.h=Math.max(10,lp.y-o.y); } render(); }
+ else if(drag.kind==='rotate'){ const d=partAt(sel),c=drag.center;
+   let deg=Math.atan2(p.y-c.y,p.x-c.x)*180/Math.PI+90; deg=Math.round(deg); if(deg>180)deg-=360; if(deg<-180)deg+=360; d.rot=deg; render(); }
  else if(drag.kind==='arrow'){ ghost.innerHTML=`<line x1="${drag.x1}" y1="${drag.y1}" x2="${p.x}" y2="${p.y}" stroke="#16a34a" stroke-width="4" marker-end="url(#ah)" stroke-dasharray="6 4"/>`; }
 });
 svg.addEventListener('mouseup',e=>{
@@ -144,12 +156,14 @@ svg.addEventListener('mouseup',e=>{
      addMark({type:'arrow',x1:drag.x1,y1:drag.y1,x2:p.x,y2:p.y,part:np.id,partName:np.name}); } }
  drag=null;
 });
-function addMark(m){const tip=m.type==='pin'?'這個固定點補一句(可空)— 例: 此點固定不動':'這個方向補一句(可空)— 例: 往上提/開門方向';
+function addMark(m){const tip=m.type==='pin'?'這個固定點補一句(可空)— 例: 此點固定不動':'這個方向補一句(可空)— 例: 往上提/繞此點轉';
  const note=prompt('【'+m.partName+'】'+tip,''); if(note===null)return; if(note)m.note=note; marks.push(m); render();}
 
 document.getElementById('btnExport').onclick=()=>{
- let t='=== 活動羽瓣・驅動輪・門 標注 ===\n\n[零件大小/位置]（正視, 左上原點, 圖 900x640）\n';
- parts.forEach(p=>{ t+=' · '+p.name+'：'+(p.shape==='circle'?`圓心(${p.cx|0},${p.cy|0}) 半徑 ${p.r|0}`:`位置(${p.x|0},${p.y|0}) 大小 ${p.w|0}×${p.h|0}`)+'\n'; });
+ let t='=== 活動羽瓣・驅動輪・門・聯軸器 標注 ===\n\n[零件大小/位置/角度]（正視, 左上原點, 圖 900x640）\n';
+ parts.forEach(p=>{ t+=' · '+p.name+'：'+(p.shape==='circle'
+   ?`圓心(${p.cx|0},${p.cy|0}) 半徑 ${p.r|0}`
+   :`位置(${p.x|0},${p.y|0}) 大小 ${p.w|0}×${p.h|0}${p.rot?' 旋轉 '+(p.rot|0)+'°':''}`)+'\n'; });
  const pins=marks.filter(m=>m.type==='pin'), arrs=marks.filter(m=>m.type==='arrow');
  if(pins.length){ t+='\n[固定點]\n'; pins.forEach((m)=>{ t+=` · ${m.partName} @(${m.x|0},${m.y|0})${m.note?'　※'+m.note:''}\n`; }); }
  if(arrs.length){ t+='\n[運動方向]\n'; arrs.forEach((m)=>{ const dx=m.x2-m.x1,dy=m.y2-m.y1,
