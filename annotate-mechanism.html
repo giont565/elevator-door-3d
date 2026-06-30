@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>門閉鎖器＋羽瓣機構 — 固定點／動作 標注</title>
+<style>
+  :root{--navy:#2C3E48;--gold:#C8A064;--cream:#F5F1E8;--ink:#333;--line:#d8d2c4;
+        --pin:#e23b3b;--arrow:#1b8a3a;--rot:#2E86DE;--fix:#7a4ad0;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:"PingFang TC","Microsoft JhengHei",system-ui,sans-serif;background:var(--cream);color:var(--ink);}
+  header{background:var(--navy);color:#fff;padding:12px 20px;border-bottom:4px solid var(--gold);}
+  header h1{font-size:18px;}
+  header p{font-size:12.5px;color:#cfd6db;margin-top:3px;}
+  .wrap{display:flex;gap:0;height:calc(100vh - 64px);}
+  .left{flex:1;display:flex;flex-direction:column;min-width:0;}
+  .toolbar{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px;background:#fff;border-bottom:1px solid var(--line);align-items:center;}
+  .toolbar button{font-family:inherit;font-size:13px;font-weight:600;padding:7px 12px;border:1.5px solid var(--line);
+    background:#fff;border-radius:8px;cursor:pointer;color:var(--navy);transition:.12s;}
+  .toolbar button:hover{border-color:var(--navy);}
+  .toolbar button.on{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .toolbar .sep{width:1px;height:24px;background:var(--line);margin:0 4px;}
+  .toolbar .hint{font-size:12px;color:#888;margin-left:auto;}
+  .stage{flex:1;overflow:auto;background:#fbfaf6;display:flex;align-items:center;justify-content:center;}
+  svg{display:block;background:#fff;}
+  .comp{cursor:pointer;}
+  .comp .body{transition:.1s;}
+  .comp:hover .body{stroke:var(--gold);stroke-width:3;}
+  .comp.sel .body{stroke:#ff7a00;stroke-width:4;}
+  .comp text{font-size:12px;font-weight:700;fill:var(--navy);pointer-events:none;}
+  .comp .code{font-size:10px;fill:#999;font-family:monospace;}
+  .right{width:340px;flex:none;background:#fff;border-left:1px solid var(--line);display:flex;flex-direction:column;}
+  .right h2{font-size:14px;padding:11px 14px;background:#f0ece2;color:var(--navy);border-bottom:1px solid var(--line);}
+  .marklist{flex:1;overflow:auto;padding:8px 12px;}
+  .mk{font-size:12.5px;padding:7px 9px;border-radius:7px;margin-bottom:6px;border-left:4px solid #ccc;background:#faf8f3;display:flex;gap:6px;align-items:flex-start;}
+  .mk.pin{border-left-color:var(--pin);}
+  .mk.arrow{border-left-color:var(--arrow);}
+  .mk.rot{border-left-color:var(--rot);}
+  .mk.fix{border-left-color:var(--fix);}
+  .mk .x{margin-left:auto;color:#c00;cursor:pointer;font-weight:700;padding:0 4px;}
+  .mk b{color:var(--navy);}
+  .export{padding:10px 12px;border-top:1px solid var(--line);}
+  .export textarea{width:100%;height:120px;font-size:11px;font-family:monospace;border:1px solid var(--line);border-radius:6px;padding:6px;resize:vertical;}
+  .export button{width:100%;margin-top:6px;padding:9px;background:var(--gold);color:#3a2c10;font-weight:700;border:none;border-radius:8px;cursor:pointer;font-size:13px;}
+  .legend{font-size:11.5px;color:#666;padding:6px 12px;border-top:1px dashed var(--line);line-height:1.7;}
+  .legend span{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:3px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>🛗 門閉鎖器＋活動羽瓣 機構 — 固定點／動作 標注</h1>
+  <p>正視示意圖（面對門口，左右＝門寬方向、上下＝高度）。位置為示意、非精確比例；重點標「哪裡固定、怎麼動」的邏輯。標完按右下「導出」複製文字給我。</p>
+</header>
+<div class="wrap">
+  <div class="left">
+    <div class="toolbar">
+      <button id="tSelect" class="on">🖱 選取</button>
+      <div class="sep"></div>
+      <button id="tPin">📌 固定點</button>
+      <button id="tArrow">➡ 移動方向</button>
+      <button id="tRot">🔄 繞點旋轉</button>
+      <button id="tFix">🔒 標不動</button>
+      <div class="sep"></div>
+      <button id="tUndo">↩ 復原</button>
+      <button id="tClear">🗑 全清</button>
+      <span class="hint" id="hint">點元件可選取；選工具後在圖上點/拖標注</span>
+    </div>
+    <div class="stage">
+      <svg id="svg" viewBox="0 0 960 720" width="960" height="720">
+        <!-- 參考底線 -->
+        <defs>
+          <marker id="ah" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6 Z" fill="#1b8a3a"/>
+          </marker>
+        </defs>
+        <!-- ===== 機構元件（正視示意） ===== -->
+        <g class="comp" data-id="bladeL" data-name="活動羽瓣 固定件（左片）">
+          <rect class="body" x="360" y="190" width="34" height="250" rx="6" fill="#f0d9a0" stroke="#b89a55" stroke-width="2"/>
+          <text x="377" y="180" text-anchor="middle">羽瓣固定件</text>
+          <text class="code" x="377" y="455" text-anchor="middle">bladeL（不動基準）</text>
+        </g>
+        <g class="comp" data-id="bladeR" data-name="活動羽瓣 動件（右片）">
+          <rect class="body" x="506" y="190" width="34" height="250" rx="6" fill="#f4c97a" stroke="#b8852f" stroke-width="2"/>
+          <text x="523" y="180" text-anchor="middle">羽瓣動件</text>
+          <text class="code" x="523" y="455" text-anchor="middle">bladeR（可動）</text>
+        </g>
+        <g class="comp" data-id="cR1" data-name="上驅動輪 cR1">
+          <circle class="body" cx="450" cy="250" r="36" fill="#e8e8ec" stroke="#888" stroke-width="2"/>
+          <circle cx="450" cy="250" r="9" fill="#bbb"/>
+          <text x="450" y="212" text-anchor="middle">上驅動輪</text>
+          <text class="code" x="492" y="254" text-anchor="start">cR1</text>
+        </g>
+        <g class="comp" data-id="cR2" data-name="下驅動輪 cR2">
+          <circle class="body" cx="450" cy="360" r="36" fill="#e8e8ec" stroke="#888" stroke-width="2"/>
+          <circle cx="450" cy="360" r="9" fill="#bbb"/>
+          <text x="408" y="364" text-anchor="end">下驅動輪</text>
+          <text class="code" x="492" y="378" text-anchor="start">cR2</text>
+        </g>
+        <g class="comp" data-id="coupler1" data-name="聯軸器 1 段（接門機機座）">
+          <rect class="body" x="620" y="150" width="90" height="16" rx="6" fill="#cfd6db" stroke="#7d8a92" stroke-width="2" transform="rotate(28 620 158)"/>
+          <text x="690" y="135" text-anchor="middle">聯軸器1段</text>
+          <text class="code" x="700" y="120" text-anchor="middle">coupler1（固定端在門機機座）</text>
+        </g>
+        <g class="comp" data-id="coupler2" data-name="聯軸器 2 段（接動件）">
+          <rect class="body" x="548" y="200" width="70" height="14" rx="6" fill="#cfd6db" stroke="#7d8a92" stroke-width="2" transform="rotate(50 548 207)"/>
+          <text x="600" y="245" text-anchor="middle">聯軸器2段</text>
+        </g>
+        <g class="comp" data-id="hookG" data-name="閉鎖鉤 hookG">
+          <path class="body" d="M470,400 q40,5 46,40 q2,26 -22,30 q-20,3 -22,-18 l10,0 q2,9 11,7 q11,-2 9,-18 q-4,-26 -42,-30 Z"
+                fill="#d8b48a" stroke="#8a6433" stroke-width="2"/>
+          <text x="520" y="500" text-anchor="middle">閉鎖鉤</text>
+          <text class="code" x="520" y="516" text-anchor="middle">hookG（彈簧落下鎖門）</text>
+        </g>
+        <g class="comp" data-id="keeper" data-name="鎖座銷 keeper（鉤咬這支）">
+          <circle class="body" cx="455" cy="470" r="11" fill="#c0392b" stroke="#7a2018" stroke-width="2"/>
+          <text x="395" y="474" text-anchor="middle">鎖座銷</text>
+          <text class="code" x="400" y="490" text-anchor="middle">keeper</text>
+        </g>
+        <g class="comp" data-id="liftRod" data-name="引上棒 liftRod（鑰匙從下頂起解鎖）">
+          <rect class="body" x="442" y="395" width="14" height="180" rx="4" fill="#caa0d8" stroke="#7a4ad0" stroke-width="2"/>
+          <text x="449" y="600" text-anchor="middle">引上棒</text>
+          <text class="code" x="449" y="616" text-anchor="middle">liftRod（往上頂＝解鎖）</text>
+        </g>
+        <g class="comp" data-id="spring" data-name="復位彈簧 spring">
+          <path class="body" d="M560,395 q14,8 0,16 q14,8 0,16 q14,8 0,16" fill="none" stroke="#888" stroke-width="3"/>
+          <text x="600" y="420" text-anchor="middle">復位彈簧</text>
+        </g>
+        <g class="comp" data-id="shortBar" data-name="短路棒 shortBar（碰門接點＝DS導通）">
+          <rect class="body" x="300" y="392" width="50" height="12" rx="4" fill="#c98a3a" stroke="#8a5a1a" stroke-width="2"/>
+          <text x="290" y="385" text-anchor="end">短路棒</text>
+          <text class="code" x="290" y="401" text-anchor="end">shortBar</text>
+        </g>
+        <g class="comp" data-id="contact" data-name="門接點 DS（電氣導通確認）">
+          <rect class="body" x="270" y="386" width="22" height="24" rx="3" fill="#4a8c5a" stroke="#2e5a38" stroke-width="2"/>
+          <text x="258" y="430" text-anchor="end">門接點DS</text>
+        </g>
+        <!-- 標注層（動態） -->
+        <g id="marks"></g>
+        <g id="ghost"></g>
+      </svg>
+    </div>
+  </div>
+  <div class="right">
+    <h2 id="curComp">目前選取：（未選）</h2>
+    <div class="marklist" id="marklist"></div>
+    <div class="legend">
+      <div><span style="background:var(--pin)"></span>固定點　<span style="background:var(--arrow)"></span>移動方向　<span style="background:var(--rot)"></span>繞點旋轉　<span style="background:var(--fix)"></span>標不動</div>
+    </div>
+    <div class="export">
+      <textarea id="out" readonly placeholder="按下方「導出標注」會把文字產生在這裡…"></textarea>
+      <button id="btnExport">📋 導出標注（複製給我）</button>
+    </div>
+  </div>
+</div>
+<script>
+const svg=document.getElementById('svg'), marksG=document.getElementById('marks'), ghost=document.getElementById('ghost');
+const comps=[...document.querySelectorAll('.comp')];
+let mode='select', sel=null, marks=[], drag=null;
+
+// 元件中心(算最近元件用)
+function compCenter(g){ const b=g.getBBox(); return {id:g.dataset.id,name:g.dataset.name,cx:b.x+b.width/2,cy:b.y+b.height/2}; }
+const centers=comps.map(compCenter);
+function nearest(x,y){ let best=null,bd=1e9; for(const c of centers){const d=(c.cx-x)**2+(c.cy-y)**2; if(d<bd){bd=d;best=c;}} return best; }
+
+function setMode(m){ mode=m;
+  ['tSelect','tPin','tArrow','tRot','tFix'].forEach(id=>document.getElementById(id).classList.remove('on'));
+  ({select:'tSelect',pin:'tPin',arrow:'tArrow',rot:'tRot',fix:'tFix'})[m] && document.getElementById(({select:'tSelect',pin:'tPin',arrow:'tArrow',rot:'tRot',fix:'tFix'})[m]).classList.add('on');
+  const hints={select:'點元件可選取查看名稱',pin:'在圖上點一下＝放固定點/支點（自動關聯最近元件）',
+    arrow:'在圖上「按住拖一條」＝移動方向（從起點拖到方向終點）',rot:'點一下＝該元件繞此點旋轉',fix:'先點選一個元件，再按這個＝標它完全不動'};
+  document.getElementById('hint').textContent=hints[m];
+}
+document.getElementById('tSelect').onclick=()=>setMode('select');
+document.getElementById('tPin').onclick=()=>setMode('pin');
+document.getElementById('tArrow').onclick=()=>setMode('arrow');
+document.getElementById('tRot').onclick=()=>setMode('rot');
+document.getElementById('tFix').onclick=()=>{ if(!sel){alert('請先用「選取」點一個元件');return;}
+  addMark({type:'fix',comp:sel.id,compName:sel.name}); };
+document.getElementById('tUndo').onclick=()=>{ marks.pop(); render(); };
+document.getElementById('tClear').onclick=()=>{ if(confirm('清除所有標注？')){marks=[];render();} };
+
+function svgPt(e){ const r=svg.getBoundingClientRect(); const vb=svg.viewBox.baseVal;
+  return { x:(e.clientX-r.left)/r.width*vb.width, y:(e.clientY-r.top)/r.height*vb.height }; }
+
+comps.forEach(g=>g.addEventListener('click',e=>{
+  if(mode!=='select') return;
+  comps.forEach(c=>c.classList.remove('sel')); g.classList.add('sel');
+  sel={id:g.dataset.id,name:g.dataset.name};
+  document.getElementById('curComp').textContent='目前選取：'+sel.name;
+}));
+
+svg.addEventListener('mousedown',e=>{
+  const p=svgPt(e);
+  if(mode==='arrow'){ drag={x1:p.x,y1:p.y}; }
+});
+svg.addEventListener('mousemove',e=>{
+  if(mode==='arrow'&&drag){ const p=svgPt(e);
+    ghost.innerHTML=`<line x1="${drag.x1}" y1="${drag.y1}" x2="${p.x}" y2="${p.y}" stroke="#1b8a3a" stroke-width="3" marker-end="url(#ah)" stroke-dasharray="5 3"/>`; }
+});
+svg.addEventListener('mouseup',e=>{
+  const p=svgPt(e);
+  if(mode==='arrow'&&drag){ ghost.innerHTML='';
+    if(Math.hypot(p.x-drag.x1,p.y-drag.y1)>12){ const n=nearest((drag.x1+p.x)/2,(drag.y1+p.y)/2);
+      addMark({type:'arrow',x1:drag.x1,y1:drag.y1,x2:p.x,y2:p.y,comp:n.id,compName:n.name}); }
+    drag=null; }
+});
+svg.addEventListener('click',e=>{
+  if(mode==='select'||mode==='fix') return;
+  const p=svgPt(e); const n=nearest(p.x,p.y);
+  if(mode==='pin') addMark({type:'pin',x:p.x,y:p.y,comp:n.id,compName:n.name});
+  if(mode==='rot') addMark({type:'rot',x:p.x,y:p.y,comp:n.id,compName:n.name});
+});
+
+function addMark(m){
+  if(m.type!=='fix'){ const note=prompt('補一句說明（可空白直接確定）— 例：往上提／繞此點順時針／鎖閉位',''); if(note) m.note=note; }
+  else { const note=prompt('「'+m.compName+'」標為完全不動，補充說明（可空白）',''); if(note) m.note=note; }
+  marks.push(m); render();
+}
+
+function render(){
+  // SVG 標記
+  let s='';
+  marks.forEach((m,i)=>{
+    if(m.type==='pin') s+=`<g><circle cx="${m.x}" cy="${m.y}" r="7" fill="#e23b3b" stroke="#fff" stroke-width="2"/><text x="${m.x+9}" y="${m.y-7}" font-size="11" font-weight="700" fill="#e23b3b">P${i+1}</text></g>`;
+    if(m.type==='rot') s+=`<g><circle cx="${m.x}" cy="${m.y}" r="11" fill="none" stroke="#2E86DE" stroke-width="2.5"/><circle cx="${m.x}" cy="${m.y}" r="2.5" fill="#2E86DE"/><text x="${m.x+13}" y="${m.y-9}" font-size="11" font-weight="700" fill="#2E86DE">R${i+1}</text></g>`;
+    if(m.type==='arrow') s+=`<g><line x1="${m.x1}" y1="${m.y1}" x2="${m.x2}" y2="${m.y2}" stroke="#1b8a3a" stroke-width="3.5" marker-end="url(#ah)"/><text x="${m.x2+6}" y="${m.y2}" font-size="11" font-weight="700" fill="#1b8a3a">A${i+1}</text></g>`;
+  });
+  marksG.innerHTML=s;
+  // 清單
+  const TY={pin:'📌固定點',arrow:'➡移動',rot:'🔄旋轉',fix:'🔒不動'};
+  document.getElementById('marklist').innerHTML = marks.length? marks.map((m,i)=>
+    `<div class="mk ${m.type}"><div><b>${i+1}. ${TY[m.type]}</b> — ${m.compName}${m.note?'<br>「'+m.note+'」':''}</div><div class="x" data-i="${i}">✕</div></div>`
+  ).join('') : '<div style="color:#aaa;font-size:12.5px;padding:8px">尚無標注。選上方工具後在圖上點/拖。</div>';
+  document.querySelectorAll('.mk .x').forEach(x=>x.onclick=()=>{ marks.splice(+x.dataset.i,1); render(); });
+}
+
+document.getElementById('btnExport').onclick=()=>{
+  const TY={pin:'固定點',arrow:'移動方向',rot:'繞點旋轉',fix:'完全不動'};
+  // 依元件分組
+  const byc={};
+  marks.forEach(m=>{ (byc[m.compName]=byc[m.compName]||[]).push(m); });
+  let t='=== 門閉鎖器＋羽瓣 機構標注 ===\n';
+  if(!marks.length) t+='(尚無標注)\n';
+  for(const [name,ms] of Object.entries(byc)){
+    t+=`\n【${name}】\n`;
+    ms.forEach(m=>{
+      if(m.type==='fix') t+=`  · 完全不動`;
+      else if(m.type==='pin') t+=`  · 固定點/支點 @(${m.x|0},${m.y|0})`;
+      else if(m.type==='rot') t+=`  · 繞點旋轉，圓心 @(${m.x|0},${m.y|0})`;
+      else if(m.type==='arrow'){ const dx=m.x2-m.x1,dy=m.y2-m.y1;
+        const dir=Math.abs(dx)>Math.abs(dy)?(dx>0?'向右→':'向左←'):(dy>0?'向下↓':'向上↑');
+        t+=`  · 移動方向 ${dir}（${m.x1|0},${m.y1|0}→${m.x2|0},${m.y2|0}）`; }
+      t+=(m.note?`　※${m.note}`:'')+'\n';
+    });
+  }
+  t+='\n（座標為示意圖像素，左右＝門寬、上下＝高度；我會照你標的固定點與動作邏輯修 3D）';
+  const out=document.getElementById('out'); out.value=t; out.select();
+  let ok=false; try{ ok=document.execCommand('copy'); }catch(e){}
+  if(navigator.clipboard) navigator.clipboard.writeText(t).then(()=>{},()=>{});
+  alert(ok?'已複製到剪貼簿！貼回對話給我即可。':'已產生文字（在下方框），請手動全選複製貼回對話。');
+};
+render(); setMode('select');
+</script>
+</body>
+</html>
