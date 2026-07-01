@@ -48,6 +48,7 @@
  <div class="left">
   <div class="toolbar">
    <div class="stateseg"><button id="stClose" class="on">🚪 關門態</button><button id="stOpen">🚪 開門態</button></div>
+   <button id="btnCopy">📋 開門態←複製關門態</button>
    <button id="btnSim">▶ 模擬開關門</button>
    <div class="sep"></div>
    <button id="tMove" class="on">🖱 移動/大小/旋轉</button><button id="tPin">📌 固定點</button><button id="tArrow">➡ 運動方向</button>
@@ -78,14 +79,15 @@ const PHOTOS=[{n:"01·手冊_乘場門保養概觀",b:"/9j/4AAQSkZJRgABAQAAAQABA
 const svg=document.getElementById('svg'),partsG=document.getElementById('parts'),marksG=document.getElementById('marks'),
  handlesG=document.getElementById('handles'),ghost=document.getElementById('ghost'),bg=document.getElementById('bg');
 // 零件：大小共用(w/h/r)、位置角度分關門(close)/開門(open)兩態。close 用 Hao 標的關門態數據，open 我給初稿
+// close＝Hao 在 IMG_9644 標的關門態；open 初始＝close(同座標系起點)，Hao 只拖會動的到半開位置
 const DEF=()=>[
- {id:'door',name:'門（車廂門板）',shape:'rect',w:180,h:429,fill:'#dfe6ea',op:.4,close:{x:367,y:369,rot:0},open:{x:230,y:369,rot:0}},
- {id:'vaneFix',name:'羽瓣固定件',shape:'rect',w:13,h:207,fill:'#f0d9a0',op:.85,close:{x:463,y:245,rot:0},open:{x:463,y:245,rot:0}},
- {id:'vaneMov',name:'羽瓣動件',shape:'rect',w:12,h:199,fill:'#f4b24a',op:.85,labelDy:-18,close:{x:504,y:256,rot:0},open:{x:492,y:226,rot:0}},
- {id:'rollU',name:'上驅動輪',shape:'circle',r:13,fill:'#e3e3ea',op:.85,close:{cx:490,cy:310},open:{cx:490,cy:308}},
- {id:'rollD',name:'下驅動輪',shape:'circle',r:12,fill:'#e3e3ea',op:.85,close:{cx:490,cy:354},open:{cx:490,cy:354}},
- {id:'coup1',name:'聯軸器1段(接門機機座)',shape:'rect',w:225,h:44,fill:'#cfd6db',op:.8,labelDy:-2,close:{x:157,y:204,rot:8},open:{x:157,y:204,rot:-7}},
- {id:'coup2',name:'聯軸器2段(接動件)',shape:'rect',w:27,h:198,fill:'#aab6bd',op:.8,labelDy:-2,close:{x:369,y:198,rot:-54},open:{x:360,y:182,rot:-38}},
+ {id:'door',name:'門（車廂門板）',shape:'rect',w:110,h:499,fill:'#dfe6ea',op:.4,close:{x:341,y:138,rot:0},open:{x:341,y:138,rot:0}},
+ {id:'vaneFix',name:'羽瓣固定件',shape:'rect',w:9,h:145,fill:'#f0d9a0',op:.85,close:{x:402,y:47,rot:0},open:{x:402,y:47,rot:0}},
+ {id:'vaneMov',name:'羽瓣動件',shape:'rect',w:8,h:150,fill:'#f4b24a',op:.85,labelDy:-16,close:{x:430,y:53,rot:0},open:{x:430,y:53,rot:0}},
+ {id:'rollU',name:'上驅動輪',shape:'circle',r:8,fill:'#e3e3ea',op:.85,close:{cx:420,cy:104},open:{cx:420,cy:104}},
+ {id:'rollD',name:'下驅動輪',shape:'circle',r:8,fill:'#e3e3ea',op:.85,close:{cx:421,cy:129},open:{cx:421,cy:129}},
+ {id:'coup1',name:'聯軸器1段(接門機機座)',shape:'rect',w:135,h:31,fill:'#cfd6db',op:.8,labelDy:-2,close:{x:224,y:29,rot:-20},open:{x:224,y:29,rot:-20}},
+ {id:'coup2',name:'聯軸器2段(接動件)',shape:'rect',w:16,h:128,fill:'#aab6bd',op:.8,labelDy:-2,close:{x:350,y:27,rot:-39},open:{x:350,y:27,rot:-39}},
 ];
 let parts=DEF(),sel=null,mode='move',marks=[],drag=null,bgIdx=-1,bgOn=false,curState='close',sim=null;
 let view={x:0,y:0,w:900,h:640};
@@ -156,6 +158,10 @@ document.getElementById('tReset').onclick=()=>{if(confirm('零件兩態都復位
 function setState(s){if(sim)return;curState=s;document.getElementById('stClose').classList.toggle('on',s==='close');document.getElementById('stOpen').classList.toggle('on',s==='open');render();}
 document.getElementById('stClose').onclick=()=>setState('close');
 document.getElementById('stOpen').onclick=()=>setState('open');
+document.getElementById('btnCopy').onclick=()=>{if(sim)return;if(!confirm('把「關門態」的位置/角度複製到「開門態」當起點？(開門態現有的會被蓋掉)'))return;
+ parts.forEach(p=>p.open=JSON.parse(JSON.stringify(p.close)));
+ if(curState!=='open')setState('open');else render();
+ alert('已複製到開門態。現在只要把「會動的」拖到半開位置：門滑開、羽瓣動件上提、上驅動輪、聯軸器角度變；固定的(下驅動輪/羽瓣固定件/聯軸器1段支點)留著不動。');};
 // 模擬
 document.getElementById('btnSim').onclick=()=>{const b=document.getElementById('btnSim');
  if(sim){cancelAnimationFrame(sim.raf);sim=null;b.classList.remove('on');b.textContent='▶ 模擬開關門';render();return;}
